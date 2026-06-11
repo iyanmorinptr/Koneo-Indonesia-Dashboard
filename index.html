@@ -310,42 +310,45 @@
 
   <!-- PENGELUARAN -->
   <div id="tab-pengeluaran" class="section">
+
     <div class="card">
-      <div class="card-title"><i class="ti ti-tools-kitchen-2"></i> Bar & Kitchen</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Tambah item pembelian dengan keterangan dan nominal</p>
+      <div class="card-title"><i class="ti ti-glass-full"></i> Bar</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Tambah item pembelian Bar</p>
+      <div id="bar-rows"></div>
+      <button class="btn-add" onclick="addBarRow()"><i class="ti ti-plus"></i> Tambah item</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chef-hat"></i> Kitchen</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Tambah item pembelian Kitchen</p>
+      <div id="kitchen-rows"></div>
+      <button class="btn-add" onclick="addKitchenRow()"><i class="ti ti-plus"></i> Tambah item</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-receipt-tax"></i> Pajak</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Pilih jenis pajak dan masukkan nominal</p>
 
       <div style="margin-bottom:10px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-glass-full" style="color:#093a72;font-size:14px;"></i> Bar</div>
-        <div id="bar-rows"></div>
-        <button class="btn-add" onclick="addBarRow()"><i class="ti ti-plus"></i> Tambah item Bar</button>
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-building-store" style="color:#093a72;font-size:14px;"></i> Pajak Majoo</div>
+        <div id="pajak-majoo-rows"></div>
+        <button class="btn-add" onclick="addPajakMajooRow()"><i class="ti ti-plus"></i> Tambah item</button>
       </div>
 
       <div class="divider"></div>
 
       <div style="margin-top:10px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-chef-hat" style="color:#093a72;font-size:14px;"></i> Kitchen</div>
-        <div id="kitchen-rows"></div>
-        <button class="btn-add" onclick="addKitchenRow()"><i class="ti ti-plus"></i> Tambah item Kitchen</button>
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-device-desktop" style="color:#093a72;font-size:14px;"></i> Pajak POS</div>
+        <div id="pajak-pos-rows"></div>
+        <button class="btn-add" onclick="addPajakPosRow()"><i class="ti ti-plus"></i> Tambah item</button>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title"><i class="ti ti-receipt-tax"></i> Pajak & Operasional</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Tambah item dengan keterangan dan nominal</p>
-
-      <div style="margin-bottom:10px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-file-invoice" style="color:#093a72;font-size:14px;"></i> Pajak</div>
-        <div id="pajak-rows"></div>
-        <button class="btn-add" onclick="addPajakRow()"><i class="ti ti-plus"></i> Tambah item Pajak</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div style="margin-top:10px;">
-        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-settings" style="color:#093a72;font-size:14px;"></i> Operasional</div>
-        <div id="operasional-rows"></div>
-        <button class="btn-add" onclick="addOperasionalRow()"><i class="ti ti-plus"></i> Tambah item Operasional</button>
-      </div>
+      <div class="card-title"><i class="ti ti-settings"></i> Operasional</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Tambah item biaya operasional</p>
+      <div id="operasional-rows"></div>
+      <button class="btn-add" onclick="addOperasionalRow()"><i class="ti ti-plus"></i> Tambah item</button>
     </div>
 
     <div class="card">
@@ -358,8 +361,10 @@
     <div class="summary-card">
       <div class="card-title" style="margin-bottom:0.75rem;font-size:13px;">Ringkasan Pengeluaran</div>
       <div class="summary-grid">
-        <div class="metric amber"><div class="mlabel">Bar + Kitchen</div><div class="mval" id="s_barkitchen">Rp 0</div></div>
-        <div class="metric amber"><div class="mlabel">Pajak + Ops</div><div class="mval" id="s_pajakops">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel">Bar</div><div class="mval" id="s_bar">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel">Kitchen</div><div class="mval" id="s_kitchen">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel">Pajak</div><div class="mval" id="s_pajakops">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel">Operasional</div><div class="mval" id="s_ops">Rp 0</div></div>
         <div class="metric amber"><div class="mlabel">Lainnya</div><div class="mval" id="s_lainnya">Rp 0</div></div>
         <div class="metric red"><div class="mlabel">Grand Total</div><div class="mval" id="s_pengeluaran">Rp 0</div></div>
       </div>
@@ -430,7 +435,7 @@
 const today = new Date();
 document.getElementById('tanggal').value = today.toISOString().split('T')[0];
 
-let extraRows = [], barRows = [], kitchenRows = [], pajakRows = [], operasionalRows = [], rowId = 0;
+let extraRows = [], barRows = [], kitchenRows = [], pajakMajooRows = [], pajakPosRows = [], operasionalRows = [], rowId = 0;
 
 function fmt(n) {
   if (!n || n === 0) return 'Rp 0';
@@ -489,7 +494,8 @@ function renderItemRows(containerId, rowsArr, placeholder) {
 
 function addBarRow() { makeItemRow('bar-rows', barRows, 'Keterangan pembelian Bar...'); }
 function addKitchenRow() { makeItemRow('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...'); }
-function addPajakRow() { makeItemRow('pajak-rows', pajakRows, 'Keterangan pajak...'); }
+function addPajakMajooRow() { makeItemRow('pajak-majoo-rows', pajakMajooRows, 'Keterangan pajak Majoo...'); }
+function addPajakPosRow() { makeItemRow('pajak-pos-rows', pajakPosRows, 'Keterangan pajak POS...'); }
 function addOperasionalRow() { makeItemRow('operasional-rows', operasionalRows, 'Keterangan operasional...'); }
 
 function addRow() {
@@ -535,13 +541,17 @@ function calc() {
 
   let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
-  let pajak = 0; pajakRows.forEach(r => { pajak += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let pajakMajoo = 0; pajakMajooRows.forEach(r => { pajakMajoo += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let pajakPos = 0; pajakPosRows.forEach(r => { pajakPos += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  const pajak = pajakMajoo + pajakPos;
   let ops = 0; operasionalRows.forEach(r => { ops += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let lainnya = 0;
   extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
   const totalK = bar + kitchen + pajak + ops + lainnya;
-  document.getElementById('s_barkitchen').textContent = fmt(bar + kitchen);
-  document.getElementById('s_pajakops').textContent = fmt(pajak + ops);
+  document.getElementById('s_bar').textContent = fmt(bar);
+  document.getElementById('s_kitchen').textContent = fmt(kitchen);
+  document.getElementById('s_pajakops').textContent = fmt(pajak);
+  document.getElementById('s_ops').textContent = fmt(ops);
   document.getElementById('s_lainnya').textContent = fmt(lainnya);
   document.getElementById('s_pengeluaran').textContent = fmt(totalK);
 }
@@ -553,11 +563,12 @@ function buildReport() {
   const gj = getVal('gojek'), gr = getVal('grab');
   const barData = barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Bar', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
   const kitchenData = kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Kitchen', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
-  const pajakData = pajakRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Pajak', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
+  const pajakMajooData = pajakMajooRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Pajak Majoo', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
+  const pajakPosData = pajakPosRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Pajak POS', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
   const operasionalData = operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Operasional', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
   let bar = 0; barData.forEach(e => bar += e.val);
   let kitchen = 0; kitchenData.forEach(e => kitchen += e.val);
-  let pajak = 0; pajakData.forEach(e => pajak += e.val);
+  let pajak = 0; pajakMajooData.forEach(e => pajak += e.val); pajakPosData.forEach(e => pajak += e.val);
   let ops = 0; operasionalData.forEach(e => ops += e.val);
   const extraData = extraRows.map(r => ({
     ket: document.getElementById('extra_ket_' + r.id)?.value || 'Lainnya',
@@ -601,7 +612,8 @@ function buildReport() {
   const keRows = [
     ...barData.map(e => ({ cat: 'Bar', ket: e.ket, val: e.val })),
     ...kitchenData.map(e => ({ cat: 'Kitchen', ket: e.ket, val: e.val })),
-    ...pajakData.map(e => ({ cat: 'Pajak', ket: e.ket, val: e.val })),
+    ...pajakMajooData.map(e => ({ cat: 'Pajak Majoo', ket: e.ket, val: e.val })),
+    ...pajakPosData.map(e => ({ cat: 'Pajak POS', ket: e.ket, val: e.val })),
     ...operasionalData.map(e => ({ cat: 'Operasional', ket: e.ket, val: e.val })),
     ...extraData.map(e => ({ cat: 'Lainnya', ket: e.ket, val: e.val }))
   ].filter(r => r.val > 0);
@@ -634,11 +646,12 @@ function resetAll() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  extraRows = []; barRows = []; kitchenRows = []; pajakRows = []; operasionalRows = []; rowId = 0;
+  extraRows = []; barRows = []; kitchenRows = []; pajakMajooRows = []; pajakPosRows = []; operasionalRows = []; rowId = 0;
   renderExtraRows();
   renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
   renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
-  renderItemRows('pajak-rows', pajakRows, 'Keterangan pajak...');
+  renderItemRows('pajak-majoo-rows', pajakMajooRows, 'Keterangan pajak Majoo...');
+  renderItemRows('pajak-pos-rows', pajakPosRows, 'Keterangan pajak POS...');
   renderItemRows('operasional-rows', operasionalRows, 'Keterangan operasional...');
   calc();
   switchTab('pemasukan');
@@ -654,12 +667,13 @@ function openSubmitModal() {
   const gj = getVal('gojek'), gr = getVal('grab');
   let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
-  let pajak = 0; pajakRows.forEach(r => { pajak += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let pajakMajoo = 0; pajakMajooRows.forEach(r => { pajakMajoo += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let pajakPos = 0; pajakPosRows.forEach(r => { pajakPos += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let ops = 0; operasionalRows.forEach(r => { ops += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let lainnya = 0;
   extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
   const totalP = mt + mnt + pt + pnt + gj + gr;
-  const totalK = bar + kitchen + pajak + ops + lainnya;
+  const totalK = bar + kitchen + pajakMajoo + pajakPos + ops + lainnya;
   const net = totalP - totalK;
 
   if (totalP === 0 && totalK === 0) {
