@@ -212,14 +212,154 @@
   .btn-confirm:hover { background: #0a2f5a; }
 
   @media print {
-    .topbar { display: none; }
-    .tabs { display: none; }
-    .action-row { display: none; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    @page {
+      size: A4;
+      margin: 18mm 20mm 18mm 20mm;
+    }
+
+    /* hide web UI */
+    .topbar, .tabs, .action-row, .submit-bar, .modal-overlay,
     #tab-pemasukan, #tab-pengeluaran { display: none !important; }
     #tab-laporan { display: block !important; }
-    body { background: white; }
-    .card { box-shadow: none; border: 1px solid #ddd; }
-    .net-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    body {
+      background: #fff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 11pt;
+      color: #111;
+      margin: 0; padding: 0;
+    }
+
+    .main { max-width: 100%; padding: 0; margin: 0; }
+
+    /* ── KOP SURAT ── */
+    #tab-laporan::before {
+      content: '';
+      display: block;
+      background: #093a72;
+      height: 6pt;
+      margin-bottom: 0;
+    }
+
+    .print-header {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14pt 0 12pt 0;
+      border-bottom: 2px solid #093a72;
+      margin-bottom: 16pt;
+    }
+    .print-header-left .company { font-size: 17pt; font-weight: 700; color: #093a72; letter-spacing: -0.3px; }
+    .print-header-left .subtitle { font-size: 9pt; color: #555; margin-top: 2pt; }
+    .print-header-right { text-align: right; }
+    .print-header-right .doc-title { font-size: 12pt; font-weight: 700; color: #093a72; }
+    .print-header-right .doc-date { font-size: 9pt; color: #555; margin-top: 3pt; }
+
+    /* ── NET BOX ── */
+    .net-box {
+      border-radius: 6pt !important;
+      padding: 14pt 18pt !important;
+      margin-bottom: 14pt !important;
+      border: none !important;
+      page-break-inside: avoid;
+    }
+    .net-box.profit { background: #093a72 !important; }
+    .net-box.loss   { background: #b91c1c !important; }
+    .net-box .net-meta   { font-size: 8pt !important; font-weight: 700 !important; color: rgba(255,255,255,0.75) !important; letter-spacing: 0.08em !important; }
+    .net-box .net-amount { font-size: 26pt !important; font-weight: 800 !important; color: #fff !important; line-height: 1.1; }
+    .net-box .net-date   { font-size: 8.5pt !important; color: rgba(255,255,255,0.75) !important; margin-top: 4pt !important; }
+
+    /* ── RINGKASAN 3 KOLOM ── */
+    .summary-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr 1fr !important;
+      gap: 8pt !important;
+      margin-bottom: 16pt !important;
+    }
+    .metric {
+      background: #f4f7fb !important;
+      border: 1px solid #d0daea !important;
+      border-radius: 5pt !important;
+      padding: 9pt 11pt !important;
+    }
+    .metric .mlabel { font-size: 7.5pt !important; color: #555 !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; }
+    .metric .mval   { font-size: 13pt !important; font-weight: 700 !important; margin-top: 2pt; }
+    .metric.green .mval { color: #0d6e4f !important; }
+    .metric.red   .mval { color: #b91c1c !important; }
+    .metric.blue  .mval { color: #093a72 !important; }
+
+    /* ── CARDS ── */
+    .card {
+      background: #fff !important;
+      border: 1px solid #d0daea !important;
+      border-radius: 5pt !important;
+      padding: 11pt 14pt !important;
+      margin-bottom: 12pt !important;
+      box-shadow: none !important;
+      page-break-inside: avoid;
+    }
+    .card-title {
+      font-size: 10pt !important;
+      font-weight: 700 !important;
+      color: #093a72 !important;
+      margin-bottom: 8pt !important;
+      padding-bottom: 6pt !important;
+      border-bottom: 1.5px solid #093a72 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 5pt !important;
+    }
+    .card-title i { color: #093a72 !important; font-size: 12pt !important; }
+
+    /* ── TABLES ── */
+    table.report { width: 100% !important; border-collapse: collapse !important; font-size: 9.5pt !important; }
+    table.report th {
+      background: #093a72 !important;
+      color: #fff !important;
+      font-size: 8pt !important;
+      font-weight: 700 !important;
+      padding: 6pt 9pt !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.04em !important;
+      border: none !important;
+    }
+    table.report td { padding: 6pt 9pt !important; border-bottom: 1px solid #e8eef5 !important; color: #222 !important; }
+    table.report tr:nth-child(even) td { background: #f7fafd !important; }
+    table.report tr:last-child td { border-bottom: none !important; }
+    table.report .total-row td {
+      background: #eef3fb !important;
+      font-weight: 700 !important;
+      color: #093a72 !important;
+      border-top: 1.5px solid #093a72 !important;
+      font-size: 10pt !important;
+    }
+
+    .badge { border-radius: 3pt !important; font-size: 7.5pt !important; padding: 1.5pt 6pt !important; }
+    .badge.tunai     { background: #d1fae5 !important; color: #065f46 !important; }
+    .badge.nontunai  { background: #dbeafe !important; color: #1e40af !important; }
+    .badge.online    { background: #fef3c7 !important; color: #92400e !important; }
+
+    /* ── BAR CHART ── */
+    .bar-wrap { margin-bottom: 5pt !important; }
+    .bar-label { font-size: 8pt !important; min-width: 110pt !important; max-width: 110pt !important; }
+    .bar-val   { font-size: 8pt !important; }
+    .bar-track { height: 5pt !important; }
+
+    .divider { background: #d0daea !important; margin: 8pt 0 !important; }
+
+    /* ── FOOTER ── */
+    #tab-laporan::after {
+      content: 'Dokumen ini dicetak otomatis oleh sistem laporan keuangan Koneo Indonesia';
+      display: block;
+      text-align: center;
+      font-size: 7.5pt;
+      color: #aaa;
+      margin-top: 20pt;
+      padding-top: 10pt;
+      border-top: 1px solid #e0e0e0;
+    }
   }
 </style>
 </head>
@@ -373,6 +513,19 @@
 
   <!-- LAPORAN -->
   <div id="tab-laporan" class="section">
+
+    <!-- Print header: hanya tampil saat cetak -->
+    <div class="print-header" style="display:none;">
+      <div class="print-header-left">
+        <div class="company">Koneo Indonesia</div>
+        <div class="subtitle">Laporan Keuangan Harian</div>
+      </div>
+      <div class="print-header-right">
+        <div class="doc-title">LAPORAN KEUANGAN</div>
+        <div class="doc-date" id="print-date-label">—</div>
+      </div>
+    </div>
+
     <div id="net-display" class="net-box profit">
       <div class="net-meta">Laba Bersih Hari Ini</div>
       <div class="net-amount" id="net-val">Rp 0</div>
@@ -407,7 +560,7 @@
 
     <div class="action-row">
       <button class="btn-outline" onclick="resetAll()"><i class="ti ti-refresh"></i> Reset Data</button>
-      <button class="btn-primary" onclick="window.print()"><i class="ti ti-printer"></i> Cetak Laporan</button>
+      <button class="btn-primary" onclick="doPrint()"><i class="ti ti-printer"></i> Cetak Laporan</button>
     </div>
   </div>
 </div>
@@ -659,6 +812,14 @@ function resetAll() {
 }
 
 calc();
+
+function doPrint() {
+  buildReport();
+  const tgl = document.getElementById('tanggal').value;
+  const tglFmt = tgl ? new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
+  document.getElementById('print-date-label').textContent = tglFmt;
+  setTimeout(() => window.print(), 150);
+}
 
 function openSubmitModal() {
   calc();
