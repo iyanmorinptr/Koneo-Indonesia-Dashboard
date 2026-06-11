@@ -186,6 +186,31 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--surface); padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  .submit-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: var(--shadow); }
+  .submit-bar .submit-info { font-size: 13px; color: var(--text2); }
+  .submit-bar .submit-info strong { color: var(--text); font-weight: 600; }
+  .btn-submit { display: inline-flex; align-items: center; gap: 7px; background: #093a72; color: #fff; border: none; font-size: 14px; font-weight: 600; padding: 10px 24px; cursor: pointer; border-radius: 9px; transition: background 0.15s; }
+  .btn-submit:hover { background: #0a2f5a; }
+  .btn-submit:disabled { background: var(--text3); cursor: not-allowed; }
+  .submitted-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: #0F6E56; border: 1px solid #9FE1CB; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(9,58,114,0.35); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; max-width: 420px; width: 100%; box-shadow: 0 8px 32px rgba(9,58,114,0.18); }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+  .modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; }
+  .modal-rows { margin-bottom: 1.25rem; }
+  .modal-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .modal-row:last-child { border-bottom: none; }
+  .modal-row .mkey { color: var(--text2); }
+  .modal-row .mvalue { font-weight: 600; color: var(--text); }
+  .modal-row.net .mvalue { color: #093a72; font-size: 16px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-cancel { background: none; border: 1px solid var(--border2); color: var(--text2); font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: 9px; cursor: pointer; }
+  .btn-cancel:hover { border-color: var(--red); color: var(--red); }
+  .btn-confirm { background: #093a72; color: #fff; border: none; font-size: 14px; font-weight: 600; padding: 10px 22px; border-radius: 9px; cursor: pointer; }
+  .btn-confirm:hover { background: #0a2f5a; }
+
   @media print {
     .topbar { display: none; }
     .tabs { display: none; }
@@ -215,6 +240,13 @@
 </div>
 
 <div class="main">
+  <div id="submit-bar" class="submit-bar">
+    <div class="submit-info">
+      <strong>Konfirmasi Data</strong> — Pastikan semua data sudah benar sebelum submit
+    </div>
+    <button class="btn-submit" onclick="openSubmitModal()"><i class="ti ti-check"></i> Submit Data</button>
+  </div>
+
   <div class="tabs">
     <button class="tab active" onclick="switchTab('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
     <button class="tab" onclick="switchTab('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
@@ -280,15 +312,20 @@
   <div id="tab-pengeluaran" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-tools-kitchen-2"></i> Bar & Kitchen</div>
-      <div class="grid-2">
-        <div class="input-group">
-          <label>Bar</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="bar" placeholder="0" oninput="calc()"></div>
-        </div>
-        <div class="input-group">
-          <label>Kitchen</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="kitchen" placeholder="0" oninput="calc()"></div>
-        </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Tambah item pembelian dengan keterangan dan nominal</p>
+
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-glass-full" style="color:#093a72;font-size:14px;"></i> Bar</div>
+        <div id="bar-rows"></div>
+        <button class="btn-add" onclick="addBarRow()"><i class="ti ti-plus"></i> Tambah item Bar</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="margin-top:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-chef-hat" style="color:#093a72;font-size:14px;"></i> Kitchen</div>
+        <div id="kitchen-rows"></div>
+        <button class="btn-add" onclick="addKitchenRow()"><i class="ti ti-plus"></i> Tambah item Kitchen</button>
       </div>
     </div>
 
@@ -367,11 +404,28 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- MODAL KONFIRMASI -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-clipboard-check" style="color:#093a72;margin-right:6px;"></i>Konfirmasi Submit Data</div>
+    <div class="modal-sub" id="modal-date-label">—</div>
+    <div class="modal-rows">
+      <div class="modal-row"><span class="mkey">Total Pemasukan</span><span class="mvalue" id="m-pemasukan">Rp 0</span></div>
+      <div class="modal-row"><span class="mkey">Total Pengeluaran</span><span class="mvalue" id="m-pengeluaran">Rp 0</span></div>
+      <div class="modal-row net"><span class="mkey" style="font-weight:600;">Laba / Rugi Bersih</span><span class="mvalue" id="m-net">Rp 0</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSubmitModal()">Batal</button>
+      <button class="btn-confirm" onclick="confirmSubmit()"><i class="ti ti-check"></i> Ya, Submit</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const today = new Date();
 document.getElementById('tanggal').value = today.toISOString().split('T')[0];
 
-let extraRows = [], rowId = 0;
+let extraRows = [], barRows = [], kitchenRows = [], rowId = 0;
 
 function fmt(n) {
   if (!n || n === 0) return 'Rp 0';
@@ -396,6 +450,40 @@ function switchTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'laporan') buildReport();
 }
+
+function makeItemRow(containerId, rowsArr, placeholder) {
+  const id = ++rowId;
+  rowsArr.push({ id });
+  renderItemRows(containerId, rowsArr, placeholder);
+}
+
+function removeItemRow(containerId, rowsArr, id, placeholder) {
+  const idx = rowsArr.findIndex(r => r.id === id);
+  if (idx > -1) rowsArr.splice(idx, 1);
+  renderItemRows(containerId, rowsArr, placeholder);
+  calc();
+}
+
+function renderItemRows(containerId, rowsArr, placeholder) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  rowsArr.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'extra-row';
+    div.innerHTML = `
+      <input type="text" placeholder="${placeholder}" id="item_ket_${r.id}" oninput="calc()">
+      <div class="currency-wrap" style="position:relative;">
+        <span class="prefix" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;">Rp</span>
+        <input type="number" placeholder="0" id="item_val_${r.id}" oninput="calc()" style="padding-left:30px;">
+      </div>
+      <button class="btn-danger-sm" onclick="removeItemRow('${containerId}', ${containerId === 'bar-rows' ? 'barRows' : containerId === 'kitchen-rows' ? 'kitchenRows' : 'extraRows'}, ${r.id}, '${placeholder}')" title="Hapus"><i class="ti ti-trash"></i></button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addBarRow() { makeItemRow('bar-rows', barRows, 'Keterangan pembelian Bar...'); }
+function addKitchenRow() { makeItemRow('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...'); }
 
 function addRow() {
   const id = ++rowId;
@@ -438,7 +526,8 @@ function calc() {
   document.getElementById('s_online').textContent = fmt(online);
   document.getElementById('s_pemasukan').textContent = fmt(totalP);
 
-  const bar = getVal('bar'), kitchen = getVal('kitchen');
+  let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   const pajak = getVal('pajak'), ops = getVal('operasional');
   let lainnya = 0;
   extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
@@ -454,7 +543,10 @@ function buildReport() {
   const mt = getVal('majoo_tunai'), mnt = getVal('majoo_nontunai');
   const pt = getVal('pos_tunai'), pnt = getVal('pos_nontunai');
   const gj = getVal('gojek'), gr = getVal('grab');
-  const bar = getVal('bar'), kitchen = getVal('kitchen');
+  const barData = barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Bar', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
+  const kitchenData = kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Kitchen', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
+  let bar = 0; barData.forEach(e => bar += e.val);
+  let kitchen = 0; kitchenData.forEach(e => kitchen += e.val);
   const pajak = getVal('pajak'), ops = getVal('operasional');
   const extraData = extraRows.map(r => ({
     ket: document.getElementById('extra_ket_' + r.id)?.value || 'Lainnya',
@@ -496,8 +588,8 @@ function buildReport() {
       + `<tr class="total-row"><td colspan="2">Total Pemasukan</td><td style="text-align:right">${fmt(totalP)}</td></tr>`;
 
   const keRows = [
-    { cat: 'Bar', ket: 'Bar', val: bar },
-    { cat: 'Kitchen', ket: 'Kitchen', val: kitchen },
+    ...barData.map(e => ({ cat: 'Bar', ket: e.ket, val: e.val })),
+    ...kitchenData.map(e => ({ cat: 'Kitchen', ket: e.ket, val: e.val })),
     { cat: 'Pajak', ket: 'Pajak', val: pajak },
     { cat: 'Operasional', ket: 'Operasional', val: ops },
     ...extraData.map(e => ({ cat: 'Lainnya', ket: e.ket, val: e.val }))
@@ -527,18 +619,67 @@ function buildBar(id, data, color) {
 
 function resetAll() {
   if (!confirm('Reset semua data? Tindakan ini tidak bisa dibatalkan.')) return;
-  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','bar','kitchen','pajak','operasional'].forEach(id => {
+  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak','operasional'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  extraRows = []; rowId = 0;
+  extraRows = []; barRows = []; kitchenRows = []; rowId = 0;
   renderExtraRows();
+  renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
+  renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
   calc();
   switchTab('pemasukan');
   showToast('Data berhasil direset.');
 }
 
 calc();
+
+function openSubmitModal() {
+  calc();
+  const mt = getVal('majoo_tunai'), mnt = getVal('majoo_nontunai');
+  const pt = getVal('pos_tunai'), pnt = getVal('pos_nontunai');
+  const gj = getVal('gojek'), gr = getVal('grab');
+  let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  const pajak = getVal('pajak'), ops = getVal('operasional');
+  let lainnya = 0;
+  extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
+  const totalP = mt + mnt + pt + pnt + gj + gr;
+  const totalK = bar + kitchen + pajak + ops + lainnya;
+  const net = totalP - totalK;
+
+  if (totalP === 0 && totalK === 0) {
+    showToast('Belum ada data yang diisi.');
+    return;
+  }
+
+  const tgl = document.getElementById('tanggal').value;
+  const tglFmt = tgl ? new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
+  document.getElementById('modal-date-label').textContent = tglFmt;
+  document.getElementById('m-pemasukan').textContent = fmt(totalP);
+  document.getElementById('m-pengeluaran').textContent = fmt(totalK);
+  const netEl = document.getElementById('m-net');
+  netEl.textContent = (net < 0 ? '- ' : '') + fmt(Math.abs(net));
+  netEl.style.color = net >= 0 ? '#093a72' : 'var(--red)';
+
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeSubmitModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function confirmSubmit() {
+  closeSubmitModal();
+  const bar = document.getElementById('submit-bar');
+  bar.innerHTML = '<div class="submitted-badge"><i class="ti ti-circle-check"></i> Data berhasil disubmit</div><span style="font-size:12px;color:var(--text2);">Submit ulang? <a href="" onclick="location.reload();return false;" style="color:#093a72;">Refresh halaman</a></span>';
+  showToast('Data berhasil disubmit!');
+  switchTab('laporan');
+}
+
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSubmitModal();
+});
 </script>
 </body>
 </html>
