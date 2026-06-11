@@ -331,15 +331,20 @@
 
     <div class="card">
       <div class="card-title"><i class="ti ti-receipt-tax"></i> Pajak & Operasional</div>
-      <div class="grid-2">
-        <div class="input-group">
-          <label>Pajak</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="pajak" placeholder="0" oninput="calc()"></div>
-        </div>
-        <div class="input-group">
-          <label>Operasional</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="operasional" placeholder="0" oninput="calc()"></div>
-        </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Tambah item dengan keterangan dan nominal</p>
+
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-file-invoice" style="color:#093a72;font-size:14px;"></i> Pajak</div>
+        <div id="pajak-rows"></div>
+        <button class="btn-add" onclick="addPajakRow()"><i class="ti ti-plus"></i> Tambah item Pajak</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="margin-top:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ti ti-settings" style="color:#093a72;font-size:14px;"></i> Operasional</div>
+        <div id="operasional-rows"></div>
+        <button class="btn-add" onclick="addOperasionalRow()"><i class="ti ti-plus"></i> Tambah item Operasional</button>
       </div>
     </div>
 
@@ -425,7 +430,7 @@
 const today = new Date();
 document.getElementById('tanggal').value = today.toISOString().split('T')[0];
 
-let extraRows = [], barRows = [], kitchenRows = [], rowId = 0;
+let extraRows = [], barRows = [], kitchenRows = [], pajakRows = [], operasionalRows = [], rowId = 0;
 
 function fmt(n) {
   if (!n || n === 0) return 'Rp 0';
@@ -484,6 +489,8 @@ function renderItemRows(containerId, rowsArr, placeholder) {
 
 function addBarRow() { makeItemRow('bar-rows', barRows, 'Keterangan pembelian Bar...'); }
 function addKitchenRow() { makeItemRow('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...'); }
+function addPajakRow() { makeItemRow('pajak-rows', pajakRows, 'Keterangan pajak...'); }
+function addOperasionalRow() { makeItemRow('operasional-rows', operasionalRows, 'Keterangan operasional...'); }
 
 function addRow() {
   const id = ++rowId;
@@ -528,7 +535,8 @@ function calc() {
 
   let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
-  const pajak = getVal('pajak'), ops = getVal('operasional');
+  let pajak = 0; pajakRows.forEach(r => { pajak += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let ops = 0; operasionalRows.forEach(r => { ops += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let lainnya = 0;
   extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
   const totalK = bar + kitchen + pajak + ops + lainnya;
@@ -545,9 +553,12 @@ function buildReport() {
   const gj = getVal('gojek'), gr = getVal('grab');
   const barData = barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Bar', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
   const kitchenData = kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Kitchen', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
+  const pajakData = pajakRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Pajak', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
+  const operasionalData = operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Operasional', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
   let bar = 0; barData.forEach(e => bar += e.val);
   let kitchen = 0; kitchenData.forEach(e => kitchen += e.val);
-  const pajak = getVal('pajak'), ops = getVal('operasional');
+  let pajak = 0; pajakData.forEach(e => pajak += e.val);
+  let ops = 0; operasionalData.forEach(e => ops += e.val);
   const extraData = extraRows.map(r => ({
     ket: document.getElementById('extra_ket_' + r.id)?.value || 'Lainnya',
     val: parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0
@@ -590,8 +601,8 @@ function buildReport() {
   const keRows = [
     ...barData.map(e => ({ cat: 'Bar', ket: e.ket, val: e.val })),
     ...kitchenData.map(e => ({ cat: 'Kitchen', ket: e.ket, val: e.val })),
-    { cat: 'Pajak', ket: 'Pajak', val: pajak },
-    { cat: 'Operasional', ket: 'Operasional', val: ops },
+    ...pajakData.map(e => ({ cat: 'Pajak', ket: e.ket, val: e.val })),
+    ...operasionalData.map(e => ({ cat: 'Operasional', ket: e.ket, val: e.val })),
     ...extraData.map(e => ({ cat: 'Lainnya', ket: e.ket, val: e.val }))
   ].filter(r => r.val > 0);
 
@@ -619,14 +630,16 @@ function buildBar(id, data, color) {
 
 function resetAll() {
   if (!confirm('Reset semua data? Tindakan ini tidak bisa dibatalkan.')) return;
-  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak','operasional'].forEach(id => {
+  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  extraRows = []; barRows = []; kitchenRows = []; rowId = 0;
+  extraRows = []; barRows = []; kitchenRows = []; pajakRows = []; operasionalRows = []; rowId = 0;
   renderExtraRows();
   renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
   renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
+  renderItemRows('pajak-rows', pajakRows, 'Keterangan pajak...');
+  renderItemRows('operasional-rows', operasionalRows, 'Keterangan operasional...');
   calc();
   switchTab('pemasukan');
   showToast('Data berhasil direset.');
@@ -641,7 +654,8 @@ function openSubmitModal() {
   const gj = getVal('gojek'), gr = getVal('grab');
   let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
-  const pajak = getVal('pajak'), ops = getVal('operasional');
+  let pajak = 0; pajakRows.forEach(r => { pajak += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let ops = 0; operasionalRows.forEach(r => { ops += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
   let lainnya = 0;
   extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
   const totalP = mt + mnt + pt + pnt + gj + gr;
