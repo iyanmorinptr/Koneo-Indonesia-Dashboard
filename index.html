@@ -646,6 +646,11 @@
 
 <script>
 const today = new Date();
+// Gunakan tanggal lokal (bukan UTC) supaya tidak mundur 1 hari di malam hari
+function getLocalDateStr(d) {
+  const dt = d || new Date();
+  return [dt.getFullYear(), String(dt.getMonth()+1).padStart(2,'0'), String(dt.getDate()).padStart(2,'0')].join('-');
+}
 
 let extraRows = [], barRows = [], kitchenRows = [], operasionalRows = [], rowId = 0;
 
@@ -736,16 +741,20 @@ function loadFromData(data) {
 }
 
 function loadData() {
-  const tgl = today.toISOString().split('T')[0];
+  let tgl = getLocalDateStr();
+
+  // Kalau hari ini sudah disubmit, langsung siapkan untuk hari besok
+  if (localStorage.getItem('koneo_day_' + tgl)) {
+    const next = new Date(tgl + 'T12:00:00');
+    next.setDate(next.getDate() + 1);
+    tgl = getLocalDateStr(next);
+  }
+
   document.getElementById('tanggal').value = tgl;
 
-  // Cek apakah hari ini sudah submit
-  const submitted = localStorage.getItem('koneo_day_' + tgl);
+  // Muat draft kalau ada (dan belum disubmit)
   const draft = localStorage.getItem('koneo_draft_' + tgl);
-
-  // Kalau sudah disubmit, biarkan form kosong (data ada di Riwayat)
-  // Kalau masih draft, muat kembali supaya tidak hilang
-  if (!submitted && draft) {
+  if (draft && !localStorage.getItem('koneo_day_' + tgl)) {
     loadFromData(JSON.parse(draft));
   }
 
@@ -1152,9 +1161,10 @@ function confirmSubmit() {
 
   // Bersihkan form & maju ke hari berikutnya
   clearForm();
-  const nextDate = new Date(tgl + 'T00:00:00');
+  const nextDate = new Date(tgl + 'T12:00:00'); // tengah hari supaya tidak kena masalah timezone
   nextDate.setDate(nextDate.getDate() + 1);
-  document.getElementById('tanggal').value = nextDate.toISOString().split('T')[0];
+  document.getElementById('tanggal').value = getLocalDateStr(nextDate);
+  calc(); // update summary jadi Rp 0
 
   buildRiwayat();
   renderSubmitBar();
