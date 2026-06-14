@@ -617,11 +617,15 @@
 
   <!-- RIWAYAT -->
   <div id="tab-riwayat" class="section">
-    <div class="card">
-      <div class="card-title"><i class="ti ti-history"></i> Riwayat Laporan Harian</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;">Data yang sudah disubmit per hari. Klik baris untuk lihat detail.</p>
-      <div id="riwayat-list"><div class="empty-state">Belum ada laporan yang disubmit.</div></div>
+    <!-- Period sub-tabs -->
+    <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
+      <button class="period-tab active" onclick="switchPeriod('harian')" id="pt-harian" style="flex:1;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:var(--surface);color:#093a72;border-radius:7px;box-shadow:0 1px 3px rgba(9,58,114,0.1);display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-day"></i> Harian</button>
+      <button class="period-tab" onclick="switchPeriod('mingguan')" id="pt-mingguan" style="flex:1;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-week"></i> Mingguan</button>
+      <button class="period-tab" onclick="switchPeriod('bulanan')" id="pt-bulanan" style="flex:1;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-month"></i> Bulanan</button>
+      <button class="period-tab" onclick="switchPeriod('tahunan')" id="pt-tahunan" style="flex:1;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar"></i> Tahunan</button>
     </div>
+
+    <div id="riwayat-content"></div>
   </div>
 </div>
 
@@ -1201,40 +1205,174 @@ function calcSnapshot(s) {
   return { totalP, totalK, net: totalP-totalK, bar, kitchen, pajak, ops, lainnya };
 }
 
-// Bangun tab Riwayat
+let currentPeriod = 'harian';
+
+function switchPeriod(period) {
+  currentPeriod = period;
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    const isActive = btn.id === 'pt-' + period;
+    btn.style.background = isActive ? 'var(--surface)' : 'none';
+    btn.style.color = isActive ? '#093a72' : 'var(--text2)';
+    btn.style.boxShadow = isActive ? '0 1px 3px rgba(9,58,114,0.1)' : 'none';
+  });
+  buildRiwayat();
+}
+
 function buildRiwayat() {
   const keys = Object.keys(localStorage)
     .filter(k => k.startsWith('koneo_day_'))
     .sort().reverse();
 
-  const container = document.getElementById('riwayat-list');
-  if (!keys.length) { container.innerHTML = '<div class="empty-state">Belum ada laporan yang disubmit.</div>'; return; }
+  const container = document.getElementById('riwayat-content');
+  if (!keys.length) {
+    container.innerHTML = '<div class="card"><div class="empty-state">Belum ada laporan yang disubmit.</div></div>';
+    return;
+  }
 
-  container.innerHTML = keys.map(key => {
-    const tgl = key.replace('koneo_day_', '');
-    const data = JSON.parse(localStorage.getItem(key));
-    const { totalP, totalK, net } = calcSnapshot(data);
-    const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
-    const netClass = net >= 0 ? 'profit' : 'loss';
-    const netLabel = (net >= 0 ? '+' : '-') + ' ' + fmt(Math.abs(net));
-    return `<div class="riwayat-row" onclick="lihatDetail('${tgl}')">
-      <div>
-        <div class="rdate">${tglFmt}</div>
-        <div class="rstats">Pemasukan ${fmt(totalP)} &nbsp;·&nbsp; Pengeluaran ${fmt(totalK)}</div>
+  if (currentPeriod === 'harian') buildRiwayatHarian(keys, container);
+  else if (currentPeriod === 'mingguan') buildRiwayatPeriod(keys, container, 'mingguan');
+  else if (currentPeriod === 'bulanan') buildRiwayatPeriod(keys, container, 'bulanan');
+  else if (currentPeriod === 'tahunan') buildRiwayatPeriod(keys, container, 'tahunan');
+}
+
+function buildRiwayatHarian(keys, container) {
+  const totalAllNet = keys.reduce((sum, k) => {
+    return sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).net;
+  }, 0);
+
+  container.innerHTML = `
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);">Total Laba/Rugi Keseluruhan</div>
+          <div style="font-size:22px;font-weight:800;color:${totalAllNet>=0?'var(--green)':'var(--red)'};">${totalAllNet<0?'- ':''}${fmt(Math.abs(totalAllNet))}</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);">${keys.length} hari tercatat</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="rnet ${netClass}">${netLabel}</div>
-        <button class="rdel" onclick="event.stopPropagation();hapusRiwayat('${tgl}')" title="Hapus"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="card" style="padding:0.5rem 0;">
+      <div style="padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">Laporan Harian</div>
+      <div id="riwayat-list">
+        ${keys.map(key => {
+          const tgl = key.replace('koneo_day_', '');
+          const data = JSON.parse(localStorage.getItem(key));
+          const { totalP, totalK, net } = calcSnapshot(data);
+          const tglFmt = new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+          const netClass = net >= 0 ? 'profit' : 'loss';
+          const netLabel = (net >= 0 ? '+' : '−') + ' ' + fmt(Math.abs(net));
+          return `<div class="riwayat-row" onclick="lihatDetail('${tgl}')">
+            <div>
+              <div class="rdate">${tglFmt}</div>
+              <div class="rstats">Pemasukan ${fmt(totalP)} &nbsp;·&nbsp; Pengeluaran ${fmt(totalK)}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="rnet ${netClass}">${netLabel}</div>
+              <button class="rdel" onclick="event.stopPropagation();hapusRiwayat('${tgl}')" title="Hapus"><i class="ti ti-trash"></i></button>
+            </div>
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
-  }).join('');
+}
+
+function getWeekKey(tgl) {
+  const d = new Date(tgl + 'T12:00:00');
+  const day = d.getDay(); // 0=Sun
+  const diffToMon = (day === 0 ? -6 : 1 - day);
+  const mon = new Date(d); mon.setDate(d.getDate() + diffToMon);
+  return [mon.getFullYear(), String(mon.getMonth()+1).padStart(2,'0'), String(mon.getDate()).padStart(2,'0')].join('-');
+}
+
+function getWeekLabel(weekKey) {
+  const mon = new Date(weekKey + 'T12:00:00');
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  const fmtD = (d) => d.toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+  return fmtD(mon) + ' – ' + fmtD(sun) + ' ' + sun.getFullYear();
+}
+
+function buildRiwayatPeriod(keys, container, period) {
+  // Group keys by period
+  const groups = {};
+  keys.forEach(k => {
+    const tgl = k.replace('koneo_day_', '');
+    let groupKey;
+    if (period === 'mingguan') groupKey = getWeekKey(tgl);
+    else if (period === 'bulanan') groupKey = tgl.substring(0, 7);
+    else groupKey = tgl.substring(0, 4);
+    if (!groups[groupKey]) groups[groupKey] = [];
+    groups[groupKey].push(k);
+  });
+
+  const sortedGroups = Object.keys(groups).sort().reverse();
+  const periodLabel = period === 'mingguan' ? 'Mingguan' : period === 'bulanan' ? 'Bulanan' : 'Tahunan';
+
+  const totalAllNet = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).net, 0);
+  const totalAllP = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).totalP, 0);
+  const totalAllK = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).totalK, 0);
+
+  let html = `
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);margin-bottom:10px;">Ringkasan Keseluruhan</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div style="background:var(--green-light);border-radius:10px;padding:12px;"><div style="font-size:10px;color:#0F6E56;font-weight:700;margin-bottom:4px;">TOTAL PEMASUKAN</div><div style="font-size:15px;font-weight:700;color:var(--green);">${fmt(totalAllP)}</div></div>
+        <div style="background:var(--red-light);border-radius:10px;padding:12px;"><div style="font-size:10px;color:#A32D2D;font-weight:700;margin-bottom:4px;">TOTAL PENGELUARAN</div><div style="font-size:15px;font-weight:700;color:var(--red);">${fmt(totalAllK)}</div></div>
+        <div style="background:${totalAllNet>=0?'var(--blue-light)':'var(--red-light)'};border-radius:10px;padding:12px;"><div style="font-size:10px;color:#093a72;font-weight:700;margin-bottom:4px;">TOTAL LABA/RUGI</div><div style="font-size:15px;font-weight:700;color:${totalAllNet>=0?'var(--blue)':'var(--red)'};">${totalAllNet<0?'− ':''}${fmt(Math.abs(totalAllNet))}</div></div>
+      </div>
+    </div>`;
+
+  sortedGroups.forEach(groupKey => {
+    const groupKeys = groups[groupKey].sort().reverse();
+    let gP = 0, gK = 0, gNet = 0;
+    groupKeys.forEach(k => {
+      const c = calcSnapshot(JSON.parse(localStorage.getItem(k)));
+      gP += c.totalP; gK += c.totalK; gNet += c.net;
+    });
+
+    let label;
+    if (period === 'mingguan') label = 'Minggu ' + getWeekLabel(groupKey);
+    else if (period === 'bulanan') {
+      const d = new Date(groupKey + '-01T12:00:00');
+      label = d.toLocaleDateString('id-ID', { month:'long', year:'numeric' });
+    } else label = groupKey;
+
+    const rowsHtml = groupKeys.map(k => {
+      const tgl = k.replace('koneo_day_', '');
+      const data = JSON.parse(localStorage.getItem(k));
+      const { totalP, totalK, net } = calcSnapshot(data);
+      const tglFmt = new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short' });
+      return `<div class="riwayat-row" style="padding:8px 16px;" onclick="lihatDetail('${tgl}')">
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text);">${tglFmt}</div>
+          <div style="font-size:11px;color:var(--text2);">${fmt(totalP)} · Keluar ${fmt(totalK)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="font-size:13px;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'};">${net>=0?'+':'−'} ${fmt(Math.abs(net))}</div>
+          <button class="rdel" onclick="event.stopPropagation();hapusRiwayat('${tgl}')" title="Hapus"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="card" style="padding:0;overflow:hidden;margin-bottom:1rem;">
+      <div style="padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);">${label}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px;">${groupKeys.length} hari &nbsp;·&nbsp; Masuk ${fmt(gP)} &nbsp;·&nbsp; Keluar ${fmt(gK)}</div>
+        </div>
+        <div style="font-size:15px;font-weight:800;color:${gNet>=0?'var(--green)':'var(--red)'};">${gNet>=0?'+':'−'} ${fmt(Math.abs(gNet))}</div>
+      </div>
+      <div>${rowsHtml}</div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
 }
 
 function hapusRiwayat(tgl) {
-  const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  const tglFmt = new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
   if (!confirm('Hapus laporan ' + tglFmt + '?')) return;
   localStorage.removeItem('koneo_day_' + tgl);
   buildRiwayat();
+  buildDashboard();
 }
 
 function lihatDetail(tgl) {
@@ -1242,7 +1380,7 @@ function lihatDetail(tgl) {
   if (!data) return;
   const { totalP, totalK, net, bar, kitchen, pajak, ops, lainnya } = calcSnapshot(data);
   const p = data.simple;
-  const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const tglFmt = new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
   const rows = [
     ['Majoo Tunai', p.majoo_tunai], ['Majoo Non-Tunai', p.majoo_nontunai],
@@ -1260,13 +1398,13 @@ function lihatDetail(tgl) {
   ].join('');
 
   document.getElementById('modal-overlay').innerHTML = `
-    <div class="modal" style="max-width:480px;">
+    <div class="modal" style="max-width:480px;max-height:90vh;overflow-y:auto;">
       <div class="modal-title"><i class="ti ti-calendar-stats" style="color:#093a72;margin-right:6px;"></i>Detail Laporan</div>
       <div class="modal-sub">${tglFmt}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
         <div style="background:var(--green-light);border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:#0F6E56;font-weight:600;">PEMASUKAN</div><div style="font-size:14px;font-weight:700;color:var(--green);">${fmt(totalP)}</div></div>
         <div style="background:var(--red-light);border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:#A32D2D;font-weight:600;">PENGELUARAN</div><div style="font-size:14px;font-weight:700;color:var(--red);">${fmt(totalK)}</div></div>
-        <div style="background:${net>=0?'#E6F1FB':'var(--red-light)'};border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:#093a72;font-weight:600;">LABA/RUGI</div><div style="font-size:14px;font-weight:700;color:${net>=0?'#093a72':'var(--red)'};">${(net<0?'-':'')}${fmt(Math.abs(net))}</div></div>
+        <div style="background:${net>=0?'#E6F1FB':'var(--red-light)'};border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:#093a72;font-weight:600;">LABA/RUGI</div><div style="font-size:14px;font-weight:700;color:${net>=0?'#093a72':'var(--red)'};">${(net<0?'− ':'')}${fmt(Math.abs(net))}</div></div>
       </div>
       <div style="margin-bottom:10px;">
         <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;">PEMASUKAN</div>
@@ -1278,14 +1416,13 @@ function lihatDetail(tgl) {
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="tutupDetail()">Tutup</button>
-        <button class="btn-confirm" onclick="muatHari('${tgl}')"><i class="ti ti-edit"></i> Buka & Edit</button>
+        <button class="btn-confirm" onclick="muatHari('${tgl}')"><i class="ti ti-edit"></i> Edit Laporan Ini</button>
       </div>
     </div>`;
   document.getElementById('modal-overlay').classList.add('show');
 }
 
 function tutupDetail() {
-  // Restore modal asli
   document.getElementById('modal-overlay').innerHTML = `
     <div class="modal">
       <div class="modal-title"><i class="ti ti-clipboard-check" style="color:#093a72;margin-right:6px;"></i>Konfirmasi Submit Data</div>
@@ -1304,7 +1441,6 @@ function tutupDetail() {
   document.getElementById('modal-overlay').addEventListener('click', function(e) { if (e.target === this) closeSubmitModal(); });
 }
 
-// Muat data hari tertentu ke form untuk diedit
 function muatHari(tgl) {
   tutupDetail();
   const data = JSON.parse(localStorage.getItem('koneo_day_' + tgl));
@@ -1313,6 +1449,7 @@ function muatHari(tgl) {
   clearForm();
   loadFromData(data);
   switchTab('pemasukan');
+  showToast('Data ' + tgl + ' dimuat. Edit lalu submit ulang.');
 }
 
 function resetHariIni() {
