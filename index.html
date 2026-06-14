@@ -577,41 +577,46 @@
       </div>
     </div>
 
-    <div id="net-display" class="net-box profit">
-      <div class="net-meta">Laba Bersih Hari Ini</div>
-      <div class="net-amount" id="net-val">Rp 0</div>
-      <div class="net-date" id="net-date">—</div>
+    <!-- Period sub-tabs -->
+    <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
+      <button class="lp-tab active" id="lpt-harian" onclick="switchLaporan('harian')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:var(--surface);color:#093a72;border-radius:7px;box-shadow:0 1px 3px rgba(9,58,114,0.1);display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-day"></i> Harian</button>
+      <button class="lp-tab" id="lpt-mingguan" onclick="switchLaporan('mingguan')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-week"></i> Mingguan</button>
+      <button class="lp-tab" id="lpt-bulanan" onclick="switchLaporan('bulanan')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-month"></i> Bulanan</button>
+      <button class="lp-tab" id="lpt-tahunan" onclick="switchLaporan('tahunan')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar"></i> Tahunan</button>
+      <button class="lp-tab" id="lpt-kustom" onclick="switchLaporan('kustom')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-adjustments-horizontal"></i> Kustom</button>
     </div>
 
-    <div class="summary-grid" style="margin-bottom:1.25rem;">
-      <div class="metric green"><div class="mlabel">Total Pemasukan</div><div class="mval" id="r_pemasukan">Rp 0</div></div>
-      <div class="metric red"><div class="mlabel">Total Pengeluaran</div><div class="mval" id="r_pengeluaran">Rp 0</div></div>
-      <div class="metric blue"><div class="mlabel">Margin</div><div class="mval" id="r_margin">0%</div></div>
+    <!-- Date selector -->
+    <div class="card" id="laporan-selector" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div id="laporan-date-inputs" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
+          <div class="input-group" style="min-width:140px;">
+            <label id="laporan-from-label" style="font-size:11px;font-weight:600;color:var(--text2);">Tanggal</label>
+            <input type="date" id="laporan-from" style="font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);outline:none;">
+          </div>
+          <div id="laporan-to-wrap" class="input-group" style="min-width:140px;display:none;">
+            <label style="font-size:11px;font-weight:600;color:var(--text2);">Sampai Tanggal</label>
+            <input type="date" id="laporan-to" style="font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);outline:none;">
+          </div>
+        </div>
+        <button onclick="buildLaporanView()" style="padding:8px 18px;background:#093a72;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;"><i class="ti ti-search"></i> Lihat Laporan</button>
+        <button onclick="doPrintRange()" style="padding:8px 14px;background:none;color:var(--text2);border:1px solid var(--border2);border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;"><i class="ti ti-printer"></i> Cetak</button>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="card-title"><i class="ti ti-arrow-down-circle"></i> Detail Pemasukan</div>
-      <div id="chart-pemasukan" style="margin-bottom:10px;"></div>
-      <div class="divider"></div>
-      <table class="report">
-        <thead><tr><th>Sumber</th><th>Jenis</th><th style="text-align:right">Jumlah</th></tr></thead>
-        <tbody id="tbody-pemasukan"></tbody>
-      </table>
-    </div>
+    <!-- Analytics output -->
+    <div id="laporan-output"></div>
 
-    <div class="card">
-      <div class="card-title"><i class="ti ti-arrow-up-circle"></i> Detail Pengeluaran</div>
-      <div id="chart-pengeluaran" style="margin-bottom:10px;"></div>
-      <div class="divider"></div>
-      <table class="report">
-        <thead><tr><th>Kategori</th><th>Keterangan</th><th style="text-align:right">Jumlah</th></tr></thead>
-        <tbody id="tbody-pengeluaran"></tbody>
-      </table>
-    </div>
-
-    <div class="action-row">
-      <button class="btn-outline" onclick="resetAll()"><i class="ti ti-refresh"></i> Reset Hari Ini</button>
-      <button class="btn-primary" onclick="doPrint()"><i class="ti ti-printer"></i> Cetak Laporan</button>
+    <!-- Hidden elements still needed for print -->
+    <div style="display:none;">
+      <div id="net-display" class="net-box profit">
+        <div class="net-meta">Laba Bersih</div>
+        <div class="net-amount" id="net-val">Rp 0</div>
+        <div class="net-date" id="net-date">—</div>
+      </div>
+      <div id="r_pemasukan"></div><div id="r_pengeluaran"></div><div id="r_margin"></div>
+      <div id="chart-pemasukan"></div><div id="chart-pengeluaran"></div>
+      <tbody id="tbody-pemasukan"></tbody><tbody id="tbody-pengeluaran"></tbody>
     </div>
   </div>
 
@@ -836,7 +841,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  if (tab === 'laporan') buildReport();
+  if (tab === 'laporan') { switchLaporan(currentLaporan || 'harian'); }
   if (tab === 'riwayat') buildRiwayat();
   if (tab === 'beranda') buildDashboard();
 }
@@ -936,80 +941,338 @@ function calc() {
   saveData();
 }
 
-function buildReport() {
-  calc();
-  const mt = getVal('majoo_tunai'), mnt = getVal('majoo_nontunai');
-  const pt = getVal('pos_tunai'), pnt = getVal('pos_nontunai');
-  const gj = getVal('gojek'), gr = getVal('grab');
-  const barData = barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Bar', val: getRawVal(document.getElementById('item_val_' + r.id)) }));
-  const kitchenData = kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Kitchen', val: getRawVal(document.getElementById('item_val_' + r.id)) }));
-  const operasionalData = operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Operasional', val: getRawVal(document.getElementById('item_val_' + r.id)) }));
-  let bar = 0; barData.forEach(e => bar += e.val);
-  let kitchen = 0; kitchenData.forEach(e => kitchen += e.val);
-  const pajakMajoo = getVal('pajak_majoo'), pajakPos = getVal('pajak_pos');
-  const pajak = pajakMajoo + pajakPos;
-  let ops = 0; operasionalData.forEach(e => ops += e.val);
-  const extraData = extraRows.map(r => ({
-    ket: document.getElementById('extra_ket_' + r.id)?.value || 'Lainnya',
-    val: getRawVal(document.getElementById('extra_val_' + r.id))
-  }));
-  let lainnya = 0; extraData.forEach(e => lainnya += e.val);
+let currentLaporan = 'harian';
 
-  const totalP = mt + mnt + pt + pnt + gj + gr;
-  const totalK = bar + kitchen + pajak + ops + lainnya;
-  const net = totalP - totalK;
-  const margin = totalP > 0 ? ((net / totalP) * 100).toFixed(1) : 0;
+function switchLaporan(period) {
+  currentLaporan = period;
+  document.querySelectorAll('.lp-tab').forEach(btn => {
+    const isActive = btn.id === 'lpt-' + period;
+    btn.style.background = isActive ? 'var(--surface)' : 'none';
+    btn.style.color = isActive ? '#093a72' : 'var(--text2)';
+    btn.style.boxShadow = isActive ? '0 1px 3px rgba(9,58,114,0.1)' : 'none';
+  });
 
-  document.getElementById('r_pemasukan').textContent = fmt(totalP);
-  document.getElementById('r_pengeluaran').textContent = fmt(totalK);
-  document.getElementById('r_margin').textContent = margin + '%';
-  document.getElementById('net-val').textContent = fmt(Math.abs(net));
+  const fromEl = document.getElementById('laporan-from');
+  const toWrap = document.getElementById('laporan-to-wrap');
+  const fromLabel = document.getElementById('laporan-from-label');
+  const now = new Date();
 
-  const tgl = document.getElementById('tanggal').value;
-  const tglFmt = tgl ? new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
-  document.getElementById('net-date').textContent = tglFmt;
+  if (period === 'harian') {
+    fromLabel.textContent = 'Tanggal';
+    toWrap.style.display = 'none';
+    fromEl.type = 'date';
+    fromEl.value = getLocalDateStr();
+  } else if (period === 'mingguan') {
+    fromLabel.textContent = 'Minggu (pilih hari mana saja)';
+    toWrap.style.display = 'none';
+    fromEl.type = 'date';
+    fromEl.value = getLocalDateStr();
+  } else if (period === 'bulanan') {
+    fromLabel.textContent = 'Bulan';
+    toWrap.style.display = 'none';
+    fromEl.type = 'month';
+    fromEl.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  } else if (period === 'tahunan') {
+    fromLabel.textContent = 'Tahun';
+    toWrap.style.display = 'none';
+    fromEl.type = 'date';
+    fromEl.value = now.getFullYear() + '-01-01';
+  } else if (period === 'kustom') {
+    fromLabel.textContent = 'Dari Tanggal';
+    toWrap.style.display = '';
+    fromEl.type = 'date';
+    fromEl.value = getLocalDateStr();
+    document.getElementById('laporan-to').value = getLocalDateStr();
+  }
 
-  const netBox = document.getElementById('net-display');
-  netBox.className = 'net-box ' + (net >= 0 ? 'profit' : 'loss');
-  netBox.querySelector('.net-meta').textContent = net >= 0 ? 'Laba Bersih Hari Ini' : 'Kerugian Hari Ini';
+  buildLaporanView();
+}
 
+function getDataInRange(fromDate, toDate) {
+  return Object.keys(localStorage)
+    .filter(k => k.startsWith('koneo_day_'))
+    .sort()
+    .filter(k => {
+      const tgl = k.replace('koneo_day_', '');
+      return tgl >= fromDate && tgl <= toDate;
+    })
+    .map(k => {
+      const tgl = k.replace('koneo_day_', '');
+      const data = JSON.parse(localStorage.getItem(k));
+      const snap = calcSnapshot(data);
+      return { tgl, data, ...snap };
+    });
+}
+
+function buildLaporanView() {
+  const fromEl = document.getElementById('laporan-from');
+  const toEl = document.getElementById('laporan-to');
+  let fromDate, toDate, periodLabel;
+  const now = new Date();
+
+  if (currentLaporan === 'harian') {
+    fromDate = toDate = fromEl.value || getLocalDateStr();
+    const d = new Date(fromDate + 'T12:00:00');
+    periodLabel = d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  } else if (currentLaporan === 'mingguan') {
+    const sel = fromEl.value || getLocalDateStr();
+    fromDate = getWeekKey(sel);
+    const endD = new Date(fromDate + 'T12:00:00'); endD.setDate(endD.getDate() + 6);
+    toDate = getLocalDateStr(endD);
+    periodLabel = 'Minggu ' + getWeekLabel(fromDate);
+  } else if (currentLaporan === 'bulanan') {
+    const monthVal = fromEl.value || (now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'));
+    fromDate = monthVal + '-01';
+    const lastDay = new Date(parseInt(monthVal.split('-')[0]), parseInt(monthVal.split('-')[1]), 0).getDate();
+    toDate = monthVal + '-' + String(lastDay).padStart(2,'0');
+    const d = new Date(fromDate + 'T12:00:00');
+    periodLabel = d.toLocaleDateString('id-ID', { month:'long', year:'numeric' });
+  } else if (currentLaporan === 'tahunan') {
+    const yr = (fromEl.value || getLocalDateStr()).substring(0, 4);
+    fromDate = yr + '-01-01'; toDate = yr + '-12-31';
+    periodLabel = 'Tahun ' + yr;
+  } else {
+    fromDate = fromEl.value || getLocalDateStr();
+    toDate = toEl.value || getLocalDateStr();
+    if (toDate < fromDate) toDate = fromDate;
+    const fD = new Date(fromDate + 'T12:00:00'), tD = new Date(toDate + 'T12:00:00');
+    periodLabel = fD.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ' – ' + tD.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+  }
+
+  const records = getDataInRange(fromDate, toDate);
+  const out = document.getElementById('laporan-output');
+
+  if (!records.length) {
+    out.innerHTML = `<div class="card"><div class="empty-state"><i class="ti ti-calendar-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Tidak ada data untuk periode ini.<br><span style="font-size:11px;">Pastikan data sudah disubmit terlebih dahulu.</span></div></div>`;
+    return;
+  }
+
+  const totP = records.reduce((s,r) => s+r.totalP, 0);
+  const totK = records.reduce((s,r) => s+r.totalK, 0);
+  const totNet = totP - totK;
+  const margin = totP > 0 ? ((totNet/totP)*100).toFixed(1) : '0.0';
+  const days = records.length;
+
+  let html = `
+    <!-- Summary hero -->
+    <div class="net-box ${totNet>=0?'profit':'loss'}" style="margin-bottom:1rem;">
+      <div class="net-meta">${totNet>=0?'Laba Bersih':'Rugi Bersih'} — ${periodLabel}</div>
+      <div class="net-amount">${totNet<0?'− ':''}${fmt(Math.abs(totNet))}</div>
+      <div class="net-date">${days} hari data &nbsp;·&nbsp; Margin ${margin}%</div>
+    </div>
+
+    <!-- Stats grid -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem;">
+      <div class="metric green"><div class="mlabel">Total Pemasukan</div><div class="mval">${fmt(totP)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Rata-rata ${fmt(Math.round(totP/days))}/hari</div></div>
+      <div class="metric red"><div class="mlabel">Total Pengeluaran</div><div class="mval">${fmt(totK)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Rata-rata ${fmt(Math.round(totK/days))}/hari</div></div>
+      <div class="metric blue"><div class="mlabel">Margin Keuntungan</div><div class="mval">${margin}%</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${days} hari tercatat</div></div>
+    </div>`;
+
+  // Chart: show trend if more than 1 day, or breakdown if single day
+  if (records.length === 1) {
+    html += buildSingleDayDetail(records[0]);
+  } else {
+    html += buildMultiDayChart(records, currentLaporan);
+    html += buildAggregatedTable(records);
+  }
+
+  out.innerHTML = html;
+}
+
+function buildSingleDayDetail(rec) {
+  const p = rec.data.simple;
   const peRows = [
-    { src: 'Majoo', type: 'Tunai', badge: 'tunai', val: mt },
-    { src: 'Majoo', type: 'Non-Tunai', badge: 'nontunai', val: mnt },
-    { src: 'POS', type: 'Tunai', badge: 'tunai', val: pt },
-    { src: 'POS', type: 'Non-Tunai', badge: 'nontunai', val: pnt },
-    { src: 'GoFood', type: 'Online', badge: 'online', val: gj },
-    { src: 'GrabFood', type: 'Online', badge: 'online', val: gr },
-  ].filter(r => r.val > 0);
-
-  const tb1 = document.getElementById('tbody-pemasukan');
-  tb1.innerHTML = peRows.length === 0
-    ? '<tr><td colspan="3" class="empty-state">Belum ada data pemasukan yang diisi.</td></tr>'
-    : peRows.map(r => `<tr><td>${r.src}</td><td><span class="badge ${r.badge}">${r.type}</span></td><td style="text-align:right;font-weight:500;">${fmt(r.val)}</td></tr>`).join('')
-      + `<tr class="total-row"><td colspan="2">Total Pemasukan</td><td style="text-align:right">${fmt(totalP)}</td></tr>`;
+    {src:'Majoo Tunai', val:p.majoo_tunai||0},{src:'Majoo Non-Tunai', val:p.majoo_nontunai||0},
+    {src:'POS Tunai', val:p.pos_tunai||0},{src:'POS Non-Tunai', val:p.pos_nontunai||0},
+    {src:'GoFood', val:p.gojek||0},{src:'GrabFood', val:p.grab||0}
+  ].filter(r=>r.val>0);
 
   const keRows = [
-    ...barData.map(e => ({ cat: 'Bar', ket: e.ket, val: e.val })),
-    ...kitchenData.map(e => ({ cat: 'Kitchen', ket: e.ket, val: e.val })),
-    ...(pajakMajoo > 0 ? [{ cat: 'Pajak', ket: 'Pajak Majoo', val: pajakMajoo }] : []),
-    ...(pajakPos > 0 ? [{ cat: 'Pajak', ket: 'Pajak POS', val: pajakPos }] : []),
-    ...operasionalData.map(e => ({ cat: 'Operasional', ket: e.ket, val: e.val })),
-    ...extraData.map(e => ({ cat: 'Lainnya', ket: e.ket, val: e.val }))
-  ].filter(r => r.val > 0);
+    ...(rec.data.barRows||[]).filter(r=>r.val>0).map(r=>({cat:'Bar',ket:r.ket||'—',val:r.val})),
+    ...(rec.data.kitchenRows||[]).filter(r=>r.val>0).map(r=>({cat:'Kitchen',ket:r.ket||'—',val:r.val})),
+    ...(p.pajak_majoo>0?[{cat:'Pajak',ket:'Pajak Majoo',val:p.pajak_majoo}]:[]),
+    ...(p.pajak_pos>0?[{cat:'Pajak',ket:'Pajak POS',val:p.pajak_pos}]:[]),
+    ...(rec.data.operasionalRows||[]).filter(r=>r.val>0).map(r=>({cat:'Operasional',ket:r.ket||'—',val:r.val})),
+    ...(rec.data.extraRows||[]).filter(r=>r.val>0).map(r=>({cat:'Lainnya',ket:r.ket||'—',val:r.val}))
+  ];
 
-  const tb2 = document.getElementById('tbody-pengeluaran');
-  tb2.innerHTML = keRows.length === 0
-    ? '<tr><td colspan="3" class="empty-state">Belum ada data pengeluaran yang diisi.</td></tr>'
-    : keRows.map(r => `<tr><td>${r.cat}</td><td style="color:var(--text2)">${r.ket}</td><td style="text-align:right;font-weight:500;">${fmt(r.val)}</td></tr>`).join('')
-      + `<tr class="total-row"><td colspan="2">Total Pengeluaran</td><td style="text-align:right">${fmt(totalK)}</td></tr>`;
-
-  buildBar('chart-pemasukan', peRows.map(r => ({ label: r.src + ' ' + r.type, val: r.val })), '#1D9E75');
-  buildBar('chart-pengeluaran', keRows.map(r => ({ label: r.ket, val: r.val })), '#E24B4A');
+  return `
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-arrow-down-circle"></i> Detail Pemasukan</div>
+      ${buildHorizBar(peRows, '#1D9E75')}
+      <table class="report" style="margin-top:10px;">
+        <thead><tr><th>Sumber</th><th style="text-align:right">Jumlah</th></tr></thead>
+        <tbody>${peRows.length?peRows.map(r=>`<tr><td>${r.src}</td><td style="text-align:right;font-weight:500">${fmt(r.val)}</td></tr>`).join('')+'<tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(rec.totalP)}</td></tr>':'<tr><td colspan="2" class="empty-state">Belum ada data</td></tr>'}</tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-arrow-up-circle"></i> Detail Pengeluaran</div>
+      ${buildHorizBar(keRows.map(r=>({src:r.ket,val:r.val})), '#E24B4A')}
+      <table class="report" style="margin-top:10px;">
+        <thead><tr><th>Kategori</th><th>Keterangan</th><th style="text-align:right">Jumlah</th></tr></thead>
+        <tbody>${keRows.length?keRows.map(r=>`<tr><td>${r.cat}</td><td style="color:var(--text2)">${r.ket}</td><td style="text-align:right;font-weight:500">${fmt(r.val)}</td></tr>`).join('')+'<tr class="total-row"><td colspan="2">Total</td><td style="text-align:right">${fmt(rec.totalK)}</td></tr>':'<tr><td colspan="3" class="empty-state">Belum ada data</td></tr>'}</tbody>
+      </table>
+    </div>`;
 }
+
+function buildHorizBar(items, color) {
+  if (!items.length) return '';
+  const max = Math.max(...items.map(d=>d.val), 1);
+  return items.map(d=>`
+    <div class="bar-wrap">
+      <div class="bar-label" title="${d.src||d.label}">${d.src||d.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((d.val/max)*100)}%;background:${color};opacity:0.85;"></div></div>
+      <div class="bar-val">${fmt(d.val)}</div>
+    </div>`).join('');
+}
+
+function buildMultiDayChart(records, period) {
+  // Group data for chart
+  let chartPoints = [];
+  if (period === 'tahunan') {
+    // Group by month
+    const months = {};
+    records.forEach(r => {
+      const m = r.tgl.substring(0,7);
+      if (!months[m]) months[m] = {pemasukan:0, pengeluaran:0, net:0, label:''};
+      months[m].pemasukan += r.totalP;
+      months[m].pengeluaran += r.totalK;
+      months[m].net += r.net;
+    });
+    chartPoints = Object.keys(months).sort().map(m => {
+      const d = new Date(m + '-01T12:00:00');
+      return { label: d.toLocaleDateString('id-ID',{month:'short'}), ...months[m] };
+    });
+  } else if (period === 'bulanan' || (period === 'kustom' && records.length > 14)) {
+    // Group by week
+    const weeks = {};
+    records.forEach(r => {
+      const wk = getWeekKey(r.tgl);
+      if (!weeks[wk]) weeks[wk] = {pemasukan:0, pengeluaran:0, net:0};
+      weeks[wk].pemasukan += r.totalP;
+      weeks[wk].pengeluaran += r.totalK;
+      weeks[wk].net += r.net;
+    });
+    chartPoints = Object.keys(weeks).sort().map(wk => {
+      const d = new Date(wk + 'T12:00:00');
+      return { label: d.toLocaleDateString('id-ID',{day:'numeric',month:'short'}), ...weeks[wk] };
+    });
+  } else {
+    chartPoints = records.map(r => ({
+      label: new Date(r.tgl+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short'}),
+      pemasukan: r.totalP, pengeluaran: r.totalK, net: r.net
+    }));
+  }
+
+  const W = 680, H = 220, pL = 58, pR = 16, pT = 24, pB = 48;
+  const iW = W-pL-pR, iH = H-pT-pB;
+  const maxV = Math.max(...chartPoints.map(p=>p.pemasukan), ...chartPoints.map(p=>p.pengeluaran), 1);
+  const xS = i => pL + (chartPoints.length>1?(i/(chartPoints.length-1))*iW : iW/2);
+  const yS = v => pT + iH - (v/maxV)*iH;
+
+  const lineP = chartPoints.map((p,i)=>`${xS(i).toFixed(1)},${yS(p.pemasukan).toFixed(1)}`).join(' ');
+  const lineK = chartPoints.map((p,i)=>`${xS(i).toFixed(1)},${yS(p.pengeluaran).toFixed(1)}`).join(' ');
+  const areaP = `${xS(0).toFixed(1)},${(pT+iH).toFixed(1)} ${lineP} ${xS(chartPoints.length-1).toFixed(1)},${(pT+iH).toFixed(1)}`;
+
+  const grid = [0,0.25,0.5,0.75,1].map(t=>{
+    const y=(pT+iH*t).toFixed(1), v=maxV*(1-t);
+    const lbl=v>=1e6?(v/1e6).toFixed(1)+'jt':v>=1e3?Math.round(v/1e3)+'rb':Math.round(v)+'';
+    return `<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="rgba(9,58,114,0.07)" stroke-width="1"/>
+      <text x="${pL-6}" y="${(+y+4).toFixed(0)}" text-anchor="end" font-size="9" fill="#9a9a96">${lbl}</text>`;
+  }).join('');
+
+  const dotsP = chartPoints.map((p,i)=>{
+    const x=xS(i).toFixed(1),y=yS(p.pemasukan).toFixed(1);
+    return `<circle cx="${x}" cy="${y}" r="4" fill="#1D9E75" stroke="#fff" stroke-width="2"/>
+      <text x="${x}" y="${H-8}" text-anchor="middle" font-size="9" fill="#6b6b68">${p.label}</text>`;
+  }).join('');
+  const dotsK = chartPoints.map((p,i)=>{
+    const x=xS(i).toFixed(1),y=yS(p.pengeluaran).toFixed(1);
+    return `<circle cx="${x}" cy="${y}" r="4" fill="#E24B4A" stroke="#fff" stroke-width="2"/>`;
+  }).join('');
+
+  return `<div class="chart-card" style="margin-bottom:1rem;">
+    <div class="chart-card-title"><i class="ti ti-trending-up"></i> Grafik Pemasukan vs Pengeluaran
+      <div style="display:flex;gap:12px;margin-left:auto;font-size:11px;font-weight:500;">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#1D9E75;border-radius:2px;display:inline-block;"></span>Pemasukan</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#E24B4A;border-radius:2px;display:inline-block;"></span>Pengeluaran</span>
+      </div>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">
+      <defs><linearGradient id="ag2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1D9E75" stop-opacity="0.15"/>
+        <stop offset="100%" stop-color="#1D9E75" stop-opacity="0.01"/>
+      </linearGradient></defs>
+      ${grid}
+      <polygon points="${areaP}" fill="url(#ag2)"/>
+      <polyline points="${lineP}" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <polyline points="${lineK}" fill="none" stroke="#E24B4A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4,3"/>
+      ${dotsP}${dotsK}
+    </svg>
+  </div>`;
+}
+
+function buildAggregatedTable(records) {
+  const grouped = {};
+  records.forEach(r => {
+    ['barRows','kitchenRows','operasionalRows','extraRows'].forEach(key => {
+      (r.data[key]||[]).forEach(row => { if (row.val>0) {
+        const cat = key==='barRows'?'Bar':key==='kitchenRows'?'Kitchen':key==='operasionalRows'?'Operasional':'Lainnya';
+        if (!grouped[cat]) grouped[cat] = 0;
+        grouped[cat] += row.val;
+      }});
+    });
+    const p = r.data.simple;
+    if ((p.pajak_majoo||0)>0) { if (!grouped['Pajak Majoo']) grouped['Pajak Majoo']=0; grouped['Pajak Majoo']+=p.pajak_majoo; }
+    if ((p.pajak_pos||0)>0) { if (!grouped['Pajak POS']) grouped['Pajak POS']=0; grouped['Pajak POS']+=p.pajak_pos; }
+  });
+
+  const catRows = Object.entries(grouped).filter(([,v])=>v>0)
+    .map(([k,v])=>`<tr><td>${k}</td><td style="text-align:right;font-weight:500">${fmt(v)}</td></tr>`).join('');
+  const totP = records.reduce((s,r)=>s+r.totalP,0);
+  const totK = records.reduce((s,r)=>s+r.totalK,0);
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;">
+      <div class="card" style="padding:1rem;">
+        <div class="card-title" style="font-size:13px;margin-bottom:0.75rem;"><i class="ti ti-arrow-down-circle"></i> Rekap Pemasukan</div>
+        <table class="report"><thead><tr><th>Sumber</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>
+          ${[['Majoo Tunai','majoo_tunai'],['Majoo Non-Tunai','majoo_nontunai'],['POS Tunai','pos_tunai'],['POS Non-Tunai','pos_nontunai'],['GoFood','gojek'],['GrabFood','grab']]
+            .map(([label,id])=>{ const v=records.reduce((s,r)=>s+(r.data.simple[id]||0),0); return v>0?`<tr><td>${label}</td><td style="text-align:right">${fmt(v)}</td></tr>`:''; }).join('')}
+          <tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(totP)}</td></tr>
+        </tbody></table>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div class="card-title" style="font-size:13px;margin-bottom:0.75rem;"><i class="ti ti-arrow-up-circle"></i> Rekap Pengeluaran</div>
+        <table class="report"><thead><tr><th>Kategori</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>${catRows}<tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(totK)}</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="card" style="padding:1rem;margin-bottom:1rem;">
+      <div class="card-title" style="font-size:13px;margin-bottom:0.75rem;"><i class="ti ti-calendar-stats"></i> Detail Per Hari</div>
+      <table class="report">
+        <thead><tr><th>Tanggal</th><th style="text-align:right">Pemasukan</th><th style="text-align:right">Pengeluaran</th><th style="text-align:right">Laba/Rugi</th></tr></thead>
+        <tbody>${records.slice().reverse().map(r=>{
+          const tglFmt = new Date(r.tgl+'T12:00:00').toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'});
+          return `<tr onclick="lihatDetail('${r.tgl}')" style="cursor:pointer;">
+            <td>${tglFmt}</td>
+            <td style="text-align:right">${fmt(r.totalP)}</td>
+            <td style="text-align:right">${fmt(r.totalK)}</td>
+            <td style="text-align:right;font-weight:600;color:${r.net>=0?'var(--green)':'var(--red)'};">${r.net>=0?'+':'−'} ${fmt(Math.abs(r.net))}</td>
+          </tr>`;
+        }).join('')}
+        <tr class="total-row"><td>TOTAL</td><td style="text-align:right">${fmt(totP)}</td><td style="text-align:right">${fmt(totK)}</td><td style="text-align:right;font-weight:700;color:${(totP-totK)>=0?'var(--green)':'var(--red)'};">${(totP-totK)>=0?'+':'−'} ${fmt(Math.abs(totP-totK))}</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function buildReport() { buildLaporanView(); }
 
 function buildBar(id, data, color) {
   const el = document.getElementById(id);
-  if (!data.length) { el.innerHTML = ''; return; }
+  if (!el || !data.length) { if(el) el.innerHTML=''; return; }
   const max = Math.max(...data.map(d => d.val));
   el.innerHTML = data.map(d => `
     <div class="bar-wrap">
@@ -1106,12 +1369,15 @@ function buildOmsetChart() {
 loadData();
 
 function doPrint() {
-  buildReport();
-  const tgl = document.getElementById('tanggal').value;
-  const tglFmt = tgl ? new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
+  // Print current laporan view
+  const fromEl = document.getElementById('laporan-from');
+  const tgl = (currentLaporan === 'harian' ? fromEl.value : null) || document.getElementById('tanggal').value;
+  const tglFmt = tgl ? new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
   document.getElementById('print-date-label').textContent = tglFmt;
   setTimeout(() => window.print(), 150);
 }
+
+function doPrintRange() { doPrint(); }
 
 function openSubmitModal() {
   calc();
