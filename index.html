@@ -161,6 +161,41 @@
   .action-row { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 1.25rem; }
   .empty-state { text-align: center; padding: 2rem 1rem; color: var(--text3); font-size: 13px; }
 
+  /* ── DASHBOARD ── */
+  .welcome-hero {
+    background: linear-gradient(135deg, #093a72 0%, #1155a3 60%, #1a6abf 100%);
+    color: white; border-radius: var(--radius-lg); padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem; position: relative; overflow: hidden;
+  }
+  .welcome-hero::before { content:''; position:absolute; top:-40px; right:-40px; width:200px; height:200px; background:rgba(255,255,255,0.07); border-radius:50%; }
+  .welcome-hero::after  { content:''; position:absolute; bottom:-60px; right:100px; width:130px; height:130px; background:rgba(255,255,255,0.04); border-radius:50%; }
+  .welcome-hero > div { position:relative; z-index:1; }
+  .welcome-greeting { font-size:13px; font-weight:500; opacity:0.75; margin-bottom:4px; }
+  .welcome-title { font-size:24px; font-weight:800; letter-spacing:-0.3px; }
+  .welcome-sub { font-size:13px; opacity:0.65; margin-top:4px; }
+  .welcome-date-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:4px 12px; font-size:12px; margin-top:12px; }
+
+  .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:1.25rem; }
+  @media (max-width:540px) { .stat-grid { grid-template-columns:1fr; } }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.1rem 1.25rem; box-shadow:var(--shadow); }
+  .stat-icon { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:19px; margin-bottom:10px; }
+  .stat-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text2); margin-bottom:5px; }
+  .stat-val { font-size:17px; font-weight:700; line-height:1.2; }
+  .stat-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem 1.5rem; margin-bottom:1.25rem; box-shadow:var(--shadow); }
+  .chart-card-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:1rem; display:flex; align-items:center; gap:7px; }
+  .chart-card-title i { color:#093a72; }
+
+  .quick-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:1.25rem; }
+  .qa-btn { flex:1; min-width:130px; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:12px 16px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.15s; }
+  .qa-btn.blue { background:#093a72; color:#fff; }
+  .qa-btn.blue:hover { background:#0a2f5a; }
+  .qa-btn.green { background:#1D9E75; color:#fff; }
+  .qa-btn.green:hover { background:#17855f; }
+  .qa-btn.outline { background:none; color:var(--text2); border:1px solid var(--border2); }
+  .qa-btn.outline:hover { border-color:#093a72; color:#093a72; }
+
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: var(--surface); padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -377,14 +412,45 @@
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
+    <button class="tab active" onclick="switchTab('beranda')"><i class="ti ti-home"></i> Beranda</button>
+    <button class="tab" onclick="switchTab('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
     <button class="tab" onclick="switchTab('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
     <button class="tab" onclick="switchTab('laporan')"><i class="ti ti-chart-bar"></i> Laporan</button>
     <button class="tab" onclick="switchTab('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
   </div>
 
+  <!-- BERANDA / DASHBOARD -->
+  <div id="tab-beranda" class="section active">
+    <div class="welcome-hero">
+      <div>
+        <div class="welcome-greeting" id="welcome-greeting">Selamat datang!</div>
+        <div class="welcome-title">Koneo Financial Dashboard</div>
+        <div class="welcome-sub">Pantau keuangan harian Koneo Indonesia secara real-time</div>
+        <div class="welcome-date-badge"><i class="ti ti-calendar"></i> <span id="welcome-date-str">—</span></div>
+      </div>
+    </div>
+
+    <div class="stat-grid" id="dash-stats">
+      <div class="stat-card"><div class="stat-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-arrow-down-circle"></i></div><div class="stat-label">Pemasukan Hari Ini</div><div class="stat-val" style="color:var(--green)" id="ds-pemasukan">Rp 0</div><div class="stat-sub" id="ds-pemasukan-sub">—</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--red-light);color:var(--red)"><i class="ti ti-arrow-up-circle"></i></div><div class="stat-label">Pengeluaran Hari Ini</div><div class="stat-val" style="color:var(--red)" id="ds-pengeluaran">Rp 0</div><div class="stat-sub" id="ds-pengeluaran-sub">—</div></div>
+      <div class="stat-card" id="ds-net-card"><div class="stat-icon" id="ds-net-icon" style="background:var(--blue-light);color:var(--blue)"><i class="ti ti-trending-up"></i></div><div class="stat-label">Laba / Rugi Hari Ini</div><div class="stat-val" id="ds-net">Rp 0</div><div class="stat-sub" id="ds-net-sub">—</div></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-title"><i class="ti ti-trending-up"></i> Tren Omset — 14 Hari Terakhir</div>
+      <div id="omset-chart"></div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="qa-btn blue" onclick="switchTab('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Input Pemasukan</button>
+      <button class="qa-btn green" onclick="switchTab('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Input Pengeluaran</button>
+      <button class="qa-btn outline" onclick="switchTab('laporan')"><i class="ti ti-chart-bar"></i> Lihat Laporan</button>
+      <button class="qa-btn outline" onclick="switchTab('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
+    </div>
+  </div>
+
   <!-- PEMASUKAN -->
-  <div id="tab-pemasukan" class="section active">
+  <div id="tab-pemasukan" class="section">
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Majoo</div>
       <div class="grid-2">
@@ -685,6 +751,7 @@ function loadData() {
 
   renderSubmitBar();
   buildRiwayat();
+  buildDashboard();
   calc();
 }
 
@@ -752,12 +819,13 @@ function showToast(msg) {
 }
 
 function switchTab(tab) {
-  const tabs = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'laporan') buildReport();
   if (tab === 'riwayat') buildRiwayat();
+  if (tab === 'beranda') buildDashboard();
 }
 
 function makeItemRow(containerId, rowsArr, placeholder) {
@@ -938,6 +1006,90 @@ function buildBar(id, data, color) {
     </div>`).join('');
 }
 
+function buildDashboard() {
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
+  document.getElementById('welcome-greeting').textContent = greeting + ', Koneo Indonesia!';
+  document.getElementById('welcome-date-str').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const tgl = document.getElementById('tanggal').value;
+  const submitted = tgl ? localStorage.getItem('koneo_day_' + tgl) : null;
+  const draft = tgl ? localStorage.getItem('koneo_draft_' + tgl) : null;
+  const todayRaw = submitted || draft;
+
+  let todayP = 0, todayK = 0, todayNet = 0;
+  if (todayRaw) { const c = calcSnapshot(JSON.parse(todayRaw)); todayP = c.totalP; todayK = c.totalK; todayNet = c.net; }
+
+  const allKeys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort();
+  const yesterday = new Date(tgl + 'T00:00:00'); yesterday.setDate(yesterday.getDate() - 1);
+  const yRaw = localStorage.getItem('koneo_day_' + yesterday.toISOString().split('T')[0]);
+  const yNet = yRaw ? calcSnapshot(JSON.parse(yRaw)).net : null;
+
+  const netColor = todayNet >= 0 ? 'var(--blue)' : 'var(--red)';
+  const netBg = todayNet >= 0 ? 'var(--blue-light)' : 'var(--red-light)';
+  const netIcon = todayNet >= 0 ? 'ti-trending-up' : 'ti-trending-down';
+
+  document.getElementById('ds-pemasukan').textContent = fmt(todayP);
+  document.getElementById('ds-pemasukan-sub').textContent = submitted ? '✓ Sudah disubmit' : (todayP > 0 ? 'Draft tersimpan' : 'Belum ada data');
+  document.getElementById('ds-pengeluaran').textContent = fmt(todayK);
+  document.getElementById('ds-pengeluaran-sub').textContent = allKeys.length + ' hari laporan tercatat';
+  document.getElementById('ds-net').textContent = (todayNet < 0 ? '- ' : '') + fmt(Math.abs(todayNet));
+  document.getElementById('ds-net').style.color = netColor;
+  document.getElementById('ds-net-icon').style.background = netBg;
+  document.getElementById('ds-net-icon').style.color = netColor;
+  document.getElementById('ds-net-icon').innerHTML = `<i class="ti ${netIcon}"></i>`;
+  document.getElementById('ds-net-sub').textContent = yNet !== null ? 'Kemarin: ' + (yNet < 0 ? '- ' : '') + fmt(Math.abs(yNet)) : 'Belum ada data kemarin';
+
+  buildOmsetChart();
+}
+
+function buildOmsetChart() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort().slice(-14);
+  const el = document.getElementById('omset-chart');
+  if (!keys.length) { el.innerHTML = '<div class="empty-state">Belum ada laporan yang disubmit.</div>'; return; }
+  if (keys.length === 1) {
+    const { totalP } = calcSnapshot(JSON.parse(localStorage.getItem(keys[0])));
+    el.innerHTML = `<div style="text-align:center;padding:1.5rem;color:var(--text2);font-size:13px;">Butuh minimal 2 hari data untuk menampilkan grafik tren.<br><br><strong style="color:#093a72;font-size:16px;">${fmt(totalP)}</strong><br>omset tercatat.</div>`;
+    return;
+  }
+  const pts = keys.map(k => {
+    const d = JSON.parse(localStorage.getItem(k));
+    const { totalP, net } = calcSnapshot(d);
+    return { tgl: k.replace('koneo_day_',''), totalP, net };
+  });
+  const W = 680, H = 200, pL = 58, pR = 16, pT = 20, pB = 42;
+  const iW = W - pL - pR, iH = H - pT - pB;
+  const maxV = Math.max(...pts.map(p => p.totalP), 1);
+  const xS = i => pL + (i / (pts.length - 1)) * iW;
+  const yS = v => pT + iH - (v / maxV) * iH;
+  const linePts = pts.map((p, i) => `${xS(i).toFixed(1)},${yS(p.totalP).toFixed(1)}`).join(' ');
+  const areaPts = `${xS(0).toFixed(1)},${(pT + iH).toFixed(1)} ${linePts} ${xS(pts.length-1).toFixed(1)},${(pT + iH).toFixed(1)}`;
+  const grid = [0, 0.25, 0.5, 0.75, 1].map(t => {
+    const y = (pT + iH * t).toFixed(1);
+    const v = maxV * (1 - t);
+    const lbl = v >= 1e6 ? (v/1e6).toFixed(1)+'jt' : v >= 1e3 ? Math.round(v/1e3)+'rb' : Math.round(v)+'';
+    return `<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="rgba(9,58,114,0.07)" stroke-width="1"/>
+      <text x="${pL-6}" y="${(+y+4).toFixed(0)}" text-anchor="end" font-size="9" fill="#9a9a96">${lbl}</text>`;
+  }).join('');
+  const dots = pts.map((p, i) => {
+    const x = xS(i).toFixed(1), y = yS(p.totalP).toFixed(1);
+    const lbl = new Date(p.tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+    return `<circle cx="${x}" cy="${y}" r="4.5" fill="#093a72" stroke="#fff" stroke-width="2"/>
+      <text x="${x}" y="${H-8}" text-anchor="middle" font-size="9" fill="#6b6b68">${lbl}</text>`;
+  }).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#093a72" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#093a72" stop-opacity="0.01"/>
+    </linearGradient></defs>
+    ${grid}
+    <polygon points="${areaPts}" fill="url(#ag)"/>
+    <polyline points="${linePts}" fill="none" stroke="#093a72" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+  </svg>`;
+}
+
 loadData();
 
 function doPrint() {
@@ -989,23 +1141,25 @@ function confirmSubmit() {
   const tgl = document.getElementById('tanggal').value;
   if (!tgl) { showToast('Pilih tanggal terlebih dahulu.'); return; }
 
-  // Kumpulkan semua data hari ini
   const snapshot = buildSnapshot();
   snapshot.submitted = true;
   snapshot.submittedAt = new Date().toISOString();
-
-  // Simpan per tanggal
   localStorage.setItem('koneo_day_' + tgl, JSON.stringify(snapshot));
+  localStorage.removeItem('koneo_draft_' + tgl);
 
-  // Update submit bar
-  const bar = document.getElementById('submit-bar');
   const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
-  bar.innerHTML = `<div class="submitted-badge"><i class="ti ti-circle-check"></i> Data ${tglFmt} berhasil disubmit</div>
-    <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="resetHariIni()"><i class="ti ti-edit"></i> Edit</button>`;
-
   showToast('Laporan ' + tglFmt + ' berhasil disimpan!');
+
+  // Bersihkan form & maju ke hari berikutnya
+  clearForm();
+  const nextDate = new Date(tgl + 'T00:00:00');
+  nextDate.setDate(nextDate.getDate() + 1);
+  document.getElementById('tanggal').value = nextDate.toISOString().split('T')[0];
+
   buildRiwayat();
-  switchTab('laporan');
+  renderSubmitBar();
+  buildDashboard();
+  switchTab('beranda');
 }
 
 // Kumpulkan semua nilai form jadi objek snapshot
