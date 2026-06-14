@@ -471,6 +471,120 @@
   }
   .btn-confirm:hover { background: #0a2f5a; box-shadow: 0 4px 16px rgba(9,58,114,0.35); }
 
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .topbar { padding: 0 1rem; }
+    .topbar-inner { height: 48px; gap: 8px; }
+    .brand h1 { font-size: 13px; }
+    .brand p { display: none; }
+    .date-wrap label { display: none; }
+    .date-wrap input[type="date"] { font-size: 11px; padding: 4px 8px; }
+    .logo { width: 28px; height: 28px; font-size: 10px; }
+
+    .main { padding: 1rem 1rem 4rem; }
+
+    /* Tabs jadi scrollable */
+    .tabs {
+      border-radius: 14px;
+      padding: 3px;
+      gap: 2px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      flex-wrap: nowrap;
+      margin-bottom: 1.25rem;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex: 0 0 auto;
+      padding: 7px 12px;
+      font-size: 12px;
+      gap: 4px;
+      border-radius: 10px;
+    }
+    .tab i { font-size: 13px; }
+
+    /* Cards */
+    .card { padding: 1.25rem 1.25rem; border-radius: 16px; }
+    .card-title { font-size: 13px; margin-bottom: 1rem; }
+
+    /* Hero */
+    .welcome-hero { padding: 1.75rem 1.5rem; border-radius: 16px; margin-bottom: 1.25rem; }
+    .welcome-title { font-size: 24px; letter-spacing: -0.8px; }
+    .welcome-greeting { font-size: 12px; }
+    .welcome-sub { font-size: 13px; }
+    .welcome-date-badge { font-size: 11px; padding: 4px 12px; }
+
+    /* Stat cards 2x1 grid on mobile */
+    .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+    .stat-card { padding: 1.1rem 1rem; border-radius: 14px; }
+    .stat-icon { width: 36px; height: 36px; font-size: 17px; margin-bottom: 10px; border-radius: 10px; }
+    .stat-val { font-size: 18px; letter-spacing: -0.5px; }
+    .stat-label { font-size: 9px; }
+    .stat-sub { font-size: 11px; }
+
+    /* Net box */
+    .net-box { padding: 1.5rem 1.5rem; border-radius: 16px; }
+    .net-box .net-amount { font-size: 28px; }
+
+    /* Quick actions */
+    .quick-actions { gap: 8px; }
+    .qa-btn { padding: 10px 14px; font-size: 13px; min-width: 0; }
+
+    /* Submit bar */
+    .submit-bar { padding: 0.85rem 1.25rem; border-radius: 14px; }
+    .submit-bar .submit-info { font-size: 12px; }
+    .btn-submit { font-size: 13px; padding: 8px 18px; }
+
+    /* Forms */
+    .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+    input[type="text"], select { font-size: 14px; padding: 10px 12px; }
+    .currency-wrap .prefix { font-size: 12px; }
+
+    /* Extra rows */
+    .extra-row { grid-template-columns: 1.4fr 1fr 34px; gap: 8px; }
+    .extra-row input { font-size: 13px; padding: 9px 10px; }
+
+    /* Bar chart labels */
+    .bar-label { min-width: 90px; max-width: 90px; font-size: 11px; }
+    .bar-val { min-width: 75px; font-size: 11px; }
+
+    /* Summary grid */
+    .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric { padding: 12px 14px; }
+    .metric .mval { font-size: 16px; }
+
+    /* Chart card */
+    .chart-card { padding: 1.25rem 1.25rem; border-radius: 16px; }
+
+    /* Tables */
+    table.report { font-size: 12px; }
+    table.report th { padding: 8px 10px; font-size: 9px; }
+    table.report td { padding: 10px 10px; }
+
+    /* Riwayat rows */
+    .riwayat-row { padding: 12px 14px; }
+    .riwayat-row .rdate { font-size: 13px; }
+    .riwayat-row .rnet { font-size: 13px; }
+
+    /* Action row */
+    .action-row { flex-wrap: wrap; }
+    .btn-primary { font-size: 14px; padding: 10px 20px; }
+
+    /* Modal */
+    .modal { padding: 1.5rem; border-radius: 20px; }
+    .modal-title { font-size: 16px; }
+  }
+
+  @media (max-width: 400px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .welcome-title { font-size: 20px; }
+    .net-box .net-amount { font-size: 24px; }
+    .tab span { display: none; }
+    .tab { padding: 8px 10px; }
+  }
+
   @media print {
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
