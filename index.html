@@ -106,8 +106,8 @@
   .section.active { display: block; }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
-  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: 7px; }
-  .card-title i { font-size: 17px; color: #093a72; }
+  .card-title { font-size: 14px; font-weight: 600; color: #ede6dd; margin-bottom: 1rem; display: flex; align-items: center; gap: 7px; }
+  .card-title i { font-size: 17px; color: #ede6dd; }
 
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -724,7 +724,12 @@ function renderSubmitBar() {
 
 function fmt(n) {
   if (!n || n === 0) return 'Rp 0';
-  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  return 'Rp ' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function fmtRupiah(n) {
+  if (!n) return '';
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 function fmtInput(el) {
@@ -732,7 +737,7 @@ function fmtInput(el) {
   const oldLen = el.value.length;
   const raw = el.value.replace(/[^\d]/g, '');
   if (raw === '') { el.value = ''; calc(); return; }
-  el.value = parseInt(raw, 10).toLocaleString('id-ID');
+  el.value = fmtRupiah(parseInt(raw, 10));
   const diff = el.value.length - oldLen;
   try { el.setSelectionRange(pos + diff, pos + diff); } catch(e) {}
   calc();
@@ -741,12 +746,12 @@ function fmtInput(el) {
 function setRupiah(id, val) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.value = (!val || val === 0) ? '' : Math.round(val).toLocaleString('id-ID');
+  el.value = fmtRupiah(val);
 }
 
 function setRupiahEl(el, val) {
   if (!el) return;
-  el.value = (!val || val === 0) ? '' : Math.round(val).toLocaleString('id-ID');
+  el.value = fmtRupiah(val);
 }
 
 function getVal(id) {
