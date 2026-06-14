@@ -117,16 +117,13 @@
   .currency-wrap { position: relative; }
   .currency-wrap .prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text3); pointer-events: none; }
   .currency-wrap input { padding-left: 34px !important; }
-  input[type="number"], input[type="text"], select, textarea {
+  input[type="text"], select, textarea {
     width: 100%; font-size: 14px; padding: 9px 12px;
     border: 1px solid var(--border2); border-radius: 8px;
     background: var(--surface); color: var(--text);
     outline: none; transition: border-color 0.15s;
-    -moz-appearance: textfield;
   }
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  input[type="number"]:focus, input[type="text"]:focus { border-color: #093a72; box-shadow: 0 0 0 3px rgba(9,58,114,0.10); }
+  input[type="text"]:focus { border-color: #093a72; box-shadow: 0 0 0 3px rgba(9,58,114,0.10); }
 
   .summary-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
   .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
@@ -412,11 +409,11 @@
       <div class="grid-2">
         <div class="input-group">
           <label>Majoo Tunai</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="majoo_tunai" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="majoo_tunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
           <label>Majoo Non-Tunai</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="majoo_nontunai" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="majoo_nontunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
     </div>
@@ -426,11 +423,11 @@
       <div class="grid-2">
         <div class="input-group">
           <label>POS Tunai</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="pos_tunai" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pos_tunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
           <label>POS Non-Tunai</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="pos_nontunai" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pos_nontunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
     </div>
@@ -440,11 +437,11 @@
       <div class="grid-2">
         <div class="input-group">
           <label>GoFood (Gojek)</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="gojek" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="gojek" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
           <label>GrabFood (Grab)</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="grab" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="grab" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
     </div>
@@ -482,11 +479,11 @@
       <div class="grid-2">
         <div class="input-group">
           <label><i class="ti ti-building-store" style="font-size:12px;"></i> Pajak Majoo</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="pajak_majoo" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pajak_majoo" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
           <label><i class="ti ti-device-desktop" style="font-size:12px;"></i> Pajak POS</label>
-          <div class="currency-wrap"><span class="prefix">Rp</span><input type="number" id="pajak_pos" placeholder="0" oninput="calc()"></div>
+          <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pajak_pos" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
     </div>
@@ -656,14 +653,14 @@ function clearForm() {
 function loadFromData(data) {
   rowId = data.rowId || 0;
   const simpleIds = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'];
-  simpleIds.forEach(id => { const el = document.getElementById(id); if (el && data.simple?.[id] != null) el.value = data.simple[id]; });
+  simpleIds.forEach(id => { if (data.simple?.[id] != null) setRupiah(id, data.simple[id]); });
 
   barRows = (data.barRows || []).map((r,i) => ({ id: data.rowId ? r.id || ++rowId : ++rowId }));
   renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
   barRows.forEach((r,i) => {
     const s = (data.barRows||[])[i]; if (!s) return;
     const k = document.getElementById('item_ket_' + r.id); if (k) k.value = s.ket||'';
-    const v = document.getElementById('item_val_' + r.id); if (v) v.value = s.val||'';
+    const v = document.getElementById('item_val_' + r.id); if (v) setRupiahEl(v, s.val||0);
   });
 
   kitchenRows = (data.kitchenRows || []).map(() => ({ id: ++rowId }));
@@ -671,7 +668,7 @@ function loadFromData(data) {
   kitchenRows.forEach((r,i) => {
     const s = (data.kitchenRows||[])[i]; if (!s) return;
     const k = document.getElementById('item_ket_' + r.id); if (k) k.value = s.ket||'';
-    const v = document.getElementById('item_val_' + r.id); if (v) v.value = s.val||'';
+    const v = document.getElementById('item_val_' + r.id); if (v) setRupiahEl(v, s.val||0);
   });
 
   operasionalRows = (data.operasionalRows || []).map(() => ({ id: ++rowId }));
@@ -679,7 +676,7 @@ function loadFromData(data) {
   operasionalRows.forEach((r,i) => {
     const s = (data.operasionalRows||[])[i]; if (!s) return;
     const k = document.getElementById('item_ket_' + r.id); if (k) k.value = s.ket||'';
-    const v = document.getElementById('item_val_' + r.id); if (v) v.value = s.val||'';
+    const v = document.getElementById('item_val_' + r.id); if (v) setRupiahEl(v, s.val||0);
   });
 
   extraRows = (data.extraRows || []).map(() => ({ id: ++rowId }));
@@ -687,7 +684,7 @@ function loadFromData(data) {
   extraRows.forEach((r,i) => {
     const s = (data.extraRows||[])[i]; if (!s) return;
     const k = document.getElementById('extra_ket_' + r.id); if (k) k.value = s.ket||'';
-    const v = document.getElementById('extra_val_' + r.id); if (v) v.value = s.val||'';
+    const v = document.getElementById('extra_val_' + r.id); if (v) setRupiahEl(v, s.val||0);
   });
 }
 
@@ -730,8 +727,35 @@ function fmt(n) {
   return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 }
 
+function fmtInput(el) {
+  const pos = el.selectionStart;
+  const oldLen = el.value.length;
+  const raw = el.value.replace(/[^\d]/g, '');
+  if (raw === '') { el.value = ''; calc(); return; }
+  el.value = parseInt(raw, 10).toLocaleString('id-ID');
+  const diff = el.value.length - oldLen;
+  try { el.setSelectionRange(pos + diff, pos + diff); } catch(e) {}
+  calc();
+}
+
+function setRupiah(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = (!val || val === 0) ? '' : Math.round(val).toLocaleString('id-ID');
+}
+
+function setRupiahEl(el, val) {
+  if (!el) return;
+  el.value = (!val || val === 0) ? '' : Math.round(val).toLocaleString('id-ID');
+}
+
 function getVal(id) {
-  return parseFloat(document.getElementById(id)?.value) || 0;
+  const el = document.getElementById(id);
+  return parseInt((el?.value || '').replace(/[^\d]/g, ''), 10) || 0;
+}
+
+function getRawVal(el) {
+  return parseInt((el?.value || '').replace(/[^\d]/g, ''), 10) || 0;
 }
 
 function showToast(msg) {
@@ -773,7 +797,7 @@ function renderItemRows(containerId, rowsArr, placeholder) {
       <input type="text" placeholder="${placeholder}" id="item_ket_${r.id}" oninput="calc()">
       <div class="currency-wrap" style="position:relative;">
         <span class="prefix" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;">Rp</span>
-        <input type="number" placeholder="0" id="item_val_${r.id}" oninput="calc()" style="padding-left:30px;">
+        <input type="text" inputmode="numeric" placeholder="0" id="item_val_${r.id}" oninput="fmtInput(this)" style="padding-left:30px;">
       </div>
       <button class="btn-danger-sm" onclick="removeItemRow('${containerId}', ${containerId === 'bar-rows' ? 'barRows' : containerId === 'kitchen-rows' ? 'kitchenRows' : 'extraRows'}, ${r.id}, '${placeholder}')" title="Hapus"><i class="ti ti-trash"></i></button>
     `;
@@ -809,7 +833,7 @@ function renderExtraRows() {
       <input type="text" placeholder="Keterangan pengeluaran..." id="extra_ket_${r.id}" oninput="calc()">
       <div class="currency-wrap" style="position:relative;">
         <span class="prefix" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;">Rp</span>
-        <input type="number" placeholder="0" id="extra_val_${r.id}" oninput="calc()" style="padding-left:30px;">
+        <input type="text" inputmode="numeric" placeholder="0" id="extra_val_${r.id}" oninput="fmtInput(this)" style="padding-left:30px;">
       </div>
       <button class="btn-danger-sm" onclick="removeRow(${r.id})" title="Hapus"><i class="ti ti-trash"></i></button>
     `;
@@ -828,13 +852,13 @@ function calc() {
   document.getElementById('s_online').textContent = fmt(online);
   document.getElementById('s_pemasukan').textContent = fmt(totalP);
 
-  let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
-  let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let bar = 0; barRows.forEach(r => { bar += getRawVal(document.getElementById('item_val_' + r.id)); });
+  let kitchen = 0; kitchenRows.forEach(r => { kitchen += getRawVal(document.getElementById('item_val_' + r.id)); });
   const pajakMajoo = getVal('pajak_majoo'), pajakPos = getVal('pajak_pos');
   const pajak = pajakMajoo + pajakPos;
-  let ops = 0; operasionalRows.forEach(r => { ops += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let ops = 0; operasionalRows.forEach(r => { ops += getRawVal(document.getElementById('item_val_' + r.id)); });
   let lainnya = 0;
-  extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
+  extraRows.forEach(r => { lainnya += getRawVal(document.getElementById('extra_val_' + r.id)); });
   const totalK = bar + kitchen + pajak + ops + lainnya;
   document.getElementById('s_bar').textContent = fmt(bar);
   document.getElementById('s_kitchen').textContent = fmt(kitchen);
@@ -850,9 +874,9 @@ function buildReport() {
   const mt = getVal('majoo_tunai'), mnt = getVal('majoo_nontunai');
   const pt = getVal('pos_tunai'), pnt = getVal('pos_nontunai');
   const gj = getVal('gojek'), gr = getVal('grab');
-  const barData = barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Bar', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
-  const kitchenData = kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Kitchen', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
-  const operasionalData = operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Operasional', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 }));
+  const barData = barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Bar', val: getRawVal(document.getElementById('item_val_' + r.id)) }));
+  const kitchenData = kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Kitchen', val: getRawVal(document.getElementById('item_val_' + r.id)) }));
+  const operasionalData = operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || 'Operasional', val: getRawVal(document.getElementById('item_val_' + r.id)) }));
   let bar = 0; barData.forEach(e => bar += e.val);
   let kitchen = 0; kitchenData.forEach(e => kitchen += e.val);
   const pajakMajoo = getVal('pajak_majoo'), pajakPos = getVal('pajak_pos');
@@ -860,7 +884,7 @@ function buildReport() {
   let ops = 0; operasionalData.forEach(e => ops += e.val);
   const extraData = extraRows.map(r => ({
     ket: document.getElementById('extra_ket_' + r.id)?.value || 'Lainnya',
-    val: parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0
+    val: getRawVal(document.getElementById('extra_val_' + r.id))
   }));
   let lainnya = 0; extraData.forEach(e => lainnya += e.val);
 
@@ -943,12 +967,12 @@ function openSubmitModal() {
   const mt = getVal('majoo_tunai'), mnt = getVal('majoo_nontunai');
   const pt = getVal('pos_tunai'), pnt = getVal('pos_nontunai');
   const gj = getVal('gojek'), gr = getVal('grab');
-  let bar = 0; barRows.forEach(r => { bar += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
-  let kitchen = 0; kitchenRows.forEach(r => { kitchen += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let bar = 0; barRows.forEach(r => { bar += getRawVal(document.getElementById('item_val_' + r.id)); });
+  let kitchen = 0; kitchenRows.forEach(r => { kitchen += getRawVal(document.getElementById('item_val_' + r.id)); });
   const pajakMajoo = getVal('pajak_majoo'), pajakPos = getVal('pajak_pos');
-  let ops = 0; operasionalRows.forEach(r => { ops += parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0; });
+  let ops = 0; operasionalRows.forEach(r => { ops += getRawVal(document.getElementById('item_val_' + r.id)); });
   let lainnya = 0;
-  extraRows.forEach(r => { lainnya += parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0; });
+  extraRows.forEach(r => { lainnya += getRawVal(document.getElementById('extra_val_' + r.id)); });
   const totalP = mt + mnt + pt + pnt + gj + gr;
   const totalK = bar + kitchen + pajakMajoo + pajakPos + ops + lainnya;
   const net = totalP - totalK;
@@ -1007,10 +1031,10 @@ function buildSnapshot() {
   return {
     tanggal: document.getElementById('tanggal').value,
     simple,
-    barRows: barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 })),
-    kitchenRows: kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 })),
-    operasionalRows: operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 })),
-    extraRows: extraRows.map(r => ({ ket: document.getElementById('extra_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0 })),
+    barRows: barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('item_val_' + r.id)) })),
+    kitchenRows: kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('item_val_' + r.id)) })),
+    operasionalRows: operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('item_val_' + r.id)) })),
+    extraRows: extraRows.map(r => ({ ket: document.getElementById('extra_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('extra_val_' + r.id)) })),
   };
 }
 
