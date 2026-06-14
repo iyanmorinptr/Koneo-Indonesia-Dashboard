@@ -194,6 +194,17 @@
   .btn-submit:disabled { background: var(--text3); cursor: not-allowed; }
   .submitted-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: #0F6E56; border: 1px solid #9FE1CB; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
 
+  .riwayat-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; border-radius: var(--radius); transition: background 0.12s; gap: 10px; }
+  .riwayat-row:last-child { border-bottom: none; }
+  .riwayat-row:hover { background: var(--surface2); }
+  .riwayat-row .rdate { font-size: 13px; font-weight: 600; color: var(--text); }
+  .riwayat-row .rstats { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .riwayat-row .rnet { font-size: 14px; font-weight: 700; text-align: right; }
+  .riwayat-row .rnet.profit { color: var(--green); }
+  .riwayat-row .rnet.loss { color: var(--red); }
+  .riwayat-row .rdel { background: none; border: none; cursor: pointer; color: var(--text3); padding: 5px 7px; border-radius: 6px; font-size: 15px; transition: all 0.15s; flex-shrink: 0; }
+  .riwayat-row .rdel:hover { color: var(--red); background: var(--red-light); }
+
   .modal-overlay { position: fixed; inset: 0; background: rgba(9,58,114,0.35); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .modal-overlay.show { opacity: 1; pointer-events: all; }
   .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; max-width: 420px; width: 100%; box-shadow: 0 8px 32px rgba(9,58,114,0.18); }
@@ -391,6 +402,7 @@
     <button class="tab active" onclick="switchTab('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
     <button class="tab" onclick="switchTab('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
     <button class="tab" onclick="switchTab('laporan')"><i class="ti ti-chart-bar"></i> Laporan</button>
+    <button class="tab" onclick="switchTab('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
   </div>
 
   <!-- PEMASUKAN -->
@@ -554,8 +566,17 @@
     </div>
 
     <div class="action-row">
-      <button class="btn-outline" onclick="resetAll()"><i class="ti ti-refresh"></i> Reset Data</button>
+      <button class="btn-outline" onclick="resetAll()"><i class="ti ti-refresh"></i> Reset Hari Ini</button>
       <button class="btn-primary" onclick="doPrint()"><i class="ti ti-printer"></i> Cetak Laporan</button>
+    </div>
+  </div>
+
+  <!-- RIWAYAT -->
+  <div id="tab-riwayat" class="section">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-history"></i> Riwayat Laporan Harian</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;">Data yang sudah disubmit per hari. Klik baris untuk lihat detail.</p>
+      <div id="riwayat-list"><div class="empty-state">Belum ada laporan yang disubmit.</div></div>
     </div>
   </div>
 </div>
@@ -616,62 +637,91 @@ function saveData() {
     })),
     rowId
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  // Simpan sebagai draft hari ini (bukan submit final)
+  const tgl = document.getElementById('tanggal').value;
+  if (tgl) localStorage.setItem('koneo_draft_' + tgl, JSON.stringify(data));
+}
+
+function clearForm() {
+  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  extraRows = []; barRows = []; kitchenRows = []; operasionalRows = []; rowId = 0;
+  renderExtraRows();
+  renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
+  renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
+  renderItemRows('operasional-rows', operasionalRows, 'Keterangan operasional...');
+}
+
+function loadFromData(data) {
+  rowId = data.rowId || 0;
+  const simpleIds = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'];
+  simpleIds.forEach(id => { const el = document.getElementById(id); if (el && data.simple?.[id] != null) el.value = data.simple[id]; });
+
+  barRows = (data.barRows || []).map((r,i) => ({ id: data.rowId ? r.id || ++rowId : ++rowId }));
+  renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
+  barRows.forEach((r,i) => {
+    const s = (data.barRows||[])[i]; if (!s) return;
+    const k = document.getElementById('item_ket_' + r.id); if (k) k.value = s.ket||'';
+    const v = document.getElementById('item_val_' + r.id); if (v) v.value = s.val||'';
+  });
+
+  kitchenRows = (data.kitchenRows || []).map(() => ({ id: ++rowId }));
+  renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
+  kitchenRows.forEach((r,i) => {
+    const s = (data.kitchenRows||[])[i]; if (!s) return;
+    const k = document.getElementById('item_ket_' + r.id); if (k) k.value = s.ket||'';
+    const v = document.getElementById('item_val_' + r.id); if (v) v.value = s.val||'';
+  });
+
+  operasionalRows = (data.operasionalRows || []).map(() => ({ id: ++rowId }));
+  renderItemRows('operasional-rows', operasionalRows, 'Keterangan operasional...');
+  operasionalRows.forEach((r,i) => {
+    const s = (data.operasionalRows||[])[i]; if (!s) return;
+    const k = document.getElementById('item_ket_' + r.id); if (k) k.value = s.ket||'';
+    const v = document.getElementById('item_val_' + r.id); if (v) v.value = s.val||'';
+  });
+
+  extraRows = (data.extraRows || []).map(() => ({ id: ++rowId }));
+  renderExtraRows();
+  extraRows.forEach((r,i) => {
+    const s = (data.extraRows||[])[i]; if (!s) return;
+    const k = document.getElementById('extra_ket_' + r.id); if (k) k.value = s.ket||'';
+    const v = document.getElementById('extra_val_' + r.id); if (v) v.value = s.val||'';
+  });
 }
 
 function loadData() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    document.getElementById('tanggal').value = today.toISOString().split('T')[0];
-    return;
+  const tgl = today.toISOString().split('T')[0];
+  document.getElementById('tanggal').value = tgl;
+
+  // Cek apakah hari ini sudah submit
+  const submitted = localStorage.getItem('koneo_day_' + tgl);
+  const draft = localStorage.getItem('koneo_draft_' + tgl);
+  const raw = submitted || draft;
+
+  if (raw) {
+    const data = JSON.parse(raw);
+    loadFromData(data);
   }
-  const data = JSON.parse(raw);
 
-  // simple inputs
-  Object.entries(data.simple || {}).forEach(([id, val]) => {
-    const el = document.getElementById(id); if (el) el.value = val;
-  });
-
-  // rows — restore dan render
-  rowId = data.rowId || 0;
-
-  barRows = (data.barRows || []).map(r => ({ id: r.id }));
-  renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
-  barRows.forEach(r => {
-    const saved = data.barRows.find(s => s.id === r.id);
-    if (!saved) return;
-    const k = document.getElementById('item_ket_' + r.id); if (k) k.value = saved.ket;
-    const v = document.getElementById('item_val_' + r.id); if (v) v.value = saved.val;
-  });
-
-  kitchenRows = (data.kitchenRows || []).map(r => ({ id: r.id }));
-  renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
-  kitchenRows.forEach(r => {
-    const saved = data.kitchenRows.find(s => s.id === r.id);
-    if (!saved) return;
-    const k = document.getElementById('item_ket_' + r.id); if (k) k.value = saved.ket;
-    const v = document.getElementById('item_val_' + r.id); if (v) v.value = saved.val;
-  });
-
-  operasionalRows = (data.operasionalRows || []).map(r => ({ id: r.id }));
-  renderItemRows('operasional-rows', operasionalRows, 'Keterangan operasional...');
-  operasionalRows.forEach(r => {
-    const saved = data.operasionalRows.find(s => s.id === r.id);
-    if (!saved) return;
-    const k = document.getElementById('item_ket_' + r.id); if (k) k.value = saved.ket;
-    const v = document.getElementById('item_val_' + r.id); if (v) v.value = saved.val;
-  });
-
-  extraRows = (data.extraRows || []).map(r => ({ id: r.id }));
-  renderExtraRows();
-  extraRows.forEach(r => {
-    const saved = data.extraRows.find(s => s.id === r.id);
-    if (!saved) return;
-    const k = document.getElementById('extra_ket_' + r.id); if (k) k.value = saved.ket;
-    const v = document.getElementById('extra_val_' + r.id); if (v) v.value = saved.val;
-  });
-
+  renderSubmitBar();
+  buildRiwayat();
   calc();
+}
+
+function renderSubmitBar() {
+  const tgl = document.getElementById('tanggal').value;
+  const bar = document.getElementById('submit-bar');
+  const submitted = tgl ? localStorage.getItem('koneo_day_' + tgl) : null;
+  if (submitted) {
+    const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    bar.innerHTML = `<div class="submitted-badge"><i class="ti ti-circle-check"></i> Laporan ${tglFmt} sudah disubmit</div>
+      <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="resetHariIni()"><i class="ti ti-edit"></i> Edit ulang</button>`;
+  } else {
+    bar.innerHTML = `<div class="submit-info"><strong>Konfirmasi Data</strong> — Pastikan semua data sudah benar sebelum submit</div>
+      <button class="btn-submit" onclick="openSubmitModal()"><i class="ti ti-check"></i> Submit Data</button>`;
+  }
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -692,11 +742,12 @@ function showToast(msg) {
 }
 
 function switchTab(tab) {
-  const tabs = ['pemasukan', 'pengeluaran', 'laporan'];
+  const tabs = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'laporan') buildReport();
+  if (tab === 'riwayat') buildRiwayat();
 }
 
 function makeItemRow(containerId, rowsArr, placeholder) {
@@ -877,23 +928,6 @@ function buildBar(id, data, color) {
     </div>`).join('');
 }
 
-function resetAll() {
-  if (!confirm('Reset semua data? Tindakan ini tidak bisa dibatalkan.')) return;
-  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  extraRows = []; barRows = []; kitchenRows = []; operasionalRows = []; rowId = 0;
-  renderExtraRows();
-  renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
-  renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
-  renderItemRows('operasional-rows', operasionalRows, 'Keterangan operasional...');
-  localStorage.removeItem(STORAGE_KEY);
-  calc();
-  switchTab('pemasukan');
-  showToast('Data berhasil direset.');
-}
-
 loadData();
 
 function doPrint() {
@@ -942,10 +976,180 @@ function closeSubmitModal() {
 
 function confirmSubmit() {
   closeSubmitModal();
+  const tgl = document.getElementById('tanggal').value;
+  if (!tgl) { showToast('Pilih tanggal terlebih dahulu.'); return; }
+
+  // Kumpulkan semua data hari ini
+  const snapshot = buildSnapshot();
+  snapshot.submitted = true;
+  snapshot.submittedAt = new Date().toISOString();
+
+  // Simpan per tanggal
+  localStorage.setItem('koneo_day_' + tgl, JSON.stringify(snapshot));
+
+  // Update submit bar
   const bar = document.getElementById('submit-bar');
-  bar.innerHTML = '<div class="submitted-badge"><i class="ti ti-circle-check"></i> Data berhasil disubmit</div><span style="font-size:12px;color:var(--text2);">Submit ulang? <a href="" onclick="location.reload();return false;" style="color:#093a72;">Refresh halaman</a></span>';
-  showToast('Data berhasil disubmit!');
+  const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  bar.innerHTML = `<div class="submitted-badge"><i class="ti ti-circle-check"></i> Data ${tglFmt} berhasil disubmit</div>
+    <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="resetHariIni()"><i class="ti ti-edit"></i> Edit</button>`;
+
+  showToast('Laporan ' + tglFmt + ' berhasil disimpan!');
+  buildRiwayat();
   switchTab('laporan');
+}
+
+// Kumpulkan semua nilai form jadi objek snapshot
+function buildSnapshot() {
+  const simpleIds = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'];
+  const simple = {};
+  simpleIds.forEach(id => { simple[id] = getVal(id); });
+
+  return {
+    tanggal: document.getElementById('tanggal').value,
+    simple,
+    barRows: barRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 })),
+    kitchenRows: kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 })),
+    operasionalRows: operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('item_val_' + r.id)?.value) || 0 })),
+    extraRows: extraRows.map(r => ({ ket: document.getElementById('extra_ket_' + r.id)?.value || '', val: parseFloat(document.getElementById('extra_val_' + r.id)?.value) || 0 })),
+  };
+}
+
+// Hitung total dari snapshot
+function calcSnapshot(s) {
+  const p = s.simple;
+  const totalP = (p.majoo_tunai||0)+(p.majoo_nontunai||0)+(p.pos_tunai||0)+(p.pos_nontunai||0)+(p.gojek||0)+(p.grab||0);
+  let bar=0; (s.barRows||[]).forEach(r=>bar+=r.val);
+  let kitchen=0; (s.kitchenRows||[]).forEach(r=>kitchen+=r.val);
+  let ops=0; (s.operasionalRows||[]).forEach(r=>ops+=r.val);
+  let lainnya=0; (s.extraRows||[]).forEach(r=>lainnya+=r.val);
+  const pajak = (p.pajak_majoo||0)+(p.pajak_pos||0);
+  const totalK = bar+kitchen+pajak+ops+lainnya;
+  return { totalP, totalK, net: totalP-totalK, bar, kitchen, pajak, ops, lainnya };
+}
+
+// Bangun tab Riwayat
+function buildRiwayat() {
+  const keys = Object.keys(localStorage)
+    .filter(k => k.startsWith('koneo_day_'))
+    .sort().reverse();
+
+  const container = document.getElementById('riwayat-list');
+  if (!keys.length) { container.innerHTML = '<div class="empty-state">Belum ada laporan yang disubmit.</div>'; return; }
+
+  container.innerHTML = keys.map(key => {
+    const tgl = key.replace('koneo_day_', '');
+    const data = JSON.parse(localStorage.getItem(key));
+    const { totalP, totalK, net } = calcSnapshot(data);
+    const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+    const netClass = net >= 0 ? 'profit' : 'loss';
+    const netLabel = (net >= 0 ? '+' : '-') + ' ' + fmt(Math.abs(net));
+    return `<div class="riwayat-row" onclick="lihatDetail('${tgl}')">
+      <div>
+        <div class="rdate">${tglFmt}</div>
+        <div class="rstats">Pemasukan ${fmt(totalP)} &nbsp;·&nbsp; Pengeluaran ${fmt(totalK)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="rnet ${netClass}">${netLabel}</div>
+        <button class="rdel" onclick="event.stopPropagation();hapusRiwayat('${tgl}')" title="Hapus"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function hapusRiwayat(tgl) {
+  const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  if (!confirm('Hapus laporan ' + tglFmt + '?')) return;
+  localStorage.removeItem('koneo_day_' + tgl);
+  buildRiwayat();
+}
+
+function lihatDetail(tgl) {
+  const data = JSON.parse(localStorage.getItem('koneo_day_' + tgl));
+  if (!data) return;
+  const { totalP, totalK, net, bar, kitchen, pajak, ops, lainnya } = calcSnapshot(data);
+  const p = data.simple;
+  const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const rows = [
+    ['Majoo Tunai', p.majoo_tunai], ['Majoo Non-Tunai', p.majoo_nontunai],
+    ['POS Tunai', p.pos_tunai], ['POS Non-Tunai', p.pos_nontunai],
+    ['GoFood', p.gojek], ['GrabFood', p.grab],
+  ].filter(r=>r[1]>0).map(r=>`<tr><td>${r[0]}</td><td style="text-align:right">${fmt(r[1])}</td></tr>`).join('');
+
+  const kRows = [
+    ...((data.barRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Bar — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
+    ...((data.kitchenRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Kitchen — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
+    p.pajak_majoo>0 ? `<tr><td>Pajak Majoo</td><td style="text-align:right">${fmt(p.pajak_majoo)}</td></tr>` : '',
+    p.pajak_pos>0   ? `<tr><td>Pajak POS</td><td style="text-align:right">${fmt(p.pajak_pos)}</td></tr>` : '',
+    ...((data.operasionalRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Ops — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
+    ...((data.extraRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Lainnya — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
+  ].join('');
+
+  document.getElementById('modal-overlay').innerHTML = `
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-title"><i class="ti ti-calendar-stats" style="color:#093a72;margin-right:6px;"></i>Detail Laporan</div>
+      <div class="modal-sub">${tglFmt}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:var(--green-light);border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:#0F6E56;font-weight:600;">PEMASUKAN</div><div style="font-size:14px;font-weight:700;color:var(--green);">${fmt(totalP)}</div></div>
+        <div style="background:var(--red-light);border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:#A32D2D;font-weight:600;">PENGELUARAN</div><div style="font-size:14px;font-weight:700;color:var(--red);">${fmt(totalK)}</div></div>
+        <div style="background:${net>=0?'#E6F1FB':'var(--red-light)'};border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:#093a72;font-weight:600;">LABA/RUGI</div><div style="font-size:14px;font-weight:700;color:${net>=0?'#093a72':'var(--red)'};">${(net<0?'-':'')}${fmt(Math.abs(net))}</div></div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;">PEMASUKAN</div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;">${rows||'<tr><td colspan="2" style="color:var(--text3);text-align:center;padding:8px">—</td></tr>'}</table>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;">PENGELUARAN</div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;">${kRows||'<tr><td colspan="2" style="color:var(--text3);text-align:center;padding:8px">—</td></tr>'}</table>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="tutupDetail()">Tutup</button>
+        <button class="btn-confirm" onclick="muatHari('${tgl}')"><i class="ti ti-edit"></i> Buka & Edit</button>
+      </div>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function tutupDetail() {
+  // Restore modal asli
+  document.getElementById('modal-overlay').innerHTML = `
+    <div class="modal">
+      <div class="modal-title"><i class="ti ti-clipboard-check" style="color:#093a72;margin-right:6px;"></i>Konfirmasi Submit Data</div>
+      <div class="modal-sub" id="modal-date-label">—</div>
+      <div class="modal-rows">
+        <div class="modal-row"><span class="mkey">Total Pemasukan</span><span class="mvalue" id="m-pemasukan">Rp 0</span></div>
+        <div class="modal-row"><span class="mkey">Total Pengeluaran</span><span class="mvalue" id="m-pengeluaran">Rp 0</span></div>
+        <div class="modal-row net"><span class="mkey" style="font-weight:600;">Laba / Rugi Bersih</span><span class="mvalue" id="m-net">Rp 0</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeSubmitModal()">Batal</button>
+        <button class="btn-confirm" onclick="confirmSubmit()"><i class="ti ti-check"></i> Ya, Submit</button>
+      </div>
+    </div>`;
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.getElementById('modal-overlay').addEventListener('click', function(e) { if (e.target === this) closeSubmitModal(); });
+}
+
+// Muat data hari tertentu ke form untuk diedit
+function muatHari(tgl) {
+  tutupDetail();
+  const data = JSON.parse(localStorage.getItem('koneo_day_' + tgl));
+  if (!data) return;
+  document.getElementById('tanggal').value = tgl;
+  clearForm();
+  loadFromData(data);
+  switchTab('pemasukan');
+}
+
+function resetHariIni() {
+  const tgl = document.getElementById('tanggal').value;
+  if (!confirm('Reset data hari ini (' + (tgl || '—') + ')? Data yang sudah disubmit tetap tersimpan di Riwayat.')) return;
+  clearForm();
+  if (tgl) localStorage.removeItem('koneo_day_' + tgl);
+  renderSubmitBar();
+  calc();
+  switchTab('pemasukan');
+  showToast('Data hari ini direset.');
 }
 
 document.getElementById('modal-overlay').addEventListener('click', function(e) {
