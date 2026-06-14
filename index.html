@@ -742,11 +742,11 @@ function loadData() {
   // Cek apakah hari ini sudah submit
   const submitted = localStorage.getItem('koneo_day_' + tgl);
   const draft = localStorage.getItem('koneo_draft_' + tgl);
-  const raw = submitted || draft;
 
-  if (raw) {
-    const data = JSON.parse(raw);
-    loadFromData(data);
+  // Kalau sudah disubmit, biarkan form kosong (data ada di Riwayat)
+  // Kalau masih draft, muat kembali supaya tidak hilang
+  if (!submitted && draft) {
+    loadFromData(JSON.parse(draft));
   }
 
   renderSubmitBar();
