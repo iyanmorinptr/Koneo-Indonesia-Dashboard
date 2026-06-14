@@ -667,31 +667,33 @@ let extraRows = [], barRows = [], kitchenRows = [], operasionalRows = [], rowId 
 const STORAGE_KEY = 'koneo_laporan';
 
 function saveData() {
-  const simpleIds = ['tanggal','majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'];
   const simple = {};
-  simpleIds.forEach(id => { const el = document.getElementById(id); if (el) simple[id] = el.value; });
+  // Tanggal disimpan sebagai string, nilai currency disimpan sebagai angka murni
+  const el = document.getElementById('tanggal'); if (el) simple['tanggal'] = el.value;
+  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos']
+    .forEach(id => { simple[id] = getVal(id); });
 
   const data = {
     simple,
     barRows: barRows.map(r => ({
       id: r.id,
       ket: document.getElementById('item_ket_' + r.id)?.value || '',
-      val: document.getElementById('item_val_' + r.id)?.value || ''
+      val: getRawVal(document.getElementById('item_val_' + r.id))
     })),
     kitchenRows: kitchenRows.map(r => ({
       id: r.id,
       ket: document.getElementById('item_ket_' + r.id)?.value || '',
-      val: document.getElementById('item_val_' + r.id)?.value || ''
+      val: getRawVal(document.getElementById('item_val_' + r.id))
     })),
     operasionalRows: operasionalRows.map(r => ({
       id: r.id,
       ket: document.getElementById('item_ket_' + r.id)?.value || '',
-      val: document.getElementById('item_val_' + r.id)?.value || ''
+      val: getRawVal(document.getElementById('item_val_' + r.id))
     })),
     extraRows: extraRows.map(r => ({
       id: r.id,
       ket: document.getElementById('extra_ket_' + r.id)?.value || '',
-      val: document.getElementById('extra_val_' + r.id)?.value || ''
+      val: getRawVal(document.getElementById('extra_val_' + r.id))
     })),
     rowId
   };
