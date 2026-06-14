@@ -417,6 +417,7 @@
     <button class="tab" onclick="switchTab('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
     <button class="tab" onclick="switchTab('laporan')"><i class="ti ti-chart-bar"></i> Laporan</button>
     <button class="tab" onclick="switchTab('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
+    <button class="tab" onclick="switchTab('pengaturan')"><i class="ti ti-settings"></i> Pengaturan</button>
   </div>
 
   <!-- BERANDA / DASHBOARD -->
@@ -632,6 +633,41 @@
 
     <div id="riwayat-content"></div>
   </div>
+
+  <!-- PENGATURAN -->
+  <div id="tab-pengaturan" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-database"></i> Manajemen Data</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;">Kelola semua data laporan keuangan yang tersimpan di perangkat ini.</p>
+      <div id="data-summary" style="background:var(--surface2);border-radius:10px;padding:1rem;margin-bottom:1.25rem;font-size:13px;color:var(--text2);"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="exportData()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);text-align:left;">
+          <span style="width:38px;height:38px;background:var(--blue-light);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-download" style="color:var(--blue);font-size:18px;"></i></span>
+          <div><div style="font-weight:600;">Export Data (JSON)</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Unduh semua data sebagai file backup</div></div>
+        </button>
+        <button onclick="importData()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);text-align:left;">
+          <span style="width:38px;height:38px;background:var(--green-light);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-upload" style="color:var(--green);font-size:18px;"></i></span>
+          <div><div style="font-weight:600;">Import Data (JSON)</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Pulihkan data dari file backup</div></div>
+        </button>
+        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="doImport(event)">
+      </div>
+    </div>
+
+    <div class="card" style="border:1.5px solid var(--red-light);">
+      <div class="card-title" style="color:var(--red);"><i class="ti ti-alert-triangle" style="color:var(--red);"></i> Zona Berbahaya</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;">Tindakan di bawah ini tidak dapat dibatalkan. Pastikan sudah backup data terlebih dahulu.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="resetDataHariIniSaja()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);text-align:left;">
+          <span style="width:38px;height:38px;background:var(--amber-light);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-calendar-x" style="color:var(--amber);font-size:18px;"></i></span>
+          <div><div style="font-weight:600;">Hapus Data Hari Ini Saja</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Hapus laporan hari yang sedang aktif, data hari lain tetap aman</div></div>
+        </button>
+        <button onclick="resetSemuaData()" style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--red-light);border:1px solid var(--red);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--red);text-align:left;">
+          <span style="width:38px;height:38px;background:rgba(226,75,74,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-trash" style="color:var(--red);font-size:18px;"></i></span>
+          <div><div>Reset SEMUA Data</div><div style="font-size:12px;font-weight:400;margin-top:2px;">Hapus seluruh laporan dari semua tanggal — tidak dapat dikembalikan</div></div>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -839,13 +875,14 @@ function showToast(msg) {
 }
 
 function switchTab(tab) {
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'pengaturan'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'laporan') { switchLaporan(currentLaporan || 'harian'); }
   if (tab === 'riwayat') buildRiwayat();
   if (tab === 'beranda') buildDashboard();
+  if (tab === 'pengaturan') buildDataSummary();
 }
 
 function makeItemRow(containerId, rowsArr, placeholder) {
@@ -1533,8 +1570,9 @@ function buildRiwayatHarian(keys, container) {
               <div class="rdate">${tglFmt}</div>
               <div class="rstats">Pemasukan ${fmt(totalP)} &nbsp;·&nbsp; Pengeluaran ${fmt(totalK)}</div>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:6px;">
               <div class="rnet ${netClass}">${netLabel}</div>
+              <button onclick="event.stopPropagation();muatHari('${tgl}')" title="Edit" style="background:none;border:1px solid var(--border2);cursor:pointer;color:#093a72;padding:5px 8px;border-radius:6px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px;white-space:nowrap;"><i class="ti ti-edit"></i> Edit</button>
               <button class="rdel" onclick="event.stopPropagation();hapusRiwayat('${tgl}')" title="Hapus"><i class="ti ti-trash"></i></button>
             </div>
           </div>`;
@@ -1734,6 +1772,95 @@ function resetHariIni() {
 document.getElementById('modal-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeSubmitModal();
 });
+
+// ── PENGATURAN ────────────────────────────────────────────────────────────────
+function buildDataSummary() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort();
+  const draftKeys = Object.keys(localStorage).filter(k => k.startsWith('koneo_draft_'));
+  const el = document.getElementById('data-summary');
+  if (!keys.length) {
+    el.innerHTML = '<i class="ti ti-database-off"></i> Belum ada data laporan yang tersimpan.';
+    return;
+  }
+  const oldest = new Date(keys[0].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const newest = new Date(keys[keys.length-1].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  let totP=0, totNet=0;
+  keys.forEach(k=>{ const c=calcSnapshot(JSON.parse(localStorage.getItem(k))); totP+=c.totalP; totNet+=c.net; });
+  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL HARI TERCATAT</div><div style="font-size:18px;font-weight:700;color:var(--text);">${keys.length} hari</div></div>
+    <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL OMSET</div><div style="font-size:18px;font-weight:700;color:var(--green);">${fmt(totP)}</div></div>
+    <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">DATA TERLAMA</div><div style="font-size:13px;font-weight:500;color:var(--text);">${oldest}</div></div>
+    <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">DATA TERBARU</div><div style="font-size:13px;font-weight:500;color:var(--text);">${newest}</div></div>
+  </div>`;
+}
+
+function exportData() {
+  const allData = {};
+  Object.keys(localStorage).filter(k => k.startsWith('koneo_')).forEach(k => {
+    allData[k] = localStorage.getItem(k);
+  });
+  const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'koneo-backup-' + getLocalDateStr() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Data berhasil diekspor!');
+}
+
+function importData() {
+  document.getElementById('import-file').click();
+}
+
+function doImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      let count = 0;
+      Object.entries(data).forEach(([k, v]) => {
+        if (k.startsWith('koneo_')) { localStorage.setItem(k, v); count++; }
+      });
+      showToast(count + ' data berhasil diimpor!');
+      buildRiwayat(); buildDashboard(); buildDataSummary();
+    } catch(err) { showToast('File tidak valid!'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function resetDataHariIniSaja() {
+  const tgl = document.getElementById('tanggal').value;
+  const tglFmt = tgl ? new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : 'hari ini';
+  if (!confirm('Hapus laporan ' + tglFmt + '? Tindakan ini tidak dapat dibatalkan.')) return;
+  localStorage.removeItem('koneo_day_' + tgl);
+  localStorage.removeItem('koneo_draft_' + tgl);
+  clearForm();
+  renderSubmitBar();
+  buildRiwayat();
+  buildDashboard();
+  buildDataSummary();
+  showToast('Data ' + tglFmt + ' dihapus.');
+}
+
+function resetSemuaData() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_'));
+  if (!keys.length) { showToast('Tidak ada data untuk dihapus.'); return; }
+  const jumlah = keys.filter(k => k.startsWith('koneo_day_')).length;
+  if (!confirm('PERINGATAN: Ini akan menghapus SEMUA ' + jumlah + ' laporan yang tersimpan.\n\nPastikan sudah backup dulu!\n\nKetik OK untuk melanjutkan.')) return;
+  keys.forEach(k => localStorage.removeItem(k));
+  clearForm();
+  const tgl = getLocalDateStr();
+  document.getElementById('tanggal').value = tgl;
+  renderSubmitBar();
+  buildRiwayat();
+  buildDashboard();
+  buildDataSummary();
+  showToast('Semua data telah dihapus.');
+}
 </script>
 </body>
 </html>
