@@ -471,6 +471,46 @@
   }
   .btn-confirm:hover { background: #0a2f5a; box-shadow: 0 4px 16px rgba(9,58,114,0.35); }
 
+  /* ── STOK ── */
+  .stok-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .stok-item-row:last-child { border-bottom: none; }
+  .stok-item-info { flex: 1; }
+  .stok-item-nama { font-size: 14px; font-weight: 600; color: var(--text); }
+  .stok-item-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .stok-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:50px; }
+  .stok-badge.bar { background:var(--blue-light); color:var(--blue-dark); }
+  .stok-badge.kitchen { background:var(--green-light); color:var(--green-dark); }
+  .stok-badge.operasional { background:var(--amber-light); color:var(--amber); }
+
+  .opname-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .opname-item:last-child { border-bottom: none; }
+  .opname-item-info { flex: 1; }
+  .opname-item-nama { font-size: 14px; font-weight: 600; }
+  .opname-item-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .opname-input-wrap { display: flex; align-items: center; gap: 8px; }
+  .opname-qty-input {
+    width: 80px; font-size: 16px; font-weight: 700; text-align: center;
+    padding: 8px 10px; border: 1.5px solid rgba(9,58,114,0.2);
+    border-radius: 10px; background: var(--surface); color: var(--text);
+    outline: none; font-family: inherit;
+  }
+  .opname-qty-input:focus { border-color: #093a72; box-shadow: 0 0 0 4px rgba(9,58,114,0.09); }
+  .opname-satuan { font-size: 12px; color: var(--text2); font-weight: 500; min-width: 32px; }
+
+  .stok-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .stok-table th { text-align:left; padding:10px 12px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text2); border-bottom:1px solid var(--border); background:rgba(237,230,221,0.35); }
+  .stok-table td { padding:11px 12px; border-bottom:1px solid var(--border); }
+  .stok-table tr:last-child td { border-bottom:none; }
+  .selisih-ok { color: var(--green); font-weight:700; }
+  .selisih-warn { color: var(--amber); font-weight:700; }
+  .selisih-bad { color: var(--red); font-weight:700; }
+
   /* ── MOBILE RESPONSIVE ── */
   @media (max-width: 768px) {
     .topbar { padding: 0 1rem; }
@@ -767,6 +807,7 @@
     <button class="tab" onclick="switchTab('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
     <button class="tab" onclick="switchTab('laporan')"><i class="ti ti-chart-bar"></i> Laporan</button>
     <button class="tab" onclick="switchTab('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
+    <button class="tab" onclick="switchTab('stok')"><i class="ti ti-packages"></i> Stok</button>
     <button class="tab" onclick="switchTab('pengaturan')"><i class="ti ti-settings"></i> Pengaturan</button>
   </div>
 
@@ -917,6 +958,68 @@
         <div class="metric red"><div class="mlabel">Grand Total</div><div class="mval" id="s_pengeluaran">Rp 0</div></div>
       </div>
     </div>
+  </div>
+
+  <!-- STOK -->
+  <div id="tab-stok" class="section">
+
+    <!-- Sub-tab nav -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;">
+      <button id="stok-tab-master" onclick="switchStokTab('master')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.30);">
+        <i class="ti ti-list-details"></i> Master Barang
+      </button>
+      <button id="stok-tab-opname" onclick="switchStokTab('opname')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
+        <i class="ti ti-clipboard-check"></i> Opname Harian
+      </button>
+      <button id="stok-tab-laporan" onclick="switchStokTab('laporan')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
+        <i class="ti ti-chart-bar"></i> Laporan
+      </button>
+    </div>
+
+    <!-- Master Barang -->
+    <div id="stok-section-master">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-packages"></i> Daftar Master Barang</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Tambahkan semua item stok yang perlu dipantau setiap hari.</p>
+        <div id="master-barang-list"></div>
+        <button class="btn-add" onclick="openAddItemModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Barang</button>
+      </div>
+    </div>
+
+    <!-- Opname Harian -->
+    <div id="stok-section-opname" style="display:none;">
+      <div class="welcome-hero" style="padding:1.5rem 2rem;margin-bottom:1.25rem;">
+        <div style="position:relative;z-index:1;">
+          <div class="welcome-greeting">Opname Stok</div>
+          <div class="welcome-title" style="font-size:22px;" id="opname-date-label">—</div>
+          <div class="welcome-sub" style="font-size:13px;">Input jumlah stok aktual yang ada di lapangan</div>
+        </div>
+      </div>
+      <div id="opname-form-container"></div>
+      <div class="action-row" style="margin-top:0;">
+        <button class="btn-primary" onclick="saveOpname()"><i class="ti ti-device-floppy"></i> Simpan Opname</button>
+      </div>
+    </div>
+
+    <!-- Laporan Stok -->
+    <div id="stok-section-laporan" style="display:none;">
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title"><i class="ti ti-calendar-search"></i> Pilih Tanggal</div>
+        <div class="grid-2" style="gap:12px;">
+          <div class="input-group">
+            <label>Dari Tanggal</label>
+            <input type="date" id="stok-from" style="width:100%;font-size:14px;padding:9px 12px;border:1.5px solid rgba(9,58,114,0.13);border-radius:12px;background:var(--surface);outline:none;font-family:inherit;">
+          </div>
+          <div class="input-group">
+            <label>Sampai Tanggal</label>
+            <input type="date" id="stok-to" style="width:100%;font-size:14px;padding:9px 12px;border:1.5px solid rgba(9,58,114,0.13);border-radius:12px;background:var(--surface);outline:none;font-family:inherit;">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="buildStokLaporan()" style="margin-top:12px;border-radius:50px;"><i class="ti ti-search"></i> Lihat Laporan</button>
+      </div>
+      <div id="stok-laporan-container"></div>
+    </div>
+
   </div>
 
   <!-- LAPORAN -->
@@ -1243,13 +1346,14 @@ function showToast(msg) {
 }
 
 function switchTab(tab) {
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'pengaturan'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'stok', 'pengaturan'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'laporan') { switchLaporan(currentLaporan || 'harian'); }
   if (tab === 'riwayat') buildRiwayat();
   if (tab === 'beranda') buildDashboard();
+  if (tab === 'stok') buildStokTab();
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); }
 }
 
@@ -2431,6 +2535,271 @@ function applyScanItems(category) {
   showToast(`${scanItems.length} item berhasil ditambahkan ke ${category === 'bar' ? 'Bar' : category === 'kitchen' ? 'Kitchen' : category === 'operasional' ? 'Operasional' : 'Lainnya'}`);
   switchTab('pengeluaran');
 }
+
+// ── STOK MANAGEMENT ──
+let currentStokTab = 'master';
+let editingItemId = null;
+
+function getStokItems() {
+  try { return JSON.parse(localStorage.getItem('koneo_stock_items') || '[]'); } catch(e) { return []; }
+}
+function saveStokItems(items) {
+  localStorage.setItem('koneo_stock_items', JSON.stringify(items));
+}
+function getOpname(tgl) {
+  try { return JSON.parse(localStorage.getItem('koneo_stock_opname_' + tgl) || '{}'); } catch(e) { return {}; }
+}
+function saveOpnameData(tgl, data) {
+  localStorage.setItem('koneo_stock_opname_' + tgl, JSON.stringify(data));
+}
+
+function buildStokTab() {
+  switchStokTab(currentStokTab);
+}
+
+function switchStokTab(tab) {
+  currentStokTab = tab;
+  ['master','opname','laporan'].forEach(t => {
+    document.getElementById('stok-section-' + t).style.display = t === tab ? '' : 'none';
+    const btn = document.getElementById('stok-tab-' + t);
+    if (btn) {
+      btn.style.background = t === tab ? '#093a72' : 'none';
+      btn.style.color = t === tab ? '#fff' : '#6b6b68';
+      btn.style.boxShadow = t === tab ? '0 2px 8px rgba(9,58,114,0.30)' : 'none';
+    }
+  });
+  if (tab === 'master') renderMasterBarang();
+  if (tab === 'opname') renderOpname();
+  if (tab === 'laporan') initStokLaporan();
+}
+
+function renderMasterBarang() {
+  const items = getStokItems();
+  const container = document.getElementById('master-barang-list');
+  if (!items.length) {
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada barang. Tambahkan item stok pertama.</div>';
+    return;
+  }
+  container.innerHTML = items.map(item => `
+    <div class="stok-item-row">
+      <div class="stok-item-info">
+        <div class="stok-item-nama">${item.nama}</div>
+        <div class="stok-item-meta">
+          <span class="stok-badge ${item.kategori.toLowerCase()}">${item.kategori}</span>
+          &nbsp;·&nbsp; Satuan: <b>${item.satuan}</b>
+          &nbsp;·&nbsp; Stok awal: <b>${item.stokAwal || 0} ${item.satuan}</b>
+        </div>
+      </div>
+      <button onclick="openEditItemModal('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Edit"><i class="ti ti-pencil"></i></button>
+      <button onclick="deleteStokItem('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Hapus"><i class="ti ti-trash"></i></button>
+    </div>
+  `).join('');
+}
+
+function openAddItemModal() {
+  editingItemId = null;
+  document.getElementById('item-modal-title').textContent = 'Tambah Barang';
+  document.getElementById('item-modal-nama').value = '';
+  document.getElementById('item-modal-satuan').value = '';
+  document.getElementById('item-modal-kategori').value = 'Bar';
+  document.getElementById('item-modal-stok-awal').value = '';
+  document.getElementById('item-modal-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('item-modal-nama').focus(), 100);
+}
+
+function openEditItemModal(id) {
+  const items = getStokItems();
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  editingItemId = id;
+  document.getElementById('item-modal-title').textContent = 'Edit Barang';
+  document.getElementById('item-modal-nama').value = item.nama;
+  document.getElementById('item-modal-satuan').value = item.satuan;
+  document.getElementById('item-modal-kategori').value = item.kategori;
+  document.getElementById('item-modal-stok-awal').value = item.stokAwal || 0;
+  document.getElementById('item-modal-overlay').classList.add('show');
+}
+
+function closeItemModal(e) {
+  if (e && e.target !== document.getElementById('item-modal-overlay')) return;
+  document.getElementById('item-modal-overlay').classList.remove('show');
+}
+
+function saveItemModal() {
+  const nama = document.getElementById('item-modal-nama').value.trim();
+  const satuan = document.getElementById('item-modal-satuan').value.trim();
+  const kategori = document.getElementById('item-modal-kategori').value;
+  const stokAwal = parseInt(document.getElementById('item-modal-stok-awal').value) || 0;
+  if (!nama || !satuan) { showToast('Nama dan satuan wajib diisi'); return; }
+
+  let items = getStokItems();
+  if (editingItemId) {
+    items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, stokAwal } : i);
+    showToast('Barang diperbarui');
+  } else {
+    const id = 'item_' + Date.now();
+    items.push({ id, nama, satuan, kategori, stokAwal });
+    showToast('Barang ditambahkan');
+  }
+  saveStokItems(items);
+  document.getElementById('item-modal-overlay').classList.remove('show');
+  renderMasterBarang();
+}
+
+function deleteStokItem(id) {
+  if (!confirm('Hapus barang ini dari daftar stok?')) return;
+  let items = getStokItems().filter(i => i.id !== id);
+  saveStokItems(items);
+  renderMasterBarang();
+  showToast('Barang dihapus');
+}
+
+function renderOpname() {
+  const tgl = document.getElementById('tanggal')?.value || getLocalDateStr();
+  document.getElementById('opname-date-label').textContent = formatTanggal(tgl);
+  const items = getStokItems();
+  const saved = getOpname(tgl);
+  const container = document.getElementById('opname-form-container');
+
+  if (!items.length) {
+    container.innerHTML = '<div class="card"><div class="empty-state"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada master barang. <button onclick="switchStokTab(\'master\')" style="background:none;border:none;cursor:pointer;color:#093a72;font-weight:600;font-size:14px;">Tambah barang dulu →</button></div></div>';
+    return;
+  }
+
+  const cats = ['Bar', 'Kitchen', 'Operasional'];
+  container.innerHTML = cats.map(cat => {
+    const catItems = items.filter(i => i.kategori === cat);
+    if (!catItems.length) return '';
+    return `<div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-${cat === 'Bar' ? 'glass-full' : cat === 'Kitchen' ? 'chef-hat' : 'settings'}"></i> ${cat}</div>
+      ${catItems.map(item => `
+        <div class="opname-item">
+          <div class="opname-item-info">
+            <div class="opname-item-nama">${item.nama}</div>
+            <div class="opname-item-meta">Stok awal: ${item.stokAwal || 0} ${item.satuan}</div>
+          </div>
+          <div class="opname-input-wrap">
+            <button onclick="adjOpname('${item.id}',-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(9,58,114,0.2);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:#093a72;">−</button>
+            <input type="text" inputmode="numeric" class="opname-qty-input" id="opname_${item.id}" value="${saved[item.id] !== undefined ? saved[item.id] : ''}" placeholder="0" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+            <button onclick="adjOpname('${item.id}',1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(9,58,114,0.2);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:#093a72;">+</button>
+            <span class="opname-satuan">${item.satuan}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('');
+}
+
+function adjOpname(itemId, delta) {
+  const el = document.getElementById('opname_' + itemId);
+  if (!el) return;
+  const cur = parseInt(el.value) || 0;
+  el.value = Math.max(0, cur + delta);
+}
+
+function saveOpname() {
+  const tgl = document.getElementById('tanggal')?.value || getLocalDateStr();
+  const items = getStokItems();
+  const data = {};
+  items.forEach(item => {
+    const el = document.getElementById('opname_' + item.id);
+    if (el && el.value !== '') data[item.id] = parseInt(el.value) || 0;
+  });
+  saveOpnameData(tgl, data);
+  showToast('Opname stok tersimpan');
+}
+
+function initStokLaporan() {
+  const tgl = getLocalDateStr();
+  if (!document.getElementById('stok-from').value) document.getElementById('stok-from').value = tgl;
+  if (!document.getElementById('stok-to').value) document.getElementById('stok-to').value = tgl;
+  buildStokLaporan();
+}
+
+function buildStokLaporan() {
+  const from = document.getElementById('stok-from').value;
+  const to = document.getElementById('stok-to').value;
+  if (!from || !to) return;
+
+  const items = getStokItems();
+  const container = document.getElementById('stok-laporan-container');
+
+  if (!items.length) {
+    container.innerHTML = '<div class="card"><div class="empty-state">Belum ada master barang.</div></div>';
+    return;
+  }
+
+  // Collect all opname dates in range
+  const dates = [];
+  let cur = new Date(from + 'T12:00:00');
+  const end = new Date(to + 'T12:00:00');
+  while (cur <= end) {
+    dates.push(getLocalDateStr(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  // Build per-item report
+  const cats = ['Bar', 'Kitchen', 'Operasional'];
+  let html = '';
+
+  cats.forEach(cat => {
+    const catItems = items.filter(i => i.kategori === cat);
+    if (!catItems.length) return;
+
+    html += `<div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-${cat === 'Bar' ? 'glass-full' : cat === 'Kitchen' ? 'chef-hat' : 'settings'}"></i> ${cat}</div>
+      <div style="overflow-x:auto;">
+      <table class="stok-table">
+        <thead><tr>
+          <th>Barang</th>
+          <th>Satuan</th>
+          <th>Stok Awal</th>`;
+
+    if (dates.length === 1) {
+      html += `<th>Stok Aktual</th><th>Selisih</th>`;
+    } else {
+      html += `<th>Opname Terakhir</th><th>Selisih vs Awal</th>`;
+    }
+
+    html += `</tr></thead><tbody>`;
+
+    catItems.forEach(item => {
+      const stokAwal = item.stokAwal || 0;
+      let latestQty = null;
+      let latestDate = null;
+      dates.forEach(d => {
+        const op = getOpname(d);
+        if (op[item.id] !== undefined) { latestQty = op[item.id]; latestDate = d; }
+      });
+
+      const selisih = latestQty !== null ? latestQty - stokAwal : null;
+      const selisihClass = selisih === null ? '' : selisih >= 0 ? 'selisih-ok' : selisih > -5 ? 'selisih-warn' : 'selisih-bad';
+
+      html += `<tr>
+        <td><b>${item.nama}</b></td>
+        <td>${item.satuan}</td>
+        <td>${stokAwal}</td>`;
+
+      if (latestQty !== null) {
+        html += `<td><b>${latestQty}</b> <span style="font-size:11px;color:var(--text3);">(${latestDate})</span></td>
+          <td class="${selisihClass}">${selisih >= 0 ? '+' : ''}${selisih}</td>`;
+      } else {
+        html += `<td style="color:var(--text3);">Belum ada opname</td><td>—</td>`;
+      }
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table></div></div>`;
+  });
+
+  container.innerHTML = html || '<div class="card"><div class="empty-state">Tidak ada data opname untuk periode ini.</div></div>';
+}
+
+function formatTanggal(tgl) {
+  if (!tgl) return '—';
+  const d = new Date(tgl + 'T12:00:00');
+  return d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
 </script>
 
 <!-- MODAL SCAN STRUK -->
@@ -2492,6 +2861,41 @@ function applyScanItems(category) {
       <button onclick="closeScanModal();switchTab('pengaturan')" class="btn-primary" style="border-radius:50px;">
         <i class="ti ti-settings"></i> Buka Pengaturan
       </button>
+    </div>
+  </div>
+</div>
+<!-- MODAL TAMBAH/EDIT BARANG -->
+<div class="modal-overlay" id="item-modal-overlay" onclick="closeItemModal(event)">
+  <div class="modal" style="max-width:420px;" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+      <div class="modal-title" id="item-modal-title">Tambah Barang</div>
+      <button onclick="closeItemModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text3);"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="input-group">
+        <label>Nama Barang *</label>
+        <input type="text" id="item-modal-nama" placeholder="cth: Bir Bintang 330ml">
+      </div>
+      <div class="input-group">
+        <label>Satuan *</label>
+        <input type="text" id="item-modal-satuan" placeholder="cth: botol, kg, pcs, liter">
+      </div>
+      <div class="input-group">
+        <label>Kategori</label>
+        <select id="item-modal-kategori" style="width:100%;font-size:15px;padding:11px 14px;border:1.5px solid rgba(9,58,114,0.13);border-radius:12px;background:var(--surface);color:var(--text);outline:none;font-family:inherit;">
+          <option value="Bar">Bar</option>
+          <option value="Kitchen">Kitchen</option>
+          <option value="Operasional">Operasional</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Stok Awal (Opening Stock)</label>
+        <input type="text" inputmode="numeric" id="item-modal-stok-awal" placeholder="0" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;">
+      <button class="btn-cancel" onclick="closeItemModal()">Batal</button>
+      <button class="btn-confirm" onclick="saveItemModal()"><i class="ti ti-check"></i> Simpan</button>
     </div>
   </div>
 </div>
