@@ -1460,6 +1460,9 @@ function switchTab(tab) {
   if (tab === 'beranda') buildDashboard();
   if (tab === 'stok') buildStokTab();
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); }
+  // sembunyikan submit bar di stok dan pengaturan
+  const bar = document.getElementById('submit-bar');
+  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
 }
