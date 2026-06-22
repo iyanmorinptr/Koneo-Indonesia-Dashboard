@@ -858,6 +858,12 @@
   <!-- PENGELUARAN -->
   <div id="tab-pengeluaran" class="section">
 
+    <div style="margin-bottom:1.25rem;">
+      <button class="btn-primary" onclick="openScanModal()" style="width:100%;justify-content:center;gap:10px;padding:14px 24px;font-size:15px;border-radius:16px;">
+        <i class="ti ti-camera"></i> Scan Struk / Bon Belanja
+      </button>
+    </div>
+
     <div class="card">
       <div class="card-title"><i class="ti ti-glass-full"></i> Bar</div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Tambah item pembelian Bar</p>
@@ -1001,6 +1007,17 @@
         </button>
         <input type="file" id="import-file" accept=".json" style="display:none;" onchange="doImport(event)">
       </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-robot"></i> Konfigurasi AI Scan Struk</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Masukkan API Key Anthropic untuk mengaktifkan fitur scan struk otomatis dengan AI.</p>
+      <div class="input-group" style="margin-bottom:12px;">
+        <label>Anthropic API Key</label>
+        <input type="password" id="anthropic-api-key" placeholder="sk-ant-..." style="font-family:monospace;font-size:13px;" oninput="saveApiKey()">
+      </div>
+      <div id="api-key-status" style="font-size:12px;color:var(--text3);margin-top:4px;"></div>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px;">API key disimpan hanya di perangkat ini (localStorage). Dapatkan API key di console.anthropic.com</p>
     </div>
 
     <div class="card" style="border:1.5px solid var(--red-light);">
@@ -1159,6 +1176,7 @@ function loadData() {
   buildRiwayat();
   buildDashboard();
   calc();
+  loadApiKeyInput();
 }
 
 function renderSubmitBar() {
@@ -1232,7 +1250,7 @@ function switchTab(tab) {
   if (tab === 'laporan') { switchLaporan(currentLaporan || 'harian'); }
   if (tab === 'riwayat') buildRiwayat();
   if (tab === 'beranda') buildDashboard();
-  if (tab === 'pengaturan') buildDataSummary();
+  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); }
 }
 
 function makeItemRow(containerId, rowsArr, placeholder) {
@@ -2211,6 +2229,271 @@ function resetSemuaData() {
   buildDataSummary();
   showToast('Semua data telah dihapus.');
 }
+// ── SCAN STRUK ──
+let scanItems = [];
+
+function saveApiKey() {
+  const key = document.getElementById('anthropic-api-key').value.trim();
+  if (key) {
+    localStorage.setItem('koneo_anthropic_key', key);
+    document.getElementById('api-key-status').textContent = '✓ API key tersimpan';
+    document.getElementById('api-key-status').style.color = 'var(--green)';
+  } else {
+    localStorage.removeItem('koneo_anthropic_key');
+    document.getElementById('api-key-status').textContent = '';
+  }
+}
+
+function loadApiKeyInput() {
+  const key = localStorage.getItem('koneo_anthropic_key') || '';
+  const el = document.getElementById('anthropic-api-key');
+  if (el) el.value = key;
+  const status = document.getElementById('api-key-status');
+  if (status) status.textContent = key ? '✓ API key tersimpan' : '';
+  if (status && key) status.style.color = 'var(--green)';
+}
+
+function openScanModal() {
+  const key = localStorage.getItem('koneo_anthropic_key');
+  resetScanModal();
+  document.getElementById('scan-modal-overlay').classList.add('show');
+  if (!key) {
+    showScanStep('nokey');
+  }
+}
+
+function closeScanModal(e) {
+  if (e && e.target !== document.getElementById('scan-modal-overlay')) return;
+  document.getElementById('scan-modal-overlay').classList.remove('show');
+}
+
+function showScanStep(step) {
+  ['upload','loading','result','nokey'].forEach(s => {
+    document.getElementById('scan-step-' + s).style.display = s === step ? '' : 'none';
+  });
+}
+
+function resetScanModal() {
+  showScanStep('upload');
+  document.getElementById('scan-preview-wrap').style.display = 'none';
+  document.getElementById('scan-file-input').value = '';
+  scanItems = [];
+}
+
+let scanImageBase64 = '';
+let scanImageType = '';
+
+function handleScanFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const dataUrl = ev.target.result;
+    scanImageBase64 = dataUrl.split(',')[1];
+    scanImageType = file.type || 'image/jpeg';
+    document.getElementById('scan-preview-img').src = dataUrl;
+    document.getElementById('scan-preview-wrap').style.display = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function doScanOCR() {
+  const key = localStorage.getItem('koneo_anthropic_key');
+  if (!key || !scanImageBase64) return;
+
+  showScanStep('loading');
+  const bar = document.getElementById('scan-progress-bar');
+  bar.style.width = '0%';
+  requestAnimationFrame(() => { bar.style.width = '80%'; });
+
+  const prompt = `Kamu adalah asisten pembaca struk/bon belanja. Bacalah gambar struk ini dan ekstrak semua item beserta harganya.
+
+Balas HANYA dengan JSON array seperti ini (tidak ada teks lain):
+[
+  {"nama": "Nama Item", "harga": 25000},
+  {"nama": "Nama Item 2", "harga": 15000}
+]
+
+Aturan:
+- harga harus berupa angka integer (tanpa simbol Rp, titik, koma)
+- Jika ada total/subtotal, JANGAN masukkan, hanya item individual
+- Jika tidak bisa membaca harga, perkirakan 0
+- nama item maksimal 40 karakter
+- Tulis nama item dalam bahasa Indonesia jika memungkinkan`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: scanImageType, data: scanImageBase64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error?.message || 'API error ' + res.status);
+    }
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '[]';
+
+    // Extract JSON from response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error('Format respons tidak valid');
+
+    scanItems = JSON.parse(jsonMatch[0]);
+    bar.style.width = '100%';
+
+    setTimeout(() => {
+      renderScanItems();
+      showScanStep('result');
+    }, 400);
+
+  } catch (err) {
+    showScanStep('upload');
+    document.getElementById('scan-preview-wrap').style.display = '';
+    showToast('Error: ' + err.message);
+  }
+}
+
+function renderScanItems() {
+  const list = document.getElementById('scan-items-list');
+  if (!scanItems.length) {
+    list.innerHTML = '<p style="font-size:13px;color:var(--text3);text-align:center;padding:1rem 0;">Tidak ada item ditemukan. Coba foto yang lebih jelas.</p>';
+    return;
+  }
+  let total = 0;
+  list.innerHTML = scanItems.map(item => {
+    total += item.harga || 0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <span style="color:var(--text);flex:1;">${item.nama}</span>
+      <span style="font-weight:700;color:#093a72;margin-left:12px;white-space:nowrap;">Rp ${fmtRupiah(item.harga)}</span>
+    </div>`;
+  }).join('') + `<div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:14px;font-weight:800;color:#093a72;">
+    <span>TOTAL</span><span>Rp ${fmtRupiah(total)}</span>
+  </div>`;
+}
+
+function applyScanItems(category) {
+  if (!scanItems.length) { closeScanModal(); return; }
+
+  scanItems.forEach(item => {
+    if (!item.nama) return;
+    let id;
+    if (category === 'bar') {
+      id = ++rowId; barRows.push({ id });
+      renderItemRows('bar-rows', barRows, 'Keterangan pembelian Bar...');
+      const ketEl = document.getElementById('item_ket_' + id);
+      const valEl = document.getElementById('item_val_' + id);
+      if (ketEl) ketEl.value = item.nama;
+      if (valEl) setRupiahEl(valEl, item.harga || 0);
+    } else if (category === 'kitchen') {
+      id = ++rowId; kitchenRows.push({ id });
+      renderItemRows('kitchen-rows', kitchenRows, 'Keterangan pembelian Kitchen...');
+      const ketEl = document.getElementById('item_ket_' + id);
+      const valEl = document.getElementById('item_val_' + id);
+      if (ketEl) ketEl.value = item.nama;
+      if (valEl) setRupiahEl(valEl, item.harga || 0);
+    } else if (category === 'operasional') {
+      id = ++rowId; operasionalRows.push({ id });
+      renderItemRows('operasional-rows', operasionalRows, 'Keterangan operasional...');
+      const ketEl = document.getElementById('item_ket_' + id);
+      const valEl = document.getElementById('item_val_' + id);
+      if (ketEl) ketEl.value = item.nama;
+      if (valEl) setRupiahEl(valEl, item.harga || 0);
+    } else {
+      // extra/lainnya
+      id = ++rowId; extraRows.push({ id });
+      renderExtraRows();
+      const ketEl = document.getElementById('extra_ket_' + id);
+      const valEl = document.getElementById('extra_val_' + id);
+      if (ketEl) ketEl.value = item.nama;
+      if (valEl) setRupiahEl(valEl, item.harga || 0);
+    }
+  });
+
+  calc(); saveData();
+  document.getElementById('scan-modal-overlay').classList.remove('show');
+  showToast(`${scanItems.length} item berhasil ditambahkan ke ${category === 'bar' ? 'Bar' : category === 'kitchen' ? 'Kitchen' : category === 'operasional' ? 'Operasional' : 'Lainnya'}`);
+  switchTab('pengeluaran');
+}
 </script>
+
+<!-- MODAL SCAN STRUK -->
+<div class="modal-overlay" id="scan-modal-overlay" onclick="closeScanModal(event)">
+  <div class="modal" style="max-width:500px;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div class="modal-title"><i class="ti ti-scan" style="color:#093a72;margin-right:6px;"></i>Scan Struk / Bon</div>
+      <button onclick="closeScanModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text3);padding:4px;"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- Step 1: Upload -->
+    <div id="scan-step-upload">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Foto struk/bon belanja, lalu AI akan membaca dan mengisi pengeluaran secara otomatis.</p>
+      <div id="scan-dropzone" onclick="document.getElementById('scan-file-input').click()" style="border:2px dashed rgba(9,58,114,0.25);border-radius:16px;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(237,230,221,0.3);">
+        <i class="ti ti-photo-up" style="font-size:36px;color:#093a72;opacity:0.6;display:block;margin-bottom:10px;"></i>
+        <div style="font-weight:600;font-size:14px;color:var(--text);margin-bottom:4px;">Ketuk untuk foto atau pilih gambar</div>
+        <div style="font-size:12px;color:var(--text3);">JPG, PNG, HEIC — max 5MB</div>
+      </div>
+      <input type="file" id="scan-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleScanFile(event)">
+      <div id="scan-preview-wrap" style="display:none;margin-top:1rem;">
+        <img id="scan-preview-img" style="width:100%;border-radius:12px;max-height:220px;object-fit:cover;">
+        <button onclick="doScanOCR()" id="scan-ocr-btn" class="btn-primary" style="width:100%;justify-content:center;margin-top:12px;border-radius:50px;">
+          <i class="ti ti-sparkles"></i> Analisis dengan AI
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Loading -->
+    <div id="scan-step-loading" style="display:none;text-align:center;padding:2rem 1rem;">
+      <div style="font-size:36px;margin-bottom:1rem;">🤖</div>
+      <div style="font-weight:600;font-size:15px;margin-bottom:6px;">AI sedang membaca struk...</div>
+      <div style="font-size:13px;color:var(--text3);">Mohon tunggu sebentar</div>
+      <div style="margin-top:1.5rem;height:4px;background:rgba(9,58,114,0.1);border-radius:2px;overflow:hidden;">
+        <div id="scan-progress-bar" style="height:100%;width:0%;background:#093a72;border-radius:2px;transition:width 2s ease-out;"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Results -->
+    <div id="scan-step-result" style="display:none;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">Item yang ditemukan AI:</div>
+      <div id="scan-items-list" style="background:var(--surface2);border-radius:12px;padding:1rem;margin-bottom:1rem;max-height:220px;overflow-y:auto;"></div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Masukkan ke kategori:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;" id="scan-category-btns">
+        <button onclick="applyScanItems('bar')" class="scan-cat-btn" style="padding:12px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.2);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;"><i class="ti ti-glass-full" style="display:block;font-size:22px;margin-bottom:4px;color:#093a72;"></i>Bar</button>
+        <button onclick="applyScanItems('kitchen')" class="scan-cat-btn" style="padding:12px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.2);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;"><i class="ti ti-chef-hat" style="display:block;font-size:22px;margin-bottom:4px;color:#093a72;"></i>Kitchen</button>
+        <button onclick="applyScanItems('operasional')" class="scan-cat-btn" style="padding:12px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.2);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;"><i class="ti ti-settings" style="display:block;font-size:22px;margin-bottom:4px;color:#093a72;"></i>Operasional</button>
+        <button onclick="applyScanItems('extra')" class="scan-cat-btn" style="padding:12px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.2);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;"><i class="ti ti-list" style="display:block;font-size:22px;margin-bottom:4px;color:#093a72;"></i>Lainnya</button>
+      </div>
+      <button onclick="resetScanModal()" class="btn-outline" style="width:100%;justify-content:center;">
+        <i class="ti ti-refresh"></i> Scan Struk Lain
+      </button>
+    </div>
+
+    <!-- Step 4: No API key warning -->
+    <div id="scan-step-nokey" style="display:none;text-align:center;padding:1.5rem 1rem;">
+      <i class="ti ti-key" style="font-size:36px;color:var(--amber);display:block;margin-bottom:10px;"></i>
+      <div style="font-weight:700;font-size:15px;margin-bottom:8px;">API Key Belum Diset</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;">Untuk menggunakan fitur scan struk, tambahkan API Key Anthropic di tab Pengaturan.</p>
+      <button onclick="closeScanModal();switchTab('pengaturan')" class="btn-primary" style="border-radius:50px;">
+        <i class="ti ti-settings"></i> Buka Pengaturan
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
