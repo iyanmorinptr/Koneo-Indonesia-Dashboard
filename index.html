@@ -797,48 +797,57 @@
 <div id="sidebar-overlay" onclick="closeSidebar()" style="position:fixed;inset:0;background:rgba(9,58,114,0.35);backdrop-filter:blur(4px);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s;"></div>
 
 <!-- SIDEBAR -->
-<nav id="sidebar" style="position:fixed;top:0;left:0;height:100%;width:280px;background:#fff;z-index:201;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:4px 0 32px rgba(9,58,114,0.18);overflow-y:auto;">
+<nav id="sidebar" style="position:fixed;top:0;left:0;height:100%;width:260px;background:#fff;z-index:201;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:4px 0 32px rgba(9,58,114,0.15);overflow-y:auto;">
 
-  <!-- Sidebar header -->
-  <div style="background:#093a72;padding:1.25rem 1.5rem 1rem;flex-shrink:0;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-      <div style="width:32px;height:32px;border-radius:50%;background:rgba(237,230,221,0.18);border:1.5px solid rgba(237,230,221,0.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">K</div>
+  <!-- Header -->
+  <div style="background:#093a72;padding:1.25rem 1.5rem;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(237,230,221,0.18);border:1.5px solid rgba(237,230,221,0.30);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0;">K</div>
       <div>
-        <div style="font-size:15px;font-weight:700;color:#fff;">Koneo Indonesia</div>
-        <div style="font-size:11px;color:rgba(237,230,221,0.65);">Sistem Laporan Keuangan</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.2px;">Koneo Indonesia</div>
+        <div style="font-size:10px;color:rgba(237,230,221,0.55);letter-spacing:0.02em;">KONEO DASHBOARD</div>
       </div>
     </div>
   </div>
 
-  <!-- Finance Group -->
-  <div style="padding:1rem 0.75rem 0.5rem;">
-    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#093a72;padding:0 0.75rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-      <i class="ti ti-coin" style="font-size:14px;"></i> Finance
+  <!-- Nav accordion -->
+  <div style="padding:0.75rem 0.75rem;flex:1;">
+
+    <!-- Finance -->
+    <button onclick="toggleSidebarGroup('finance')" id="sg-finance" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
+      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-coin" style="font-size:17px;color:#093a72;"></i> Finance</span>
+      <i class="ti ti-chevron-right" id="sg-finance-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
+    </button>
+    <div id="sg-finance-items" style="display:none;padding-left:10px;padding-bottom:4px;">
+      <button class="sidebar-item" id="sitem-beranda" onclick="sidebarGo('beranda')"><i class="ti ti-home"></i> Beranda</button>
+      <button class="sidebar-item" id="sitem-pemasukan" onclick="sidebarGo('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
+      <button class="sidebar-item" id="sitem-pengeluaran" onclick="sidebarGo('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
+      <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
+      <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
     </div>
-    <button class="sidebar-item active" id="sitem-beranda" onclick="sidebarGo('beranda')"><i class="ti ti-home"></i> Beranda</button>
-    <button class="sidebar-item" id="sitem-pemasukan" onclick="sidebarGo('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
-    <button class="sidebar-item" id="sitem-pengeluaran" onclick="sidebarGo('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
-    <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
-    <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
-    <button class="sidebar-item" id="sitem-pengaturan" onclick="sidebarGo('pengaturan')"><i class="ti ti-settings"></i> Pengaturan</button>
+
+    <!-- Stock -->
+    <button onclick="toggleSidebarGroup('stok')" id="sg-stok" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
+      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-packages" style="font-size:17px;color:#093a72;"></i> Stock</span>
+      <i class="ti ti-chevron-right" id="sg-stok-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
+    </button>
+    <div id="sg-stok-items" style="display:none;padding-left:10px;padding-bottom:4px;">
+      <button class="sidebar-item" id="sitem-stok-master" onclick="sidebarGoStok('master')"><i class="ti ti-list-details"></i> Master Barang</button>
+      <button class="sidebar-item" id="sitem-stok-opname" onclick="sidebarGoStok('opname')"><i class="ti ti-clipboard-check"></i> Opname Harian</button>
+      <button class="sidebar-item" id="sitem-stok-beli" onclick="sidebarGoStok('beli')"><i class="ti ti-shopping-cart"></i> Perlu Dibeli <span id="sidebar-beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span></button>
+      <button class="sidebar-item" id="sitem-stok-laporan" onclick="sidebarGoStok('laporan')"><i class="ti ti-chart-bar"></i> Laporan Stok</button>
+    </div>
+
+    <!-- Pengaturan langsung -->
+    <button class="sidebar-item" id="sitem-pengaturan" onclick="sidebarGo('pengaturan')" style="width:100%;padding:12px 14px;font-size:14px;font-weight:700;color:#1a1a18;margin-top:2px;">
+      <i class="ti ti-settings" style="font-size:17px;color:#093a72;"></i> Pengaturan
+    </button>
+
   </div>
 
-  <div style="height:1px;background:rgba(9,58,114,0.08);margin:0.5rem 1.5rem;"></div>
-
-  <!-- Stok Group -->
-  <div style="padding:0.5rem 0.75rem 1rem;">
-    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#093a72;padding:0 0.75rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-      <i class="ti ti-packages" style="font-size:14px;"></i> Stok
-    </div>
-    <button class="sidebar-item" id="sitem-stok-master" onclick="sidebarGoStok('master')"><i class="ti ti-list-details"></i> Master Barang</button>
-    <button class="sidebar-item" id="sitem-stok-opname" onclick="sidebarGoStok('opname')"><i class="ti ti-clipboard-check"></i> Opname Harian</button>
-    <button class="sidebar-item" id="sitem-stok-beli" onclick="sidebarGoStok('beli')"><i class="ti ti-shopping-cart"></i> Perlu Dibeli <span id="sidebar-beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span></button>
-    <button class="sidebar-item" id="sitem-stok-laporan" onclick="sidebarGoStok('laporan')"><i class="ti ti-chart-bar"></i> Laporan Stok</button>
-  </div>
-
-  <!-- Bottom: current date -->
-  <div style="margin-top:auto;padding:1rem 1.5rem;border-top:1px solid rgba(9,58,114,0.08);">
-    <div style="font-size:12px;color:var(--text3);" id="sidebar-date-display"></div>
+  <!-- Bottom date -->
+  <div style="padding:1rem 1.5rem;border-top:1px solid rgba(9,58,114,0.06);">
+    <div style="font-size:11px;color:var(--text3);" id="sidebar-date-display"></div>
   </div>
 </nav>
 
@@ -1456,6 +1465,23 @@ function switchTab(tab) {
 }
 
 // ── SIDEBAR NAV ──
+function toggleSidebarGroup(group) {
+  const items = document.getElementById('sg-' + group + '-items');
+  const chevron = document.getElementById('sg-' + group + '-chevron');
+  const isOpen = items.style.display !== 'none';
+  items.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function openSidebarGroup(group) {
+  const items = document.getElementById('sg-' + group + '-items');
+  const chevron = document.getElementById('sg-' + group + '-chevron');
+  if (items && items.style.display === 'none') {
+    items.style.display = 'block';
+    if (chevron) chevron.style.transform = 'rotate(90deg)';
+  }
+}
+
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
@@ -1486,13 +1512,14 @@ function updateSidebarActive(id) {
 }
 
 function sidebarGo(tab) {
+  if (tab !== 'pengaturan') openSidebarGroup('finance');
   switchTab(tab);
   updateSidebarActive('sitem-' + tab);
-  // On mobile, auto-close
   if (window.innerWidth < 768) closeSidebar();
 }
 
 function sidebarGoStok(subTab) {
+  openSidebarGroup('stok');
   switchTab('stok');
   updateSidebarActive('sitem-stok-' + subTab);
   switchStokTab(subTab);
