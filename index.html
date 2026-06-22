@@ -869,31 +869,41 @@
 
   <!-- BERANDA / DASHBOARD -->
   <div id="tab-beranda" class="section active">
-    <div class="welcome-hero">
-      <div>
-        <div class="welcome-greeting" id="welcome-greeting">Selamat datang!</div>
-        <div class="welcome-title">Koneo Financial Dashboard</div>
-        <div class="welcome-sub">Pantau keuangan harian Koneo Indonesia secara real-time</div>
+    <div class="welcome-hero" style="min-height:220px;display:flex;align-items:center;">
+      <div style="position:relative;z-index:1;width:100%;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.6;margin-bottom:10px;">Sistem Manajemen Internal</div>
+        <div style="font-size:42px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:10px;">KONEO<br>DASHBOARD</div>
+        <div style="font-size:14px;opacity:0.65;margin-bottom:20px;max-width:400px;line-height:1.6;">Platform pencatatan keuangan harian & manajemen stok untuk seluruh tim Koneo Indonesia.</div>
         <div class="welcome-date-badge"><i class="ti ti-calendar"></i> <span id="welcome-date-str">—</span></div>
       </div>
     </div>
 
-    <div class="stat-grid" id="dash-stats">
-      <div class="stat-card"><div class="stat-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-arrow-down-circle"></i></div><div class="stat-label">Pemasukan Hari Ini</div><div class="stat-val" style="color:var(--green)" id="ds-pemasukan">Rp 0</div><div class="stat-sub" id="ds-pemasukan-sub">—</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:var(--red-light);color:var(--red)"><i class="ti ti-arrow-up-circle"></i></div><div class="stat-label">Pengeluaran Hari Ini</div><div class="stat-val" style="color:var(--red)" id="ds-pengeluaran">Rp 0</div><div class="stat-sub" id="ds-pengeluaran-sub">—</div></div>
-      <div class="stat-card" id="ds-net-card"><div class="stat-icon" id="ds-net-icon" style="background:var(--blue-light);color:var(--blue)"><i class="ti ti-trending-up"></i></div><div class="stat-label">Laba / Rugi Hari Ini</div><div class="stat-val" id="ds-net">Rp 0</div><div class="stat-sub" id="ds-net-sub">—</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;">
+      <div onclick="sidebarGo('pemasukan')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-arrow-down-circle" style="font-size:20px;color:var(--green);"></i></div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Pemasukan</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Input omset harian</div>
+      </div>
+      <div onclick="sidebarGo('pengeluaran')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--red-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-arrow-up-circle" style="font-size:20px;color:var(--red);"></i></div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Pengeluaran</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Catat biaya & struk</div>
+      </div>
+      <div onclick="sidebarGo('laporan')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-chart-line" style="font-size:20px;color:var(--blue);"></i></div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Laporan</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Grafik & analitik</div>
+      </div>
+      <div onclick="sidebarGoStok('opname')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-packages" style="font-size:20px;color:var(--amber);"></i></div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Opname Stok</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Cek stok harian</div>
+      </div>
     </div>
 
-    <div class="chart-card">
-      <div class="chart-card-title"><i class="ti ti-trending-up"></i> Tren Omset — 14 Hari Terakhir</div>
-      <div id="omset-chart"></div>
-    </div>
-
-    <div class="quick-actions">
-      <button class="qa-btn blue" onclick="switchTab('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Input Pemasukan</button>
-      <button class="qa-btn green" onclick="switchTab('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Input Pengeluaran</button>
-      <button class="qa-btn outline" onclick="switchTab('laporan')"><i class="ti ti-chart-bar"></i> Lihat Laporan</button>
-      <button class="qa-btn outline" onclick="switchTab('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
+    <div style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.25rem 1.5rem;text-align:center;box-shadow:0 1px 6px rgba(9,58,114,0.06);">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Pilih menu dari atas untuk mulai bekerja</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text2);">Ketuk <i class="ti ti-menu-2" style="vertical-align:middle;"></i> di pojok kiri atas untuk navigasi lengkap</div>
     </div>
   </div>
 
