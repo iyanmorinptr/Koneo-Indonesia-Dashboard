@@ -1909,38 +1909,10 @@ function buildDashboard() {
   const now = new Date();
   const hour = now.getHours();
   const greeting = hour < 12 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
-  document.getElementById('welcome-greeting').textContent = greeting + ', Koneo Indonesia!';
-  document.getElementById('welcome-date-str').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-
-  const tgl = document.getElementById('tanggal').value;
-  const submitted = tgl ? localStorage.getItem('koneo_day_' + tgl) : null;
-  const draft = tgl ? localStorage.getItem('koneo_draft_' + tgl) : null;
-  const todayRaw = submitted || draft;
-
-  let todayP = 0, todayK = 0, todayNet = 0;
-  if (todayRaw) { const c = calcSnapshot(JSON.parse(todayRaw)); todayP = c.totalP; todayK = c.totalK; todayNet = c.net; }
-
-  const allKeys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort();
-  const yesterday = new Date(tgl + 'T00:00:00'); yesterday.setDate(yesterday.getDate() - 1);
-  const yRaw = localStorage.getItem('koneo_day_' + yesterday.toISOString().split('T')[0]);
-  const yNet = yRaw ? calcSnapshot(JSON.parse(yRaw)).net : null;
-
-  const netColor = todayNet >= 0 ? 'var(--blue)' : 'var(--red)';
-  const netBg = todayNet >= 0 ? 'var(--blue-light)' : 'var(--red-light)';
-  const netIcon = todayNet >= 0 ? 'ti-trending-up' : 'ti-trending-down';
-
-  document.getElementById('ds-pemasukan').textContent = fmt(todayP);
-  document.getElementById('ds-pemasukan-sub').textContent = submitted ? '✓ Sudah disubmit' : (todayP > 0 ? 'Draft tersimpan' : 'Belum ada data');
-  document.getElementById('ds-pengeluaran').textContent = fmt(todayK);
-  document.getElementById('ds-pengeluaran-sub').textContent = allKeys.length + ' hari laporan tercatat';
-  document.getElementById('ds-net').textContent = (todayNet < 0 ? '- ' : '') + fmt(Math.abs(todayNet));
-  document.getElementById('ds-net').style.color = netColor;
-  document.getElementById('ds-net-icon').style.background = netBg;
-  document.getElementById('ds-net-icon').style.color = netColor;
-  document.getElementById('ds-net-icon').innerHTML = `<i class="ti ${netIcon}"></i>`;
-  document.getElementById('ds-net-sub').textContent = yNet !== null ? 'Kemarin: ' + (yNet < 0 ? '- ' : '') + fmt(Math.abs(yNet)) : 'Belum ada data kemarin';
-
-  buildOmsetChart();
+  const greetEl = document.getElementById('welcome-greeting');
+  if (greetEl) greetEl.textContent = greeting + ', Koneo Indonesia!';
+  const dateEl = document.getElementById('welcome-date-str');
+  if (dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 }
 
 function buildOmsetChart() {
