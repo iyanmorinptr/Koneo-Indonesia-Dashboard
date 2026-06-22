@@ -1066,7 +1066,8 @@
         </div>
       </div>
       <div id="opname-form-container"></div>
-      <div class="action-row" style="margin-top:0;">
+      <div id="opname-action-row" class="action-row" style="margin-top:0;">
+        <button class="btn-outline" onclick="resetOpnameHariIni()" style="font-size:13px;"><i class="ti ti-refresh"></i> Reset & Input Ulang</button>
         <button class="btn-primary" onclick="saveOpname()"><i class="ti ti-device-floppy"></i> Simpan Opname</button>
       </div>
     </div>
@@ -2955,10 +2956,11 @@ function deleteStokItem(id) {
 }
 
 function renderOpname() {
-  const tgl = document.getElementById('tanggal')?.value || getLocalDateStr();
+  const tgl = getLocalDateStr();
   document.getElementById('opname-date-label').textContent = formatTanggal(tgl);
   const items = getStokItems();
   const saved = getOpname(tgl);
+  const sudahDisimpan = Object.keys(saved).length > 0;
   const container = document.getElementById('opname-form-container');
 
   if (!items.length) {
@@ -2997,8 +2999,17 @@ function adjOpname(itemId, delta) {
   el.value = Math.max(0, cur + delta);
 }
 
+function resetOpnameHariIni() {
+  const tgl = getLocalDateStr();
+  if (!confirm('Reset opname hari ini? Semua input hari ini akan dihapus.')) return;
+  localStorage.removeItem('koneo_stock_opname_' + tgl);
+  renderOpname();
+  updateBeliBadge();
+  showToast('Opname hari ini direset');
+}
+
 function saveOpname() {
-  const tgl = document.getElementById('tanggal')?.value || getLocalDateStr();
+  const tgl = getLocalDateStr();
   const items = getStokItems();
   const data = {};
   items.forEach(item => {
