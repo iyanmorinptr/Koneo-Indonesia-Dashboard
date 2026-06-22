@@ -832,6 +832,7 @@
     </div>
     <button class="sidebar-item" id="sitem-stok-master" onclick="sidebarGoStok('master')"><i class="ti ti-list-details"></i> Master Barang</button>
     <button class="sidebar-item" id="sitem-stok-opname" onclick="sidebarGoStok('opname')"><i class="ti ti-clipboard-check"></i> Opname Harian</button>
+    <button class="sidebar-item" id="sitem-stok-beli" onclick="sidebarGoStok('beli')"><i class="ti ti-shopping-cart"></i> Perlu Dibeli <span id="sidebar-beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span></button>
     <button class="sidebar-item" id="sitem-stok-laporan" onclick="sidebarGoStok('laporan')"><i class="ti ti-chart-bar"></i> Laporan Stok</button>
   </div>
 
@@ -1037,6 +1038,9 @@
       <button id="stok-tab-opname" onclick="switchStokTab('opname')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
         <i class="ti ti-clipboard-check"></i> Opname Harian
       </button>
+      <button id="stok-tab-beli" onclick="switchStokTab('beli')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
+        <i class="ti ti-shopping-cart"></i> Perlu Dibeli <span id="beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span>
+      </button>
       <button id="stok-tab-laporan" onclick="switchStokTab('laporan')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
         <i class="ti ti-chart-bar"></i> Laporan
       </button>
@@ -1068,6 +1072,11 @@
     </div>
 
     <!-- Laporan Stok -->
+    <!-- Perlu Dibeli -->
+    <div id="stok-section-beli" style="display:none;">
+      <div id="beli-container"></div>
+    </div>
+
     <div id="stok-section-laporan" style="display:none;">
       <div class="card" style="margin-bottom:1rem;">
         <div class="card-title"><i class="ti ti-calendar-search"></i> Pilih Tanggal</div>
@@ -2730,7 +2739,7 @@ function buildStokTab() {
 
 function switchStokTab(tab) {
   currentStokTab = tab;
-  ['master','opname','laporan'].forEach(t => {
+  ['master','opname','beli','laporan'].forEach(t => {
     document.getElementById('stok-section-' + t).style.display = t === tab ? '' : 'none';
     const btn = document.getElementById('stok-tab-' + t);
     if (btn) {
@@ -2741,7 +2750,122 @@ function switchStokTab(tab) {
   });
   if (tab === 'master') renderMasterBarang();
   if (tab === 'opname') renderOpname();
+  if (tab === 'beli') renderPerluDibeli();
   if (tab === 'laporan') initStokLaporan();
+  updateBeliBadge();
+}
+
+function updateBeliBadge() {
+  const items = getStokItems();
+  const tgl = getLocalDateStr();
+  const saved = getOpname(tgl);
+  const perlu = items.filter(item => {
+    if (!item.stokMin) return false;
+    const aktual = saved[item.id] !== undefined ? saved[item.id] : null;
+    return aktual !== null && aktual <= item.stokMin;
+  });
+  [document.getElementById('beli-badge'), document.getElementById('sidebar-beli-badge')].forEach(badge => {
+    if (!badge) return;
+    if (perlu.length > 0) { badge.style.display = 'inline'; badge.textContent = perlu.length; }
+    else badge.style.display = 'none';
+  });
+}
+
+function renderPerluDibeli() {
+  const items = getStokItems();
+  const tgl = getLocalDateStr();
+  const saved = getOpname(tgl);
+  const container = document.getElementById('beli-container');
+
+  const perlu = items.filter(item => {
+    if (!item.stokMin) return false;
+    const aktual = saved[item.id] !== undefined ? saved[item.id] : null;
+    return aktual !== null && aktual <= item.stokMin;
+  });
+
+  const belumOpname = items.filter(item => item.stokMin && saved[item.id] === undefined);
+
+  let html = '';
+
+  // Hero header
+  html += `<div class="welcome-hero" style="padding:1.5rem 2rem;margin-bottom:1.25rem;">
+    <div style="position:relative;z-index:1;">
+      <div class="welcome-greeting">Daftar Belanja Hari Ini</div>
+      <div class="welcome-title" style="font-size:22px;">${perlu.length > 0 ? perlu.length + ' barang perlu dibeli' : 'Semua stok aman!'}</div>
+      <div class="welcome-sub" style="font-size:13px;">Berdasarkan hasil opname ${new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div>
+    </div>
+  </div>`;
+
+  if (!items.length) {
+    container.innerHTML = html + '<div class="card"><div class="empty-state">Belum ada master barang. Tambahkan barang dan set stok minimum dulu.</div></div>';
+    return;
+  }
+
+  if (perlu.length === 0 && belumOpname.length === 0) {
+    html += `<div class="card" style="text-align:center;padding:2rem;">
+      <div style="font-size:48px;margin-bottom:12px;">✅</div>
+      <div style="font-size:17px;font-weight:700;color:var(--green);margin-bottom:6px;">Semua Stok Aman</div>
+      <div style="font-size:13px;color:var(--text3);">Tidak ada barang yang perlu dibeli hari ini.</div>
+    </div>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  // Daftar perlu dibeli
+  if (perlu.length > 0) {
+    html += `<div class="card" style="margin-bottom:1rem;border:1.5px solid var(--red-light);">
+      <div class="card-title" style="color:var(--red);"><i class="ti ti-shopping-cart" style="color:var(--red);"></i> Harus Dibeli Sekarang</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Stok di bawah atau sama dengan batas minimum.</p>`;
+
+    const cats = ['Bar','Kitchen','Operasional'];
+    cats.forEach(cat => {
+      const catItems = perlu.filter(i => i.kategori === cat);
+      if (!catItems.length) return;
+      html += `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin:12px 0 6px;">${cat}</div>`;
+      catItems.forEach(item => {
+        const aktual = saved[item.id] ?? 0;
+        const kurang = item.stokMin - aktual;
+        const persen = Math.round((aktual / item.stokMin) * 100);
+        html += `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--red-light);border-radius:12px;margin-bottom:8px;">
+          <div style="width:44px;height:44px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">🛒</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;color:var(--text);">${item.nama}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px;">
+              Sisa: <b style="color:var(--red);">${aktual} ${item.satuan}</b> · Min: <b>${item.stokMin} ${item.satuan}</b>
+            </div>
+            <div style="height:5px;background:rgba(226,75,74,0.2);border-radius:3px;margin-top:6px;overflow:hidden;">
+              <div style="height:100%;width:${Math.min(persen,100)}%;background:var(--red);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:13px;font-weight:800;color:var(--red);">Beli</div>
+            <div style="font-size:18px;font-weight:900;color:var(--red);">${kurang}</div>
+            <div style="font-size:11px;color:var(--text3);">${item.satuan}</div>
+          </div>
+        </div>`;
+      });
+    });
+    html += `</div>`;
+  }
+
+  // Belum di-opname tapi ada stok minimum
+  if (belumOpname.length > 0) {
+    html += `<div class="card" style="border:1.5px solid var(--amber-light);">
+      <div class="card-title" style="color:var(--amber);"><i class="ti ti-alert-triangle" style="color:var(--amber);"></i> Belum Di-Opname</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Barang ini punya stok minimum tapi belum ada data opname hari ini.</p>`;
+    belumOpname.forEach(item => {
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">${item.nama}</div>
+          <div style="font-size:12px;color:var(--text3);">Min: ${item.stokMin} ${item.satuan} · <span class="stok-badge ${item.kategori.toLowerCase()}">${item.kategori}</span></div>
+        </div>
+        <button onclick="switchStokTab('opname')" style="background:var(--amber-light);border:none;cursor:pointer;color:var(--amber);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;">Input Opname →</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
 }
 
 function renderMasterBarang() {
@@ -2758,7 +2882,8 @@ function renderMasterBarang() {
         <div class="stok-item-meta">
           <span class="stok-badge ${item.kategori.toLowerCase()}">${item.kategori}</span>
           &nbsp;·&nbsp; Satuan: <b>${item.satuan}</b>
-          &nbsp;·&nbsp; Stok awal: <b>${item.stokAwal || 0} ${item.satuan}</b>
+          &nbsp;·&nbsp; Stok awal: <b>${item.stokAwal || 0}</b>
+          ${item.stokMin !== null && item.stokMin !== undefined ? `&nbsp;·&nbsp; Min beli: <b style="color:var(--red);">${item.stokMin} ${item.satuan}</b>` : ''}
         </div>
       </div>
       <button onclick="openEditItemModal('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Edit"><i class="ti ti-pencil"></i></button>
@@ -2774,6 +2899,7 @@ function openAddItemModal() {
   document.getElementById('item-modal-satuan').value = '';
   document.getElementById('item-modal-kategori').value = 'Bar';
   document.getElementById('item-modal-stok-awal').value = '';
+  document.getElementById('item-modal-stok-min').value = '';
   document.getElementById('item-modal-overlay').classList.add('show');
   setTimeout(() => document.getElementById('item-modal-nama').focus(), 100);
 }
@@ -2788,6 +2914,7 @@ function openEditItemModal(id) {
   document.getElementById('item-modal-satuan').value = item.satuan;
   document.getElementById('item-modal-kategori').value = item.kategori;
   document.getElementById('item-modal-stok-awal').value = item.stokAwal || 0;
+  document.getElementById('item-modal-stok-min').value = item.stokMin || '';
   document.getElementById('item-modal-overlay').classList.add('show');
 }
 
@@ -2801,15 +2928,17 @@ function saveItemModal() {
   const satuan = document.getElementById('item-modal-satuan').value.trim();
   const kategori = document.getElementById('item-modal-kategori').value;
   const stokAwal = parseInt(document.getElementById('item-modal-stok-awal').value) || 0;
+  const stokMinRaw = document.getElementById('item-modal-stok-min').value;
+  const stokMin = stokMinRaw !== '' ? (parseInt(stokMinRaw) || 0) : null;
   if (!nama || !satuan) { showToast('Nama dan satuan wajib diisi'); return; }
 
   let items = getStokItems();
   if (editingItemId) {
-    items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, stokAwal } : i);
+    items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, stokAwal, stokMin } : i);
     showToast('Barang diperbarui');
   } else {
     const id = 'item_' + Date.now();
-    items.push({ id, nama, satuan, kategori, stokAwal });
+    items.push({ id, nama, satuan, kategori, stokAwal, stokMin });
     showToast('Barang ditambahkan');
   }
   saveStokItems(items);
@@ -2878,6 +3007,7 @@ function saveOpname() {
   });
   saveOpnameData(tgl, data);
   showToast('Opname stok tersimpan');
+  updateBeliBadge();
 }
 
 function initStokLaporan() {
@@ -3062,6 +3192,10 @@ function formatTanggal(tgl) {
       <div class="input-group">
         <label>Stok Awal (Opening Stock)</label>
         <input type="text" inputmode="numeric" id="item-modal-stok-awal" placeholder="0" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+      </div>
+      <div class="input-group">
+        <label>Stok Minimum (Batas Perlu Beli)</label>
+        <input type="text" inputmode="numeric" id="item-modal-stok-min" placeholder="cth: 10 (kalau stok di bawah ini, masuk daftar belanja)" oninput="this.value=this.value.replace(/[^\d]/g,'')">
       </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;">
