@@ -1048,8 +1048,15 @@
 
     <!-- Master Barang -->
     <div id="stok-section-master">
+      <!-- Filter kategori -->
+      <div style="display:flex;gap:6px;margin-bottom:1rem;">
+        <button onclick="filterMaster('Semua')" id="fm-Semua" class="cat-filter-btn active" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid #093a72;background:#093a72;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;">Semua</button>
+        <button onclick="filterMaster('Bar')" id="fm-Bar" class="cat-filter-btn" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-glass-full"></i> Bar</button>
+        <button onclick="filterMaster('Kitchen')" id="fm-Kitchen" class="cat-filter-btn" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-chef-hat"></i> Kitchen</button>
+        <button onclick="filterMaster('Operasional')" id="fm-Operasional" class="cat-filter-btn" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-settings"></i> Ops</button>
+      </div>
       <div class="card">
-        <div class="card-title"><i class="ti ti-packages"></i> Daftar Master Barang</div>
+        <div class="card-title" id="master-title"><i class="ti ti-packages"></i> Semua Barang</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Tambahkan semua item stok yang perlu dipantau setiap hari.</p>
         <div id="master-barang-list"></div>
         <button class="btn-add" onclick="openAddItemModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Barang</button>
@@ -1058,6 +1065,13 @@
 
     <!-- Opname Harian -->
     <div id="stok-section-opname" style="display:none;">
+      <!-- Filter kategori -->
+      <div style="display:flex;gap:6px;margin-bottom:1rem;">
+        <button onclick="filterOpname('Semua')" id="fo-Semua" class="cat-filter-btn active" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid #093a72;background:#093a72;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;">Semua</button>
+        <button onclick="filterOpname('Bar')" id="fo-Bar" class="cat-filter-btn" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-glass-full"></i> Bar</button>
+        <button onclick="filterOpname('Kitchen')" id="fo-Kitchen" class="cat-filter-btn" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-chef-hat"></i> Kitchen</button>
+        <button onclick="filterOpname('Operasional')" id="fo-Operasional" class="cat-filter-btn" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-settings"></i> Ops</button>
+      </div>
       <div class="welcome-hero" style="padding:1.5rem 2rem;margin-bottom:1.25rem;">
         <div style="position:relative;z-index:1;">
           <div class="welcome-greeting">Opname Stok</div>
@@ -2869,8 +2883,44 @@ function renderPerluDibeli() {
   container.innerHTML = html;
 }
 
+let activeMasterFilter = 'Semua';
+let activeOpnameFilter = 'Semua';
+
+function filterMaster(cat) {
+  activeMasterFilter = cat;
+  ['Semua','Bar','Kitchen','Operasional'].forEach(c => {
+    const btn = document.getElementById('fm-' + c);
+    if (!btn) return;
+    const active = c === cat;
+    btn.style.background = active ? '#093a72' : 'none';
+    btn.style.color = active ? '#fff' : 'var(--text2)';
+    btn.style.border = active ? '1.5px solid #093a72' : '1.5px solid rgba(9,58,114,0.2)';
+    btn.style.fontWeight = active ? '700' : '600';
+  });
+  const icons = {Bar:'ti-glass-full',Kitchen:'ti-chef-hat',Operasional:'ti-settings',Semua:'ti-packages'};
+  const labels = {Semua:'Semua Barang',Bar:'Stok Bar',Kitchen:'Stok Kitchen',Operasional:'Stok Operasional'};
+  const titleEl = document.getElementById('master-title');
+  if (titleEl) titleEl.innerHTML = `<i class="ti ${icons[cat] || 'ti-packages'}"></i> ${labels[cat] || cat}`;
+  renderMasterBarang();
+}
+
+function filterOpname(cat) {
+  activeOpnameFilter = cat;
+  ['Semua','Bar','Kitchen','Operasional'].forEach(c => {
+    const btn = document.getElementById('fo-' + c);
+    if (!btn) return;
+    const active = c === cat;
+    btn.style.background = active ? '#093a72' : 'none';
+    btn.style.color = active ? '#fff' : 'var(--text2)';
+    btn.style.border = active ? '1.5px solid #093a72' : '1.5px solid rgba(9,58,114,0.2)';
+    btn.style.fontWeight = active ? '700' : '600';
+  });
+  renderOpname();
+}
+
 function renderMasterBarang() {
-  const items = getStokItems();
+  const allItems = getStokItems();
+  const items = activeMasterFilter === 'Semua' ? allItems : allItems.filter(i => i.kategori === activeMasterFilter);
   const container = document.getElementById('master-barang-list');
   if (!items.length) {
     container.innerHTML = '<div class="empty-state"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada barang. Tambahkan item stok pertama.</div>';
@@ -2986,8 +3036,8 @@ function renderOpname() {
     return;
   }
 
-  const cats = ['Bar', 'Kitchen', 'Operasional'];
-  container.innerHTML = cats.map(cat => {
+  const catsToShow = activeOpnameFilter === 'Semua' ? ['Bar','Kitchen','Operasional'] : [activeOpnameFilter];
+  container.innerHTML = catsToShow.map(cat => {
     const catItems = items.filter(i => i.kategori === cat);
     if (!catItems.length) return '';
     return `<div class="card" style="margin-bottom:1rem;">
