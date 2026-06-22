@@ -2832,7 +2832,7 @@ function renderPerluDibeli() {
           <div style="flex:1;">
             <div style="font-size:14px;font-weight:700;color:var(--text);">${item.nama}</div>
             <div style="font-size:12px;color:var(--text2);margin-top:2px;">
-              Sisa: <b style="color:var(--red);">${aktual} ${item.satuan}</b> · Min: <b>${item.stokMin} ${item.satuan}</b>
+              Sisa: <b style="color:var(--red);">${aktual} ${item.satuan}</b> · Min: <b>${item.stokMin} ${item.satuan}</b>${item.lokasi ? ` · <i class="ti ti-map-pin" style="font-size:11px;color:#093a72;"></i> <b style="color:#093a72;">${item.lokasi}</b>` : ''}
             </div>
             <div style="height:5px;background:rgba(226,75,74,0.2);border-radius:3px;margin-top:6px;overflow:hidden;">
               <div style="height:100%;width:${Math.min(persen,100)}%;background:var(--red);border-radius:3px;"></div>
@@ -2884,7 +2884,8 @@ function renderMasterBarang() {
           <span class="stok-badge ${item.kategori.toLowerCase()}">${item.kategori}</span>
           &nbsp;·&nbsp; Satuan: <b>${item.satuan}</b>
           &nbsp;·&nbsp; Stok awal: <b>${item.stokAwal || 0}</b>
-          ${item.stokMin !== null && item.stokMin !== undefined ? `&nbsp;·&nbsp; Min beli: <b style="color:var(--red);">${item.stokMin} ${item.satuan}</b>` : ''}
+          ${item.lokasi ? `&nbsp;·&nbsp; <i class="ti ti-map-pin" style="font-size:11px;"></i> <b>${item.lokasi}</b>` : ''}
+          ${item.stokMin !== null && item.stokMin !== undefined ? `&nbsp;·&nbsp; Min: <b style="color:var(--red);">${item.stokMin} ${item.satuan}</b>` : ''}
         </div>
       </div>
       <button onclick="openEditItemModal('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Edit"><i class="ti ti-pencil"></i></button>
@@ -2893,14 +2894,29 @@ function renderMasterBarang() {
   `).join('');
 }
 
+function pilihKategori(val) {
+  document.getElementById('item-modal-kategori').value = val;
+  ['Bar','Kitchen','Operasional'].forEach(k => {
+    const btn = document.getElementById('kpick-' + k);
+    if (!btn) return;
+    const active = k === val;
+    btn.style.border = active ? '1.5px solid #093a72' : '1.5px solid rgba(9,58,114,0.15)';
+    btn.style.background = active ? 'rgba(9,58,114,0.08)' : 'none';
+    btn.style.color = active ? '#093a72' : 'var(--text2)';
+    btn.style.fontWeight = active ? '700' : '600';
+  });
+}
+
+
 function openAddItemModal() {
   editingItemId = null;
   document.getElementById('item-modal-title').textContent = 'Tambah Barang';
   document.getElementById('item-modal-nama').value = '';
   document.getElementById('item-modal-satuan').value = '';
-  document.getElementById('item-modal-kategori').value = 'Bar';
   document.getElementById('item-modal-stok-awal').value = '';
   document.getElementById('item-modal-stok-min').value = '';
+  document.getElementById('item-modal-lokasi').value = '';
+  pilihKategori('Bar');
   document.getElementById('item-modal-overlay').classList.add('show');
   setTimeout(() => document.getElementById('item-modal-nama').focus(), 100);
 }
@@ -2913,9 +2929,10 @@ function openEditItemModal(id) {
   document.getElementById('item-modal-title').textContent = 'Edit Barang';
   document.getElementById('item-modal-nama').value = item.nama;
   document.getElementById('item-modal-satuan').value = item.satuan;
-  document.getElementById('item-modal-kategori').value = item.kategori;
   document.getElementById('item-modal-stok-awal').value = item.stokAwal || 0;
   document.getElementById('item-modal-stok-min').value = item.stokMin || '';
+  document.getElementById('item-modal-lokasi').value = item.lokasi || '';
+  pilihKategori(item.kategori || 'Bar');
   document.getElementById('item-modal-overlay').classList.add('show');
 }
 
@@ -2929,17 +2946,18 @@ function saveItemModal() {
   const satuan = document.getElementById('item-modal-satuan').value.trim();
   const kategori = document.getElementById('item-modal-kategori').value;
   const stokAwal = parseInt(document.getElementById('item-modal-stok-awal').value) || 0;
+  const lokasi = document.getElementById('item-modal-lokasi').value.trim();
   const stokMinRaw = document.getElementById('item-modal-stok-min').value;
   const stokMin = stokMinRaw !== '' ? (parseInt(stokMinRaw) || 0) : null;
   if (!nama || !satuan) { showToast('Nama dan satuan wajib diisi'); return; }
 
   let items = getStokItems();
   if (editingItemId) {
-    items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, stokAwal, stokMin } : i);
+    items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, lokasi, stokAwal, stokMin } : i);
     showToast('Barang diperbarui');
   } else {
     const id = 'item_' + Date.now();
-    items.push({ id, nama, satuan, kategori, stokAwal, stokMin });
+    items.push({ id, nama, satuan, kategori, lokasi, stokAwal, stokMin });
     showToast('Barang ditambahkan');
   }
   saveStokItems(items);
@@ -2978,7 +2996,7 @@ function renderOpname() {
         <div class="opname-item">
           <div class="opname-item-info">
             <div class="opname-item-nama">${item.nama}</div>
-            <div class="opname-item-meta">Stok awal: ${item.stokAwal || 0} ${item.satuan}</div>
+            <div class="opname-item-meta">Stok awal: ${item.stokAwal || 0} ${item.satuan}${item.lokasi ? ` &nbsp;·&nbsp; <i class="ti ti-map-pin" style="font-size:11px;"></i> ${item.lokasi}` : ''}</div>
           </div>
           <div class="opname-input-wrap">
             <button onclick="adjOpname('${item.id}',-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(9,58,114,0.2);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:#093a72;">−</button>
@@ -3193,12 +3211,23 @@ function formatTanggal(tgl) {
         <input type="text" id="item-modal-satuan" placeholder="cth: botol, kg, pcs, liter">
       </div>
       <div class="input-group">
-        <label>Kategori</label>
-        <select id="item-modal-kategori" style="width:100%;font-size:15px;padding:11px 14px;border:1.5px solid rgba(9,58,114,0.13);border-radius:12px;background:var(--surface);color:var(--text);outline:none;font-family:inherit;">
-          <option value="Bar">Bar</option>
-          <option value="Kitchen">Kitchen</option>
-          <option value="Operasional">Operasional</option>
-        </select>
+        <label>Kategori *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;" id="kategori-picker">
+          <button type="button" onclick="pilihKategori('Bar')" id="kpick-Bar" class="kpick-btn active" style="padding:10px 8px;border-radius:12px;border:1.5px solid #093a72;background:rgba(9,58,114,0.08);cursor:pointer;font-size:13px;font-weight:700;color:#093a72;font-family:inherit;transition:all 0.15s;">
+            <i class="ti ti-glass-full" style="display:block;font-size:20px;margin-bottom:4px;"></i>Bar
+          </button>
+          <button type="button" onclick="pilihKategori('Kitchen')" id="kpick-Kitchen" class="kpick-btn" style="padding:10px 8px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.15);background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);font-family:inherit;transition:all 0.15s;">
+            <i class="ti ti-chef-hat" style="display:block;font-size:20px;margin-bottom:4px;"></i>Kitchen
+          </button>
+          <button type="button" onclick="pilihKategori('Operasional')" id="kpick-Operasional" class="kpick-btn" style="padding:10px 8px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.15);background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);font-family:inherit;transition:all 0.15s;">
+            <i class="ti ti-settings" style="display:block;font-size:20px;margin-bottom:4px;"></i>Operasional
+          </button>
+        </div>
+        <input type="hidden" id="item-modal-kategori" value="Bar">
+      </div>
+      <div class="input-group">
+        <label>Lokasi Pembelian</label>
+        <input type="text" id="item-modal-lokasi" placeholder="cth: Pasar Induk, Toko Surya, PT. Bintang Mas...">
       </div>
       <div class="input-group">
         <label>Stok Awal (Opening Stock)</label>
@@ -3206,7 +3235,7 @@ function formatTanggal(tgl) {
       </div>
       <div class="input-group">
         <label>Stok Minimum (Batas Perlu Beli)</label>
-        <input type="text" inputmode="numeric" id="item-modal-stok-min" placeholder="cth: 10 (kalau stok di bawah ini, masuk daftar belanja)" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+        <input type="text" inputmode="numeric" id="item-modal-stok-min" placeholder="cth: 10 → masuk daftar belanja kalau stok ≤ ini" oninput="this.value=this.value.replace(/[^\d]/g,'')">
       </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;">
