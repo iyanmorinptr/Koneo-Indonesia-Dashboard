@@ -1189,6 +1189,12 @@
       <p style="font-size:11px;color:var(--text3);margin-top:8px;">API key disimpan hanya di perangkat ini (localStorage). Dapatkan API key di console.anthropic.com</p>
     </div>
 
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-table-edit"></i> Semua Data Laporan</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Lihat, edit, atau hapus data laporan harian yang sudah tersimpan.</p>
+      <div id="all-data-list"></div>
+    </div>
+
     <div class="card" style="border:1.5px solid var(--red-light);">
       <div class="card-title" style="color:var(--red);"><i class="ti ti-alert-triangle" style="color:var(--red);"></i> Zona Berbahaya</div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;">Tindakan di bawah ini tidak dapat dibatalkan. Pastikan sudah backup data terlebih dahulu.</p>
@@ -2331,23 +2337,104 @@ document.getElementById('modal-overlay').addEventListener('click', function(e) {
 
 // ── PENGATURAN ────────────────────────────────────────────────────────────────
 function buildDataSummary() {
-  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort();
-  const draftKeys = Object.keys(localStorage).filter(k => k.startsWith('koneo_draft_'));
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort().reverse();
   const el = document.getElementById('data-summary');
+  const listEl = document.getElementById('all-data-list');
+
   if (!keys.length) {
     el.innerHTML = '<i class="ti ti-database-off"></i> Belum ada data laporan yang tersimpan.';
+    if (listEl) listEl.innerHTML = '<div class="empty-state" style="padding:1.5rem 0;"><i class="ti ti-calendar-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada data tersimpan.</div>';
     return;
   }
-  const oldest = new Date(keys[0].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  const newest = new Date(keys[keys.length-1].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  let totP=0, totNet=0;
-  keys.forEach(k=>{ const c=calcSnapshot(JSON.parse(localStorage.getItem(k))); totP+=c.totalP; totNet+=c.net; });
+
+  let totP = 0, totNet = 0;
+  keys.forEach(k => { const c = calcSnapshot(JSON.parse(localStorage.getItem(k))); totP += c.totalP; totNet += c.net; });
+  const oldest = new Date(keys[keys.length-1].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const newest = new Date(keys[0].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
   el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-    <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL HARI TERCATAT</div><div style="font-size:18px;font-weight:700;color:var(--text);">${keys.length} hari</div></div>
+    <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL HARI</div><div style="font-size:18px;font-weight:700;color:var(--text);">${keys.length} hari</div></div>
     <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL OMSET</div><div style="font-size:18px;font-weight:700;color:var(--green);">${fmt(totP)}</div></div>
     <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">DATA TERLAMA</div><div style="font-size:13px;font-weight:500;color:var(--text);">${oldest}</div></div>
     <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">DATA TERBARU</div><div style="font-size:13px;font-weight:500;color:var(--text);">${newest}</div></div>
   </div>`;
+
+  // Build data list grouped by month
+  if (!listEl) return;
+  const byMonth = {};
+  keys.forEach(k => {
+    const tgl = k.replace('koneo_day_','');
+    const month = tgl.substring(0,7); // YYYY-MM
+    if (!byMonth[month]) byMonth[month] = [];
+    byMonth[month].push(tgl);
+  });
+
+  let html = '';
+  Object.keys(byMonth).sort().reverse().forEach(month => {
+    const [yr, mo] = month.split('-');
+    const monthName = new Date(month + '-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+    const monthKeys = byMonth[month];
+    let mTotP = 0, mTotNet = 0;
+    monthKeys.forEach(tgl => { const c = calcSnapshot(JSON.parse(localStorage.getItem('koneo_day_'+tgl))); mTotP+=c.totalP; mTotNet+=c.net; });
+
+    html += `<div style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(9,58,114,0.06);border-radius:10px;margin-bottom:6px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#093a72;">${monthName}</div>
+          <div style="font-size:11px;color:var(--text3);">${monthKeys.length} hari · Omset ${fmt(mTotP)}</div>
+        </div>
+        <button onclick="hapusBulan('${month}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:5px 8px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">
+          <i class="ti ti-trash" style="font-size:13px;"></i> Hapus Bulan
+        </button>
+      </div>`;
+
+    monthKeys.forEach(tgl => {
+      const raw = JSON.parse(localStorage.getItem('koneo_day_'+tgl));
+      const { totalP, totalK, net } = calcSnapshot(raw);
+      const netColor = net >= 0 ? 'var(--green)' : 'var(--red)';
+      const tglFmt = new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'});
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface);border-radius:8px;margin-bottom:4px;">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${tglFmt}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Masuk ${fmt(totalP)} · Keluar ${fmt(totalK)}</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:${netColor};margin-right:6px;">${net>=0?'+':''}${fmt(net)}</div>
+        <button onclick="editDataHariIni('${tgl}')" title="Edit" style="background:var(--blue-light);border:none;cursor:pointer;color:var(--blue-dark);padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;white-space:nowrap;">
+          <i class="ti ti-pencil"></i> Edit
+        </button>
+        <button onclick="hapusDataTgl('${tgl}')" title="Hapus" style="background:var(--red-light);border:none;cursor:pointer;color:var(--red);padding:6px 8px;border-radius:8px;font-size:14px;">
+          <i class="ti ti-trash"></i>
+        </button>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  listEl.innerHTML = html;
+}
+
+function editDataHariIni(tgl) {
+  muatHari(tgl);
+  sidebarGo('pemasukan');
+  showToast('Data ' + tgl + ' dimuat untuk diedit');
+}
+
+function hapusDataTgl(tgl) {
+  const d = new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if (!confirm('Hapus data laporan tanggal ' + d + '?\nTindakan ini tidak bisa dibatalkan.')) return;
+  localStorage.removeItem('koneo_day_' + tgl);
+  localStorage.removeItem('koneo_draft_' + tgl);
+  buildDataSummary();
+  buildRiwayat();
+  showToast('Data ' + tgl + ' berhasil dihapus');
+}
+
+function hapusBulan(month) {
+  const monthName = new Date(month+'-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+  if (!confirm('Hapus SEMUA data bulan ' + monthName + '?\nTindakan ini tidak bisa dibatalkan.')) return;
+  Object.keys(localStorage).filter(k => k.startsWith('koneo_day_'+month) || k.startsWith('koneo_draft_'+month)).forEach(k => localStorage.removeItem(k));
+  buildDataSummary();
+  buildRiwayat();
+  showToast('Data bulan ' + monthName + ' dihapus');
 }
 
 function exportData() {
