@@ -876,6 +876,16 @@
   </div>
 </div>
 
+<!-- WELCOME SPLASH -->
+<div id="welcome-splash" style="display:none;position:fixed;inset:0;z-index:9500;background:linear-gradient(135deg,#093a72 0%,#0d5cad 60%,#1a7fd4 100%);align-items:center;justify-content:center;flex-direction:column;gap:0;">
+  <div id="ws-welcome" style="opacity:0;transform:translateY(30px);transition:opacity 0.6s ease,transform 0.6s ease;font-family:inherit;font-size:clamp(22px,5vw,36px);font-weight:800;color:#fff;letter-spacing:1px;text-align:center;padding:0 1rem;"></div>
+  <div id="ws-brand" style="opacity:0;transform:translateY(30px);transition:opacity 0.6s ease 0.4s,transform 0.6s ease 0.4s;margin-top:18px;font-family:inherit;font-size:clamp(26px,6vw,48px);font-weight:900;color:#ffd166;letter-spacing:2px;text-align:center;padding:0 1rem;">KONEO INDONESIA DASHBOARD</div>
+  <div id="ws-tagline" style="opacity:0;transform:translateY(30px);transition:opacity 0.6s ease 0.8s,transform 0.6s ease 0.8s;margin-top:10px;font-family:inherit;font-size:clamp(13px,3vw,18px);font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:3px;text-align:center;padding:0 1rem;">FIRST BINGSOO BAR IN BALI</div>
+  <div style="margin-top:40px;width:48px;height:4px;border-radius:99px;background:rgba(255,255,255,0.3);overflow:hidden;">
+    <div id="ws-bar" style="height:100%;width:0%;background:#ffd166;transition:width 2.2s linear 0.3s;border-radius:99px;"></div>
+  </div>
+</div>
+
 <!-- SIDEBAR OVERLAY -->
 <div id="sidebar-overlay" onclick="closeSidebar()" style="position:fixed;inset:0;background:rgba(9,58,114,0.35);backdrop-filter:blur(4px);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s;"></div>
 
@@ -896,13 +906,15 @@
   <!-- Nav accordion -->
   <div style="padding:0.75rem 0.75rem;flex:1;">
 
+    <!-- Beranda (all users) -->
+    <button class="sidebar-item" id="sitem-beranda" onclick="sidebarGo('beranda')" style="width:100%;padding:12px 14px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:4px;"><i class="ti ti-home"></i> Beranda</button>
+
     <!-- Finance -->
     <button onclick="toggleSidebarGroup('finance')" id="sg-finance" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
       <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-coin" style="font-size:17px;color:#093a72;"></i> Finance</span>
       <i class="ti ti-chevron-right" id="sg-finance-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
     </button>
     <div id="sg-finance-items" style="display:none;padding-left:10px;padding-bottom:4px;">
-      <button class="sidebar-item" id="sitem-beranda" onclick="sidebarGo('beranda')"><i class="ti ti-home"></i> Beranda</button>
       <button class="sidebar-item" id="sitem-pemasukan" onclick="sidebarGo('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
       <button class="sidebar-item" id="sitem-pengeluaran" onclick="sidebarGo('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
       <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
@@ -1422,6 +1434,45 @@ function initAuth() {
   setTimeout(() => { const el = document.getElementById('auth-email'); if(el) el.focus(); }, 200);
 }
 
+function showWelcomeSplash(nama, role) {
+  const splash = document.getElementById('welcome-splash');
+  const wEl = document.getElementById('ws-welcome');
+  const bar = document.getElementById('ws-bar');
+  wEl.textContent = 'Welcome, ' + nama + '!';
+  splash.style.display = 'flex';
+  // trigger enter animations
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.getElementById('ws-welcome').style.opacity = '1';
+      document.getElementById('ws-welcome').style.transform = 'translateY(0)';
+      document.getElementById('ws-brand').style.opacity = '1';
+      document.getElementById('ws-brand').style.transform = 'translateY(0)';
+      document.getElementById('ws-tagline').style.opacity = '1';
+      document.getElementById('ws-tagline').style.transform = 'translateY(0)';
+      bar.style.width = '100%';
+    });
+  });
+  setTimeout(() => {
+    splash.style.transition = 'opacity 0.5s ease';
+    splash.style.opacity = '0';
+    setTimeout(() => {
+      splash.style.display = 'none';
+      splash.style.opacity = '';
+      splash.style.transition = '';
+      // reset inner elements for next time
+      ['ws-welcome','ws-brand','ws-tagline'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+      });
+      bar.style.width = '0%';
+      bar.style.transition = 'none';
+      requestAnimationFrame(() => { bar.style.transition = 'width 2.2s linear 0.3s'; });
+      applyRole(role);
+    }, 500);
+  }, 2600);
+}
+
 function doSetup() {
   const nama = document.getElementById('setup-nama').value.trim();
   const email = document.getElementById('setup-email').value.trim().toLowerCase();
@@ -1436,8 +1487,7 @@ function doSetup() {
   saveUsers([owner]);
   setSession({ userId: owner.id, nama: owner.nama, email: owner.email, role: 'owner' });
   document.getElementById('setup-overlay').style.display = 'none';
-  applyRole('owner');
-  showToast('Selamat datang, ' + nama + '!');
+  showWelcomeSplash(nama, 'owner');
 }
 
 function doLogin() {
@@ -1450,8 +1500,7 @@ function doLogin() {
   if (!user) { errEl.style.display = 'block'; return; }
   setSession({ userId: user.id, nama: user.nama, email: user.email, role: user.role });
   document.getElementById('auth-overlay').style.display = 'none';
-  applyRole(user.role);
-  showToast('Selamat datang, ' + user.nama + '!');
+  showWelcomeSplash(user.nama, user.role);
 }
 
 function doLogout() {
