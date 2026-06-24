@@ -1095,8 +1095,9 @@
       <h1>Koneo Indonesia</h1>
       <p>Laporan Keuangan Harian</p>
     </div>
+    <button id="lang-toggle" onclick="toggleLang()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:50px;color:#fff;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;flex-shrink:0;letter-spacing:0.5px;">ID</button>
     <div class="date-wrap">
-      <label>Tanggal</label>
+      <label data-i18n="label_tanggal">Tanggal</label>
       <input type="date" id="tanggal">
     </div>
   </div>
@@ -1115,39 +1116,16 @@
   <div id="tab-beranda" class="section active">
     <div class="welcome-hero" style="min-height:220px;display:flex;align-items:center;">
       <div style="position:relative;z-index:1;width:100%;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.6;margin-bottom:10px;">Sistem Manajemen Internal</div>
+        <div data-i18n="welcome_sub" style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.6;margin-bottom:10px;">Sistem Manajemen Internal</div>
         <div class="welcome-hero-title" style="font-size:42px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:10px;">KONEO<br>DASHBOARD</div>
-        <div style="font-size:14px;opacity:0.65;margin-bottom:20px;max-width:400px;line-height:1.6;">Platform pencatatan keuangan harian & manajemen stok untuk seluruh tim Koneo Indonesia.</div>
+        <div data-i18n="welcome_desc" style="font-size:14px;opacity:0.65;margin-bottom:20px;max-width:400px;line-height:1.6;">Platform pencatatan keuangan harian & manajemen stok untuk seluruh tim Koneo Indonesia.</div>
         <div class="welcome-date-badge"><i class="ti ti-calendar"></i> <span id="welcome-date-str">—</span></div>
       </div>
     </div>
 
-    <div class="beranda-quicknav" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.25rem;">
-      <div onclick="sidebarGo('pemasukan')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
-        <div style="width:40px;height:40px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-arrow-down-circle" style="font-size:20px;color:var(--green);"></i></div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);">Pemasukan</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Input omset harian</div>
-      </div>
-      <div onclick="sidebarGo('pengeluaran')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
-        <div style="width:40px;height:40px;border-radius:12px;background:var(--red-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-arrow-up-circle" style="font-size:20px;color:var(--red);"></i></div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);">Pengeluaran</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Catat biaya & struk</div>
-      </div>
-      <div onclick="sidebarGo('laporan')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
-        <div style="width:40px;height:40px;border-radius:12px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-chart-line" style="font-size:20px;color:var(--blue);"></i></div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);">Laporan</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Grafik & analitik</div>
-      </div>
-      <div onclick="sidebarGoStok('opname')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
-        <div style="width:40px;height:40px;border-radius:12px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-packages" style="font-size:20px;color:var(--amber);"></i></div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);">Opname Stok</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Cek stok harian</div>
-      </div>
-    </div>
-
     <div style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.25rem 1.5rem;text-align:center;box-shadow:0 1px 6px rgba(9,58,114,0.06);">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Pilih menu dari atas untuk mulai bekerja</div>
-      <div style="font-size:13px;font-weight:600;color:var(--text2);">Ketuk <i class="ti ti-menu-2" style="vertical-align:middle;"></i> di pojok kiri atas untuk navigasi lengkap</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;" data-i18n="beranda_hint1">Pilih menu dari atas untuk mulai bekerja</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text2);" data-i18n="beranda_hint2">Ketuk <i class="ti ti-menu-2" style="vertical-align:middle;"></i> di pojok kiri atas untuk navigasi lengkap</div>
     </div>
   </div>
 
@@ -1629,6 +1607,62 @@ function _syncRefreshUI() {
   try { const s = getSession(); if (s) buildUserManagementCard(); } catch(e) {}
   try { renderSubmitBar(); } catch(e) {}
   try { updateBeliCount(); } catch(e) {}
+}
+
+// ── LANGUAGE / i18n ──────────────────────────────────────────────────────────
+const I18N = {
+  id: {
+    label_tanggal: 'Tanggal',
+    beranda_hint1: 'Pilih menu dari atas untuk mulai bekerja',
+    beranda_hint2: 'Ketuk ☰ di pojok kiri atas untuk navigasi lengkap',
+    brand_sub: 'Laporan Keuangan Harian',
+    welcome_sub: 'Sistem Manajemen Internal',
+    welcome_desc: 'Platform pencatatan keuangan harian & manajemen stok untuk seluruh tim Koneo Indonesia.',
+    tab_beranda: 'Beranda', tab_pemasukan: 'Pemasukan', tab_pengeluaran: 'Pengeluaran',
+    tab_laporan: 'Laporan', tab_riwayat: 'Riwayat', tab_stok: 'Stok',
+    tab_pengaturan: 'Pengaturan', tab_cogs: 'COGS/HPP',
+    nav_beranda: 'Beranda', nav_finance: 'Finance', nav_stok: 'Stock', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Pengaturan',
+    submit_btn: 'Submit Data', submit_info: 'Konfirmasi Data — Pastikan semua data sudah benar sebelum submit',
+  },
+  en: {
+    label_tanggal: 'Date',
+    beranda_hint1: 'Select a menu above to start working',
+    beranda_hint2: 'Tap ☰ in the top left corner for full navigation',
+    brand_sub: 'Daily Financial Report',
+    welcome_sub: 'Internal Management System',
+    welcome_desc: 'Daily financial recording & stock management platform for the entire Koneo Indonesia team.',
+    tab_beranda: 'Home', tab_pemasukan: 'Revenue', tab_pengeluaran: 'Expenses',
+    tab_laporan: 'Reports', tab_riwayat: 'History', tab_stok: 'Stock',
+    tab_pengaturan: 'Settings', tab_cogs: 'COGS/HPP',
+    nav_beranda: 'Home', nav_finance: 'Finance', nav_stok: 'Stock', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Settings',
+    submit_btn: 'Submit Data', submit_info: 'Confirm Data — Make sure all data is correct before submitting',
+  }
+};
+let _lang = localStorage.getItem('koneo_lang') || 'id';
+
+function t(key) { return (I18N[_lang] && I18N[_lang][key]) || I18N.id[key] || key; }
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (key) el.innerHTML = t(key);
+  });
+  const btn = document.getElementById('lang-toggle');
+  if (btn) btn.textContent = _lang.toUpperCase();
+  // Brand subtitle
+  const brandP = document.querySelector('.brand p');
+  if (brandP) brandP.textContent = t('brand_sub');
+  // Submit bar
+  const submitInfo = document.querySelector('.submit-info');
+  if (submitInfo) submitInfo.innerHTML = '<strong>' + (_lang === 'en' ? 'Confirm Data' : 'Konfirmasi Data') + '</strong> — ' + (_lang === 'en' ? 'Make sure all data is correct before submitting' : 'Pastikan semua data sudah benar sebelum submit');
+  const submitBtn = document.querySelector('.btn-submit');
+  if (submitBtn) submitBtn.innerHTML = '<i class="ti ti-check"></i> ' + t('submit_btn');
+}
+
+function toggleLang() {
+  _lang = _lang === 'id' ? 'en' : 'id';
+  localStorage.setItem('koneo_lang', _lang);
+  applyLang();
 }
 
 // ── AUTH SYSTEM ──────────────────────────────────────────────────────────────
@@ -2652,6 +2686,7 @@ function buildOmsetChart() {
   _uiReady = true;
   loadData();
   initAuth();
+  applyLang();
 })();
 
 function doPrint() {
