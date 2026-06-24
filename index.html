@@ -1583,8 +1583,23 @@ async function initFirestore() {
   try {
     const snap = await _db.collection('store').get();
     snap.forEach(doc => { _cache[doc.id] = doc.data().v; });
-    // Migrate any API key from localStorage
-    const apiKey = DB.getItem('koneo_anthropic_key');
+
+    // ONE-TIME MIGRATION: jika Firestore kosong tapi localStorage punya data, upload semua ke Firestore
+    const localKeys = Object.keys(localStorage).filter(k => k.startsWith('koneo_') && k !== 'koneo_anthropic_key' && k !== 'koneo_migrated');
+    if (snap.empty && localKeys.length > 0) {
+      const batch = _db.batch();
+      localKeys.forEach(k => {
+        const v = localStorage.getItem(k);
+        _cache[k] = v;
+        batch.set(_db.collection('store').doc(_docId(k)), { v });
+      });
+      await batch.commit();
+      localStorage.setItem('koneo_migrated', '1');
+      console.log('Migrasi localStorage → Firestore selesai:', localKeys.length, 'keys');
+    }
+
+    // Migrate API key (stays local)
+    const apiKey = localStorage.getItem('koneo_anthropic_key');
     if (apiKey) _cache['koneo_anthropic_key'] = apiKey;
     // Real-time listener — syncs changes from other devices
     _db.collection('store').onSnapshot(changes => {
