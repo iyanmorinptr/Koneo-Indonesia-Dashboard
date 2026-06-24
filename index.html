@@ -1381,6 +1381,13 @@
 
   <!-- PEMASUKAN -->
   <div id="tab-pemasukan" class="section">
+    <!-- Finance sub-tab bar -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-up"></i> Pemasukan</button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> Pengeluaran</button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> Laporan</button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-history"></i> Riwayat</button>
+    </div>
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Majoo</div>
       <div class="grid-2">
@@ -1436,6 +1443,13 @@
 
   <!-- PENGELUARAN -->
   <div id="tab-pengeluaran" class="section">
+    <!-- Finance sub-tab bar -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> Pemasukan</button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-down"></i> Pengeluaran</button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> Laporan</button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-history"></i> Riwayat</button>
+    </div>
 
     <div style="margin-bottom:1.25rem;">
       <button class="btn-primary" onclick="openScanModal()" style="width:100%;justify-content:center;gap:10px;padding:14px 24px;font-size:15px;border-radius:16px;">
@@ -1527,7 +1541,13 @@
         <button onclick="filterMaster('Operasional')" id="fm-Operasional" class="cat-filter-btn" style="flex:1;padding:9px 8px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-settings"></i> Ops</button>
       </div>
       <div class="card">
-        <div class="card-title" id="master-title"><i class="ti ti-packages"></i> Semua Barang</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;position:relative;">
+          <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;"></i>
+          <input type="text" id="stok-search" placeholder="Cari barang..." oninput="renderMasterBarang()" style="width:100%;padding:9px 12px 9px 36px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.15);font-family:inherit;font-size:13px;outline:none;box-sizing:border-box;">
+        </div>
+      </div>
+      <div class="card-title" id="master-title"><i class="ti ti-packages"></i> Semua Barang</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Tambahkan semua item stok yang perlu dipantau setiap hari.</p>
         <div id="master-barang-list"></div>
         <button class="btn-add" onclick="openAddItemModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Barang</button>
@@ -1585,6 +1605,13 @@
 
   <!-- LAPORAN -->
   <div id="tab-laporan" class="section">
+    <!-- Finance sub-tab bar -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> Pemasukan</button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> Pengeluaran</button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-chart-bar"></i> Laporan</button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-history"></i> Riwayat</button>
+    </div>
 
     <!-- Print header: hanya tampil saat cetak -->
     <div class="print-header" style="display:none;">
@@ -1643,6 +1670,13 @@
 
   <!-- RIWAYAT -->
   <div id="tab-riwayat" class="section">
+    <!-- Finance sub-tab bar -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> Pemasukan</button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> Pengeluaran</button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> Laporan</button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:0 0 auto;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;white-space:nowrap;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-history"></i> Riwayat</button>
+    </div>
     <!-- Period sub-tabs -->
     <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
       <button class="period-tab active" onclick="switchPeriod('harian')" id="pt-harian" style="flex:1;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:var(--surface);color:#093a72;border-radius:7px;box-shadow:0 1px 3px rgba(9,58,114,0.1);display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-day"></i> Harian</button>
@@ -1732,6 +1766,17 @@
     <div id="cogs-section-bahan">
       <div class="card">
         <div class="card-title"><i class="ti ti-basket"></i> Master Bahan Baku</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;position:relative;">
+            <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;"></i>
+            <input type="text" id="cogs-bahan-search" placeholder="Cari bahan baku..." oninput="renderCogsBahan()" style="width:100%;padding:9px 12px 9px 36px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.15);font-family:inherit;font-size:13px;outline:none;box-sizing:border-box;">
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="filterCogsBahan('Semua')" id="cb-filter-Semua" style="padding:7px 12px;border-radius:50px;border:1.5px solid #093a72;background:#093a72;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Semua</button>
+            <button onclick="filterCogsBahan('Bar')" id="cb-filter-Bar" style="padding:7px 12px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;"><i class="ti ti-glass-full"></i> Bar</button>
+            <button onclick="filterCogsBahan('Kitchen')" id="cb-filter-Kitchen" style="padding:7px 12px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;"><i class="ti ti-chef-hat"></i> Kitchen</button>
+          </div>
+        </div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Input bahan baku beserta isi per kemasan dan harga belinya. Sistem akan otomatis hitung harga per ml/gram untuk kalkulasi HPP.</p>
         <div id="cogs-bahan-list"></div>
         <button class="btn-add" onclick="openCogsBahanModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Bahan Baku</button>
@@ -1742,6 +1787,17 @@
     <div id="cogs-section-menu" style="display:none;">
       <div class="card">
         <div class="card-title"><i class="ti ti-tools-kitchen-2"></i> Resep & Kalkulasi HPP</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;position:relative;">
+            <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;"></i>
+            <input type="text" id="cogs-menu-search" placeholder="Cari menu / resep..." oninput="renderCogsMenu()" style="width:100%;padding:9px 12px 9px 36px;border-radius:12px;border:1.5px solid rgba(9,58,114,0.15);font-family:inherit;font-size:13px;outline:none;box-sizing:border-box;">
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="filterCogsMenu('Semua')" id="cm-filter-Semua" style="padding:7px 12px;border-radius:50px;border:1.5px solid #093a72;background:#093a72;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Semua</button>
+            <button onclick="filterCogsMenu('Bar')" id="cm-filter-Bar" style="padding:7px 12px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;"><i class="ti ti-glass-full"></i> Bar</button>
+            <button onclick="filterCogsMenu('Kitchen')" id="cm-filter-Kitchen" style="padding:7px 12px;border-radius:50px;border:1.5px solid rgba(9,58,114,0.2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;"><i class="ti ti-chef-hat"></i> Kitchen</button>
+          </div>
+        </div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Buat resep menu baru, pilih bahan-bahan yang dipakai, dan sistem akan otomatis menghitung HPP (Harga Pokok Penjualan) setiap menu.</p>
         <div id="cogs-menu-list"></div>
         <button class="btn-add" onclick="openCogsMenuModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Menu / Resep</button>
@@ -2996,6 +3052,8 @@ const JADWAL_DEFAULT = {
   }
 };
 
+let _cogsFilterBahan = 'Semua';
+let _cogsFilterMenu = 'Semua';
 const SHIFT_OPTIONS = ['F','L','10:00-18:00','12:00-20:00','14:00-22:00','16:00-22:00','08:00-16:00','10:00-20:00','12:00-22:00'];
 const DAYS_ID = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
 let _jadwalWeekOffset = 0;
@@ -3438,6 +3496,23 @@ function doCheckout() {
   buildAbsensiTable();
 }
 
+
+function filterCogsBahan(cat) {
+  _cogsFilterBahan = cat;
+  ['Semua','Bar','Kitchen'].forEach(c => {
+    const btn = document.getElementById('cb-filter-' + c);
+    if (btn) { btn.style.background = c === cat ? '#093a72' : 'none'; btn.style.color = c === cat ? '#fff' : 'var(--text2)'; btn.style.borderColor = c === cat ? '#093a72' : 'rgba(9,58,114,0.2)'; }
+  });
+  renderCogsBahan();
+}
+function filterCogsMenu(cat) {
+  _cogsFilterMenu = cat;
+  ['Semua','Bar','Kitchen'].forEach(c => {
+    const btn = document.getElementById('cm-filter-' + c);
+    if (btn) { btn.style.background = c === cat ? '#093a72' : 'none'; btn.style.color = c === cat ? '#fff' : 'var(--text2)'; btn.style.borderColor = c === cat ? '#093a72' : 'rgba(9,58,114,0.2)'; }
+  });
+  renderCogsMenu();
+}
 function buildOmsetChart() {
   const keys = DB.keys().filter(k => k.startsWith('koneo_day_')).sort().slice(-14);
   const el = document.getElementById('omset-chart');
@@ -4456,9 +4531,12 @@ function filterOpname(cat) {
 }
 
 function renderMasterBarang() {
+  const searchEl = document.getElementById('stok-search');
+  const q = searchEl ? searchEl.value.toLowerCase().trim() : '';
   const allItems = getStokItems();
-  const items = (activeMasterFilter === 'Semua' ? allItems : allItems.filter(i => i.kategori === activeMasterFilter))
+  let items = (activeMasterFilter === 'Semua' ? allItems : allItems.filter(i => i.kategori === activeMasterFilter))
     .sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  if (q) items = items.filter(i => i.nama.toLowerCase().includes(q) || (i.kategori||'').toLowerCase().includes(q) || (i.satuan||'').toLowerCase().includes(q));
   const container = document.getElementById('master-barang-list');
   if (!items.length) {
     container.innerHTML = '<div class="empty-state"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada barang. Tambahkan item stok pertama.</div>';
@@ -4837,7 +4915,11 @@ function hargaPerUnitKecil(b) {
 }
 
 function renderCogsBahan() {
-  const items = getCogsBahan().sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  const searchEl = document.getElementById('cogs-bahan-search');
+  const q = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  let items = getCogsBahan().sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  if (_cogsFilterBahan !== 'Semua') items = items.filter(i => (i.kategori||'') === _cogsFilterBahan);
+  if (q) items = items.filter(i => i.nama.toLowerCase().includes(q) || (i.kategori||'').toLowerCase().includes(q));
   const container = document.getElementById('cogs-bahan-list');
   if (!items.length) {
     container.innerHTML = '<div class="empty-state"><i class="ti ti-basket-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada bahan baku. Tambahkan dulu.</div>';
@@ -4852,6 +4934,7 @@ function renderCogsBahan() {
       <div class="stok-item-info">
         <div class="stok-item-nama">${b.nama}</div>
         <div class="stok-item-meta">
+          ${b.kategori ? '<span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:' + (b.kategori==='Bar'?'#E6F1FB':b.kategori==='Kitchen'?'#E1F5EE':'#f0f0f0') + ';color:' + (b.kategori==='Bar'?'#093a72':b.kategori==='Kitchen'?'#085041':'#666') + ';margin-right:6px;">' + b.kategori + '</span>' : ''}
           Kemasan: <b>${b.isiPerKemasan} ${b.satuanKecil}</b>
           &nbsp;·&nbsp; Harga kemasan: <b>${fmt(b.hargaKemasan)}</b>
           &nbsp;·&nbsp; <span style="color:var(--green);font-weight:700;">${hpuStr}</span>
@@ -4877,6 +4960,7 @@ function hapusCogsBahan(id) {
 function openCogsBahanModal(editId) {
   activeCogsBahanEdit = editId || null;
   const existing = editId ? getCogsBahan().find(b => b.id === editId) : null;
+  window._cogsBahanKat = existing ? (existing.kategori || '') : '';
   let ov = document.getElementById('cogs-bahan-modal-ov');
   if (ov) ov.remove();
   ov = document.createElement('div');
@@ -4887,6 +4971,15 @@ function openCogsBahanModal(editId) {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
         <div style="font-size:18px;font-weight:800;color:var(--text);"><i class="ti ti-basket" style="color:#093a72;margin-right:6px;"></i>${existing ? 'Edit Bahan Baku' : 'Tambah Bahan Baku'}</div>
         <button onclick="closeCogsBahanModal()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text3);"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="auth-field">
+        <label>Kategori</label>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button type="button" onclick="setCogsBahanKat('Bar',this)" id="kat-bar" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(9,58,114,0.2);background:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-glass-full"></i> Bar</button>
+          <button type="button" onclick="setCogsBahanKat('Kitchen',this)" id="kat-kitchen" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(9,58,114,0.2);background:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;"><i class="ti ti-chef-hat"></i> Kitchen</button>
+          <button type="button" onclick="setCogsBahanKat('Umum',this)" id="kat-umum" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid rgba(9,58,114,0.2);background:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;">Umum</button>
+        </div>
+        <input type="hidden" id="cogs-bahan-kat" value="">
       </div>
       <div class="auth-field"><label>Nama Bahan *</label>
         <input type="text" id="cb-nama" placeholder="cth: Susu UHT, Kopi Robusta, Gula Pasir" value="${existing ? existing.nama : ''}">
@@ -4937,16 +5030,26 @@ function closeCogsBahanModal() {
   if (el) el.remove();
 }
 
+function setCogsBahanKat(kat, btn) {
+  window._cogsBahanKat = kat;
+  const katEl = document.getElementById('cogs-bahan-kat');
+  if (katEl) katEl.value = kat;
+  ['bar','kitchen','umum'].forEach(k => {
+    const b = document.getElementById('kat-' + k);
+    if (b) { b.style.background = k === kat.toLowerCase() ? '#093a72' : 'none'; b.style.color = k === kat.toLowerCase() ? '#fff' : ''; b.style.borderColor = k === kat.toLowerCase() ? '#093a72' : 'rgba(9,58,114,0.2)'; }
+  });
+}
 function saveCogsBahanModal() {
   const nama = document.getElementById('cb-nama').value.trim();
   const isiPerKemasan = parseFloat(document.getElementById('cb-isi').value) || 0;
   const satuanKecil = document.getElementById('cb-satuan-kecil').value.trim();
   const hargaKemasan = getRawVal(document.getElementById('cb-harga'));
+  const kategori = (document.getElementById('cogs-bahan-kat') ? document.getElementById('cogs-bahan-kat').value : '') || window._cogsBahanKat || '';
   if (!nama || !isiPerKemasan || !satuanKecil) { showToast('Nama, isi kemasan, dan satuan wajib diisi'); return; }
   const items = getCogsBahan();
   if (activeCogsBahanEdit) {
     const idx = items.findIndex(b => b.id === activeCogsBahanEdit);
-    if (idx > -1) items[idx] = { ...items[idx], nama, isiPerKemasan, satuanKecil, hargaKemasan };
+    if (idx > -1) items[idx] = { ...items[idx], nama, isiPerKemasan, satuanKecil, hargaKemasan, kategori };
   } else {
     items.push({ id: 'cb' + Date.now(), nama, isiPerKemasan, satuanKecil, hargaKemasan });
   }
@@ -4969,7 +5072,11 @@ function calcHPPMenu(menu) {
 }
 
 function renderCogsMenu() {
-  const menus = getCogsMenu().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+  const searchEl = document.getElementById('cogs-menu-search');
+  const q = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  let menus = getCogsMenu().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+  if (_cogsFilterMenu !== 'Semua') menus = menus.filter(m => (m.kategori||'') === _cogsFilterMenu);
+  if (q) menus = menus.filter(m => m.nama.toLowerCase().includes(q) || (m.kategori||'').toLowerCase().includes(q));
   const container = document.getElementById('cogs-menu-list');
   if (!menus.length) {
     container.innerHTML = '<div class="empty-state"><i class="ti ti-tools-kitchen-2" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada resep menu. Tambahkan menu pertama.</div>';
