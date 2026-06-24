@@ -639,6 +639,45 @@
     .tab { padding: 8px 10px; }
   }
 
+  /* ── AUTH / LOGIN ── */
+  #auth-overlay, #setup-overlay {
+    position: fixed; inset: 0; z-index: 9000;
+    background: linear-gradient(135deg, #093a72 0%, #0d4d96 55%, #1a6abf 100%);
+    display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  .auth-card {
+    background: #fff; border-radius: 24px; padding: 2.5rem 2rem;
+    width: 100%; max-width: 400px; box-shadow: 0 24px 80px rgba(9,58,114,0.40);
+  }
+  .auth-logo {
+    width: 60px; height: 60px; border-radius: 20px; background: #093a72;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    font-size: 20px; font-weight: 900; margin: 0 auto 1.25rem; letter-spacing: -1px;
+  }
+  .auth-title { font-size: 22px; font-weight: 800; color: var(--text); text-align: center; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .auth-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 1.75rem; }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .auth-field input {
+    width: 100%; font-size: 15px; padding: 12px 14px;
+    border: 1.5px solid rgba(9,58,114,0.13); border-radius: 12px;
+    background: #fff; color: var(--text); outline: none; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .auth-field input:focus { border-color: #093a72; box-shadow: 0 0 0 4px rgba(9,58,114,0.09); }
+  .auth-btn {
+    width: 100%; padding: 13px; background: #093a72; color: #fff; border: none;
+    border-radius: 50px; font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: inherit; margin-top: 4px; transition: background 0.2s;
+    box-shadow: 0 4px 16px rgba(9,58,114,0.28); display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .auth-btn:hover { background: #0a2f5a; }
+  .auth-error {
+    background: var(--red-light); color: var(--red); border-radius: 10px;
+    padding: 10px 14px; font-size: 13px; font-weight: 600; margin-bottom: 14px; display: none;
+  }
+  .auth-error.show, .auth-error[style*="block"] { display: block; }
+
   @media print {
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
@@ -793,6 +832,50 @@
 </head>
 <body>
 
+<!-- ── AUTH OVERLAY (Login) ── -->
+<div id="auth-overlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">KI</div>
+    <div class="auth-title">KONEO DASHBOARD</div>
+    <div class="auth-sub">Masuk untuk melanjutkan</div>
+    <div class="auth-error" id="auth-error">Email atau password salah</div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="email@koneo.id" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="auth-btn" onclick="doLogin()"><i class="ti ti-login"></i> Masuk</button>
+  </div>
+</div>
+
+<!-- ── SETUP OVERLAY (First run — buat akun owner) ── -->
+<div id="setup-overlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo" style="background:var(--green);font-size:26px;">✓</div>
+    <div class="auth-title">Selamat Datang!</div>
+    <div class="auth-sub">Pertama kali? Buat akun Owner sekarang</div>
+    <div class="auth-error" id="setup-error"></div>
+    <div class="auth-field"><label>Nama Owner</label><input type="text" id="setup-nama" placeholder="cth: Bapak Andi" onkeydown="if(event.key==='Enter')doSetup()"></div>
+    <div class="auth-field"><label>Email</label><input type="email" id="setup-email" placeholder="owner@koneo.id" onkeydown="if(event.key==='Enter')doSetup()"></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="setup-password" placeholder="Minimal 6 karakter" onkeydown="if(event.key==='Enter')doSetup()"></div>
+    <div class="auth-field"><label>Konfirmasi Password</label><input type="password" id="setup-password2" placeholder="Ulangi password" onkeydown="if(event.key==='Enter')doSetup()"></div>
+    <button class="auth-btn" onclick="doSetup()">Buat Akun Owner</button>
+  </div>
+</div>
+
+<!-- ── AKSES DITOLAK OVERLAY (untuk karyawan yang mencoba akses Finance) ── -->
+<div id="finance-deny-overlay" style="position:fixed;inset:0;z-index:800;background:rgba(9,58,114,0.45);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;padding:1.5rem;">
+  <div class="auth-card" style="max-width:340px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:12px;">🔒</div>
+    <div class="auth-title" style="font-size:19px;margin-bottom:8px;">Akses Terbatas</div>
+    <div class="auth-sub" style="margin-bottom:1.5rem;">Fitur Finance hanya dapat diakses oleh Owner. Hubungi owner untuk informasi lebih lanjut.</div>
+    <button onclick="document.getElementById('finance-deny-overlay').style.display='none';switchTab('beranda');" class="auth-btn">Kembali ke Beranda</button>
+  </div>
+</div>
+
 <!-- SIDEBAR OVERLAY -->
 <div id="sidebar-overlay" onclick="closeSidebar()" style="position:fixed;inset:0;background:rgba(9,58,114,0.35);backdrop-filter:blur(4px);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s;"></div>
 
@@ -845,8 +928,8 @@
 
   </div>
 
-  <!-- Bottom date -->
-  <div style="padding:1rem 1.5rem;border-top:1px solid rgba(9,58,114,0.06);">
+  <!-- Bottom: user info + logout -->
+  <div style="padding:1rem 1.5rem;border-top:1px solid rgba(9,58,114,0.06);" id="sidebar-bottom-area">
     <div style="font-size:11px;color:var(--text3);" id="sidebar-date-display"></div>
   </div>
 </nav>
@@ -1194,6 +1277,9 @@
 
   <!-- PENGATURAN -->
   <div id="tab-pengaturan" class="section">
+    <!-- User Management (owner only) -->
+    <div class="card" id="user-mgmt-card" style="margin-bottom:1rem;display:none;"></div>
+
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-title"><i class="ti ti-database"></i> Manajemen Data</div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;">Kelola semua data laporan keuangan yang tersimpan di perangkat ini.</p>
@@ -1265,6 +1351,199 @@
 </div>
 
 <script>
+// ── AUTH SYSTEM ──────────────────────────────────────────────────────────────
+function getUsers() { return JSON.parse(localStorage.getItem('koneo_users') || '[]'); }
+function saveUsers(u) { localStorage.setItem('koneo_users', JSON.stringify(u)); }
+function getSession() { return JSON.parse(sessionStorage.getItem('koneo_session') || 'null'); }
+function setSession(u) { sessionStorage.setItem('koneo_session', JSON.stringify(u)); }
+function clearSession() { sessionStorage.removeItem('koneo_session'); }
+
+function hashPass(p) {
+  let h = 5381;
+  for (let i = 0; i < p.length; i++) { h = ((h << 5) + h) ^ p.charCodeAt(i); h >>>= 0; }
+  return 'kh' + h.toString(36) + '_' + p.length;
+}
+
+function initAuth() {
+  const users = getUsers();
+  if (!users.length) {
+    document.getElementById('setup-overlay').style.display = 'flex';
+    return;
+  }
+  const session = getSession();
+  if (session) {
+    applyRole(session.role);
+    return;
+  }
+  document.getElementById('auth-overlay').style.display = 'flex';
+  setTimeout(() => { const el = document.getElementById('auth-email'); if(el) el.focus(); }, 200);
+}
+
+function doSetup() {
+  const nama = document.getElementById('setup-nama').value.trim();
+  const email = document.getElementById('setup-email').value.trim().toLowerCase();
+  const pw = document.getElementById('setup-password').value;
+  const pw2 = document.getElementById('setup-password2').value;
+  const errEl = document.getElementById('setup-error');
+  errEl.style.display = 'none';
+  if (!nama || !email || !pw) { errEl.textContent = 'Semua field wajib diisi'; errEl.style.display = 'block'; return; }
+  if (pw.length < 6) { errEl.textContent = 'Password minimal 6 karakter'; errEl.style.display = 'block'; return; }
+  if (pw !== pw2) { errEl.textContent = 'Konfirmasi password tidak cocok'; errEl.style.display = 'block'; return; }
+  const owner = { id: 'u' + Date.now(), nama, email, password: hashPass(pw), role: 'owner' };
+  saveUsers([owner]);
+  setSession({ userId: owner.id, nama: owner.nama, email: owner.email, role: 'owner' });
+  document.getElementById('setup-overlay').style.display = 'none';
+  applyRole('owner');
+  showToast('Selamat datang, ' + nama + '!');
+}
+
+function doLogin() {
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
+  const pw = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+  const users = getUsers();
+  const user = users.find(u => u.email === email && u.password === hashPass(pw));
+  if (!user) { errEl.style.display = 'block'; return; }
+  setSession({ userId: user.id, nama: user.nama, email: user.email, role: user.role });
+  document.getElementById('auth-overlay').style.display = 'none';
+  applyRole(user.role);
+  showToast('Selamat datang, ' + user.nama + '!');
+}
+
+function doLogout() {
+  if (!confirm('Keluar dari KONEO DASHBOARD?')) return;
+  clearSession();
+  location.reload();
+}
+
+const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
+
+function applyRole(role) {
+  const isOwner = role === 'owner';
+
+  // Finance accordion: sembunyikan untuk karyawan
+  const financeGroup = document.getElementById('sg-finance');
+  if (financeGroup) financeGroup.style.display = isOwner ? '' : 'none';
+
+  // Pengaturan: sembunyikan untuk karyawan
+  const pengBtn = document.getElementById('sitem-pengaturan');
+  if (pengBtn) pengBtn.style.display = isOwner ? '' : 'none';
+
+  // User info di sidebar bottom
+  const session = getSession();
+  const sidebarBottom = document.getElementById('sidebar-bottom-area');
+  if (sidebarBottom && session) {
+    sidebarBottom.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${session.nama}</div>
+        <div style="font-size:11px;color:var(--text3);">${session.email}</div>
+        <span style="display:inline-block;margin-top:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px;background:${isOwner?'#093a72':'var(--blue-light)'};color:${isOwner?'#fff':'var(--blue-dark)'};">${isOwner?'Owner':'Karyawan'}</span>
+      </div>
+      <button onclick="doLogout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:10px;border:none;background:var(--red-light);cursor:pointer;font-size:13px;font-weight:600;color:var(--red);font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='#f5c6c6'" onmouseout="this.style.background='var(--red-light)'"><i class="ti ti-logout" style="font-size:15px;"></i> Keluar</button>
+    `;
+  }
+
+  // Update user management card
+  buildUserManagementCard();
+
+  // Untuk karyawan, pastikan tidak di tab finance
+  if (!isOwner) {
+    const active = document.querySelector('.section.active');
+    if (active) {
+      const tabId = active.id.replace('tab-', '');
+      if (FINANCE_TABS.includes(tabId) || tabId === 'pengaturan') switchTab('beranda');
+    }
+  }
+}
+
+// User management (Pengaturan)
+function buildUserManagementCard() {
+  const session = getSession();
+  const container = document.getElementById('user-mgmt-card');
+  if (!container) return;
+  if (!session || session.role !== 'owner') { container.style.display = 'none'; return; }
+  container.style.display = '';
+  const users = getUsers();
+  const karyawan = users.filter(u => u.role === 'karyawan');
+  container.innerHTML = `
+    <div class="card-title"><i class="ti ti-users"></i> Manajemen Pengguna</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Kelola akses karyawan. Karyawan hanya dapat mengakses fitur <b>Stok</b>.</p>
+    <div style="margin-bottom:1rem;">
+      ${karyawan.length ? karyawan.map(u => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface2);border-radius:12px;margin-bottom:8px;gap:10px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.nama}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email}</div>
+          </div>
+          <span style="flex-shrink:0;background:var(--blue-light);color:var(--blue-dark);border-radius:50px;padding:2px 10px;font-size:10px;font-weight:700;">Karyawan</span>
+          <button onclick="hapusUser('${u.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:16px;transition:all 0.15s;" onmouseover="this.style.color='var(--red)';this.style.background='var(--red-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Hapus"><i class="ti ti-trash"></i></button>
+        </div>`).join('') : '<div style="text-align:center;padding:1.25rem;color:var(--text3);font-size:13px;background:var(--surface2);border-radius:12px;">Belum ada karyawan ditambahkan</div>'}
+    </div>
+    <button onclick="showAddUserModal()" class="btn-add"><i class="ti ti-user-plus"></i> Tambah Karyawan</button>
+  `;
+}
+
+function hapusUser(id) {
+  const users = getUsers();
+  const u = users.find(x => x.id === id);
+  if (!u || !confirm('Hapus akses ' + u.nama + ' (' + u.email + ')?')) return;
+  saveUsers(users.filter(x => x.id !== id));
+  buildUserManagementCard();
+  showToast('Akses ' + u.nama + ' dihapus');
+}
+
+function showAddUserModal() {
+  if (document.getElementById('add-user-modal-ov')) {
+    document.getElementById('add-user-modal-ov').style.display = 'flex';
+    ['add-user-nama','add-user-email','add-user-pw'].forEach(id => { const el=document.getElementById(id); if(el)el.value=''; });
+    document.getElementById('add-user-error').style.display = 'none';
+    return;
+  }
+  const div = document.createElement('div');
+  div.id = 'add-user-modal-ov';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(9,58,114,0.32);backdrop-filter:blur(8px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  div.innerHTML = `
+    <div style="background:#fff;border-radius:24px;padding:2rem;max-width:400px;width:100%;box-shadow:0 24px 80px rgba(9,58,114,0.25);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div style="font-size:18px;font-weight:800;color:var(--text);"><i class="ti ti-user-plus" style="color:#093a72;margin-right:6px;"></i>Tambah Karyawan</div>
+        <button onclick="closeAddUserModal()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text3);"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="auth-error" id="add-user-error" style="display:none;"></div>
+      <div class="auth-field"><label>Nama Karyawan</label><input type="text" id="add-user-nama" placeholder="cth: Sari" onkeydown="if(event.key==='Enter')doAddUser()"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="add-user-email" placeholder="karyawan@koneo.id" onkeydown="if(event.key==='Enter')doAddUser()"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="add-user-pw" placeholder="Minimal 6 karakter" onkeydown="if(event.key==='Enter')doAddUser()"></div>
+      <div style="display:flex;gap:10px;margin-top:1.25rem;">
+        <button onclick="closeAddUserModal()" style="flex:1;padding:11px;background:rgba(9,58,114,0.07);border:none;border-radius:50px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Batal</button>
+        <button onclick="doAddUser()" style="flex:1;padding:11px;background:#093a72;color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(9,58,114,0.28);">Simpan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+}
+
+function closeAddUserModal() {
+  const el = document.getElementById('add-user-modal-ov');
+  if (el) el.style.display = 'none';
+}
+
+function doAddUser() {
+  const nama = document.getElementById('add-user-nama').value.trim();
+  const email = document.getElementById('add-user-email').value.trim().toLowerCase();
+  const pw = document.getElementById('add-user-pw').value;
+  const errEl = document.getElementById('add-user-error');
+  errEl.style.display = 'none';
+  if (!nama || !email || !pw) { errEl.textContent = 'Semua field wajib diisi'; errEl.style.display = 'block'; return; }
+  if (pw.length < 6) { errEl.textContent = 'Password minimal 6 karakter'; errEl.style.display = 'block'; return; }
+  const users = getUsers();
+  if (users.find(u => u.email === email)) { errEl.textContent = 'Email sudah terdaftar'; errEl.style.display = 'block'; return; }
+  const newUser = { id: 'u' + Date.now(), nama, email, password: hashPass(pw), role: 'karyawan' };
+  saveUsers([...users, newUser]);
+  closeAddUserModal();
+  buildUserManagementCard();
+  showToast(nama + ' berhasil ditambahkan');
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const today = new Date();
 // Gunakan tanggal lokal (bukan UTC) supaya tidak mundur 1 hari di malam hari
 function getLocalDateStr(d) {
@@ -1451,6 +1730,13 @@ function showToast(msg) {
 }
 
 function switchTab(tab) {
+  const session = getSession();
+  const isOwner = session && session.role === 'owner';
+  const restricted = [...FINANCE_TABS, 'pengaturan'];
+  if (restricted.includes(tab) && !isOwner) {
+    document.getElementById('finance-deny-overlay').style.display = 'flex';
+    return;
+  }
   const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'stok', 'pengaturan'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -1459,7 +1745,7 @@ function switchTab(tab) {
   if (tab === 'riwayat') buildRiwayat();
   if (tab === 'beranda') buildDashboard();
   if (tab === 'stok') buildStokTab();
-  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); }
+  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); }
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
   if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan') ? 'none' : '';
@@ -2022,6 +2308,7 @@ function buildOmsetChart() {
 }
 
 loadData();
+initAuth();
 
 function doPrint() {
   // Print current laporan view
