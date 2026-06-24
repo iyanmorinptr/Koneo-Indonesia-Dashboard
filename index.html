@@ -1510,21 +1510,27 @@ function doLogout() {
 }
 
 const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
-const OWNER_ONLY_TABS = [...FINANCE_TABS, 'pengaturan', 'cogs'];
+const OWNER_ONLY_TABS = ['pengaturan', 'cogs']; // Finance sekarang bisa diakses manager juga
 
 function applyRole(role) {
   const isOwner = role === 'owner';
+  const isManager = role === 'manager';
+  const canFinance = isOwner || isManager;
+  const canAdmin = isOwner; // COGS & Pengaturan
 
-  // Finance accordion: sembunyikan untuk karyawan
+  // Finance accordion: tampil untuk owner & manager, sembunyikan karyawan
   const financeGroup = document.getElementById('sg-finance');
-  if (financeGroup) financeGroup.style.display = isOwner ? '' : 'none';
+  if (financeGroup) financeGroup.style.display = canFinance ? '' : 'none';
 
-  // Pengaturan: sembunyikan untuk karyawan
+  // Pengaturan & COGS: owner only
   const pengBtn = document.getElementById('sitem-pengaturan');
-  if (pengBtn) pengBtn.style.display = isOwner ? '' : 'none';
-  // COGS: sembunyikan untuk karyawan
+  if (pengBtn) pengBtn.style.display = canAdmin ? '' : 'none';
   const cogsGroup = document.getElementById('sg-cogs');
-  if (cogsGroup) cogsGroup.style.display = isOwner ? '' : 'none';
+  if (cogsGroup) cogsGroup.style.display = canAdmin ? '' : 'none';
+
+  // Badge label & color per role
+  const badgeMap = { owner: { label: 'Owner', bg: '#093a72', color: '#fff' }, manager: { label: 'Manager', bg: '#0d7a3e', color: '#fff' }, karyawan: { label: 'Karyawan', bg: 'var(--blue-light)', color: 'var(--blue-dark)' } };
+  const badge = badgeMap[role] || badgeMap.karyawan;
 
   // User info di sidebar bottom
   const session = getSession();
@@ -1534,7 +1540,7 @@ function applyRole(role) {
       <div style="margin-bottom:10px;">
         <div style="font-size:13px;font-weight:700;color:var(--text);">${session.nama}</div>
         <div style="font-size:11px;color:var(--text3);">${session.email}</div>
-        <span style="display:inline-block;margin-top:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px;background:${isOwner?'#093a72':'var(--blue-light)'};color:${isOwner?'#fff':'var(--blue-dark)'};">${isOwner?'Owner':'Karyawan'}</span>
+        <span style="display:inline-block;margin-top:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px;background:${badge.bg};color:${badge.color};">${badge.label}</span>
       </div>
       <button onclick="doLogout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 12px;border-radius:10px;border:none;background:var(--red-light);cursor:pointer;font-size:13px;font-weight:600;color:var(--red);font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='#f5c6c6'" onmouseout="this.style.background='var(--red-light)'"><i class="ti ti-logout" style="font-size:15px;"></i> Keluar</button>
     `;
@@ -1543,13 +1549,12 @@ function applyRole(role) {
   // Update user management card
   buildUserManagementCard();
 
-  // Untuk karyawan, pastikan tidak di tab finance
-  if (!isOwner) {
-    const active = document.querySelector('.section.active');
-    if (active) {
-      const tabId = active.id.replace('tab-', '');
-      if (FINANCE_TABS.includes(tabId) || tabId === 'pengaturan') switchTab('beranda');
-    }
+  // Redirect jika di tab yang tidak boleh diakses
+  const active = document.querySelector('.section.active');
+  if (active) {
+    const tabId = active.id.replace('tab-', '');
+    if (OWNER_ONLY_TABS.includes(tabId) && !canAdmin) switchTab('beranda');
+    if (FINANCE_TABS.includes(tabId) && !canFinance) switchTab('beranda');
   }
 }
 
@@ -1561,22 +1566,23 @@ function buildUserManagementCard() {
   if (!session || session.role !== 'owner') { container.style.display = 'none'; return; }
   container.style.display = '';
   const users = getUsers();
-  const karyawan = users.filter(u => u.role === 'karyawan');
+  const nonOwners = users.filter(u => u.role !== 'owner');
+  const roleBadge = r => r === 'manager' ? `<span style="flex-shrink:0;background:#0d7a3e;color:#fff;border-radius:50px;padding:2px 10px;font-size:10px;font-weight:700;">Manager</span>` : `<span style="flex-shrink:0;background:var(--blue-light);color:var(--blue-dark);border-radius:50px;padding:2px 10px;font-size:10px;font-weight:700;">Karyawan</span>`;
   container.innerHTML = `
     <div class="card-title"><i class="ti ti-users"></i> Manajemen Pengguna</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Kelola akses karyawan. Karyawan hanya dapat mengakses fitur <b>Stok</b>.</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Kelola akses tim. <b>Manager</b> bisa akses Finance & Stok. <b>Karyawan</b> hanya Stok.</p>
     <div style="margin-bottom:1rem;">
-      ${karyawan.length ? karyawan.map(u => `
+      ${nonOwners.length ? nonOwners.map(u => `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface2);border-radius:12px;margin-bottom:8px;gap:10px;">
           <div style="flex:1;min-width:0;">
             <div style="font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.nama}</div>
             <div style="font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email}</div>
           </div>
-          <span style="flex-shrink:0;background:var(--blue-light);color:var(--blue-dark);border-radius:50px;padding:2px 10px;font-size:10px;font-weight:700;">Karyawan</span>
+          ${roleBadge(u.role)}
           <button onclick="hapusUser('${u.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:16px;transition:all 0.15s;" onmouseover="this.style.color='var(--red)';this.style.background='var(--red-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Hapus"><i class="ti ti-trash"></i></button>
-        </div>`).join('') : '<div style="text-align:center;padding:1.25rem;color:var(--text3);font-size:13px;background:var(--surface2);border-radius:12px;">Belum ada karyawan ditambahkan</div>'}
+        </div>`).join('') : '<div style="text-align:center;padding:1.25rem;color:var(--text3);font-size:13px;background:var(--surface2);border-radius:12px;">Belum ada pengguna ditambahkan</div>'}
     </div>
-    <button onclick="showAddUserModal()" class="btn-add"><i class="ti ti-user-plus"></i> Tambah Karyawan</button>
+    <button onclick="showAddUserModal()" class="btn-add"><i class="ti ti-user-plus"></i> Tambah Pengguna</button>
   `;
 }
 
@@ -1593,6 +1599,7 @@ function showAddUserModal() {
   if (document.getElementById('add-user-modal-ov')) {
     document.getElementById('add-user-modal-ov').style.display = 'flex';
     ['add-user-nama','add-user-email','add-user-pw'].forEach(id => { const el=document.getElementById(id); if(el)el.value=''; });
+    const roleEl=document.getElementById('add-user-role'); if(roleEl) roleEl.value='karyawan';
     document.getElementById('add-user-error').style.display = 'none';
     return;
   }
@@ -1602,13 +1609,14 @@ function showAddUserModal() {
   div.innerHTML = `
     <div style="background:#fff;border-radius:24px;padding:2rem;max-width:400px;width:100%;box-shadow:0 24px 80px rgba(9,58,114,0.25);">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
-        <div style="font-size:18px;font-weight:800;color:var(--text);"><i class="ti ti-user-plus" style="color:#093a72;margin-right:6px;"></i>Tambah Karyawan</div>
+        <div style="font-size:18px;font-weight:800;color:var(--text);"><i class="ti ti-user-plus" style="color:#093a72;margin-right:6px;"></i>Tambah Pengguna</div>
         <button onclick="closeAddUserModal()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text3);"><i class="ti ti-x"></i></button>
       </div>
       <div class="auth-error" id="add-user-error" style="display:none;"></div>
-      <div class="auth-field"><label>Nama Karyawan</label><input type="text" id="add-user-nama" placeholder="cth: Sari" onkeydown="if(event.key==='Enter')doAddUser()"></div>
-      <div class="auth-field"><label>Email</label><input type="email" id="add-user-email" placeholder="karyawan@koneo.id" onkeydown="if(event.key==='Enter')doAddUser()"></div>
+      <div class="auth-field"><label>Nama</label><input type="text" id="add-user-nama" placeholder="cth: Sari" onkeydown="if(event.key==='Enter')doAddUser()"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="add-user-email" placeholder="email@koneo.id" onkeydown="if(event.key==='Enter')doAddUser()"></div>
       <div class="auth-field"><label>Password</label><input type="password" id="add-user-pw" placeholder="Minimal 6 karakter" onkeydown="if(event.key==='Enter')doAddUser()"></div>
+      <div class="auth-field"><label>Role</label><select id="add-user-role" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);"><option value="karyawan">Karyawan — hanya Stok</option><option value="manager">Manager — Finance + Stok</option></select></div>
       <div style="display:flex;gap:10px;margin-top:1.25rem;">
         <button onclick="closeAddUserModal()" style="flex:1;padding:11px;background:rgba(9,58,114,0.07);border:none;border-radius:50px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Batal</button>
         <button onclick="doAddUser()" style="flex:1;padding:11px;background:#093a72;color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(9,58,114,0.28);">Simpan</button>
@@ -1632,7 +1640,8 @@ function doAddUser() {
   if (pw.length < 6) { errEl.textContent = 'Password minimal 6 karakter'; errEl.style.display = 'block'; return; }
   const users = getUsers();
   if (users.find(u => u.email === email)) { errEl.textContent = 'Email sudah terdaftar'; errEl.style.display = 'block'; return; }
-  const newUser = { id: 'u' + Date.now(), nama, email, password: hashPass(pw), role: 'karyawan' };
+  const roleVal = (document.getElementById('add-user-role')?.value) || 'karyawan';
+  const newUser = { id: 'u' + Date.now(), nama, email, password: hashPass(pw), role: roleVal };
   saveUsers([...users, newUser]);
   closeAddUserModal();
   buildUserManagementCard();
@@ -1827,9 +1836,14 @@ function showToast(msg) {
 
 function switchTab(tab) {
   const session = getSession();
-  const isOwner = session && session.role === 'owner';
-  const restricted = OWNER_ONLY_TABS;
-  if (restricted.includes(tab) && !isOwner) {
+  const role = session ? session.role : '';
+  const canAdmin = role === 'owner';
+  const canFinance = role === 'owner' || role === 'manager';
+  if (OWNER_ONLY_TABS.includes(tab) && !canAdmin) {
+    document.getElementById('finance-deny-overlay').style.display = 'flex';
+    return;
+  }
+  if (FINANCE_TABS.includes(tab) && !canFinance) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
