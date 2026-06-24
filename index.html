@@ -2826,9 +2826,9 @@ function renderPerluDibeli() {
     if (!item.stokMin) return false;
     const aktual = saved[item.id] !== undefined ? saved[item.id] : null;
     return aktual !== null && aktual <= item.stokMin;
-  });
+  }).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
 
-  const belumOpname = items.filter(item => item.stokMin && saved[item.id] === undefined);
+  const belumOpname = items.filter(item => item.stokMin && saved[item.id] === undefined).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
 
   let html = '';
 
@@ -2959,7 +2959,8 @@ function filterOpname(cat) {
 
 function renderMasterBarang() {
   const allItems = getStokItems();
-  const items = activeMasterFilter === 'Semua' ? allItems : allItems.filter(i => i.kategori === activeMasterFilter);
+  const items = (activeMasterFilter === 'Semua' ? allItems : allItems.filter(i => i.kategori === activeMasterFilter))
+    .sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
   const container = document.getElementById('master-barang-list');
   if (!items.length) {
     container.innerHTML = '<div class="empty-state"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada barang. Tambahkan item stok pertama.</div>';
@@ -3077,7 +3078,7 @@ function renderOpname() {
 
   const catsToShow = activeOpnameFilter === 'Semua' ? ['Bar','Kitchen','Operasional'] : [activeOpnameFilter];
   container.innerHTML = catsToShow.map(cat => {
-    const catItems = items.filter(i => i.kategori === cat);
+    const catItems = items.filter(i => i.kategori === cat).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
     if (!catItems.length) return '';
     return `<div class="card" style="margin-bottom:1rem;">
       <div class="card-title"><i class="ti ti-${cat === 'Bar' ? 'glass-full' : cat === 'Kitchen' ? 'chef-hat' : 'settings'}"></i> ${cat}</div>
@@ -3162,7 +3163,7 @@ function buildStokLaporan() {
   let html = '';
 
   cats.forEach(cat => {
-    const catItems = items.filter(i => i.kategori === cat);
+    const catItems = items.filter(i => i.kategori === cat).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
     if (!catItems.length) return;
 
     html += `<div class="card" style="margin-bottom:1rem;">
