@@ -1584,21 +1584,18 @@ async function initFirestore() {
     const snap = await _db.collection('store').get();
     snap.forEach(doc => { _cache[doc.id] = doc.data().v; });
 
-    // ONE-TIME MIGRATION: upload semua localStorage yang belum ada di Firestore
-    if (!localStorage.getItem('koneo_migrated')) {
-      const firestoreKeys = new Set(snap.docs.map(d => d.id));
-      const localKeys = Object.keys(localStorage).filter(k => k.startsWith('koneo_') && k !== 'koneo_anthropic_key' && !firestoreKeys.has(k));
-      if (localKeys.length > 0) {
-        const batch = _db.batch();
-        localKeys.forEach(k => {
-          const v = localStorage.getItem(k);
-          _cache[k] = v; // masukkan ke cache juga
-          batch.set(_db.collection('store').doc(_docId(k)), { v });
-        });
-        await batch.commit();
-        console.log('Migrasi localStorage → Firestore selesai:', localKeys.length, 'keys');
-      }
-      localStorage.setItem('koneo_migrated', '1');
+    // MIGRASI OTOMATIS: upload localStorage yang belum ada di Firestore (selalu dicek)
+    const firestoreKeys = new Set(snap.docs.map(d => d.id));
+    const localKeys = Object.keys(localStorage).filter(k => k.startsWith('koneo_') && k !== 'koneo_anthropic_key' && !firestoreKeys.has(k));
+    if (localKeys.length > 0) {
+      const batch = _db.batch();
+      localKeys.forEach(k => {
+        const v = localStorage.getItem(k);
+        _cache[k] = v;
+        batch.set(_db.collection('store').doc(_docId(k)), { v });
+      });
+      await batch.commit();
+      console.log('Migrasi selesai:', localKeys.length, 'keys diupload ke Firestore');
     }
 
     // Migrate API key (stays local)
