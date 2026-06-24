@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Laporan Keuangan — Koneo Indonesia</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -936,6 +939,16 @@
 <body>
 
 <!-- ── AUTH OVERLAY (Login) ── -->
+<!-- FIRESTORE LOADING SCREEN -->
+<div id="fs-loading" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#093a72 0%,#0d5cad 100%);flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+  <div style="font-size:32px;font-weight:900;color:#ffd166;letter-spacing:2px;">KONEO</div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.7);letter-spacing:1px;">Menyinkronkan data...</div>
+  <div style="width:180px;height:3px;background:rgba(255,255,255,0.15);border-radius:99px;overflow:hidden;">
+    <div style="height:100%;background:#ffd166;border-radius:99px;animation:fsbar 1.5s ease-in-out infinite;"></div>
+  </div>
+  <style>@keyframes fsbar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}</style>
+</div>
+
 <div id="auth-overlay" style="display:none;">
   <div class="auth-card">
     <div class="auth-logo">KI</div>
@@ -1522,9 +1535,90 @@
 </div>
 
 <script>
+// ── FIREBASE + SYNC LAYER ─────────────────────────────────────────────────────
+const _fbConfig = {
+  apiKey: "AIzaSyBlSuD4ApMwqn1afp1Buu6O3FxHrUUlB-I",
+  authDomain: "koneo-dashboard.firebaseapp.com",
+  projectId: "koneo-dashboard",
+  storageBucket: "koneo-dashboard.firebasestorage.app",
+  messagingSenderId: "428716590635",
+  appId: "1:428716590635:web:adc70f44fcf5fa5d1e0c6e"
+};
+firebase.initializeApp(_fbConfig);
+const _db = firebase.firestore();
+
+// In-memory cache — mirrors cloud data, makes all reads synchronous
+const _cache = {};
+// Keys that stay local (device-specific, not synced)
+const _localOnly = new Set(['koneo_anthropic_key']);
+
+// DB wrapper — drop-in replacement for localStorage
+const DB = {
+  getItem(key) { return _cache[key] !== undefined ? _cache[key] : null; },
+  setItem(key, value) {
+    _cache[key] = value;
+    if (!_localOnly.has(key)) _fsSet(key, value);
+    else DB.setItem(key, value); // api key stays local
+  },
+  removeItem(key) {
+    delete _cache[key];
+    if (!_localOnly.has(key)) _fsDel(key);
+    else DB.removeItem(key);
+  },
+  keys() { return Object.keys(_cache); }
+};
+
+function _docId(key) { return key.replace(/\//g, '__'); }
+
+function _fsSet(key, value) {
+  _db.collection('store').doc(_docId(key)).set({ v: value }).catch(console.error);
+}
+function _fsDel(key) {
+  _db.collection('store').doc(_docId(key)).delete().catch(console.error);
+}
+
+// Load all cloud data into cache, then start real-time listener
+let _uiReady = false;
+async function initFirestore() {
+  try {
+    const snap = await _db.collection('store').get();
+    snap.forEach(doc => { _cache[doc.id] = doc.data().v; });
+    // Migrate any API key from localStorage
+    const apiKey = DB.getItem('koneo_anthropic_key');
+    if (apiKey) _cache['koneo_anthropic_key'] = apiKey;
+    // Real-time listener — syncs changes from other devices
+    _db.collection('store').onSnapshot(changes => {
+      if (!_uiReady) return;
+      let changed = false;
+      changes.docChanges().forEach(ch => {
+        const key = ch.doc.id;
+        if (ch.type === 'removed') { delete _cache[key]; changed = true; }
+        else {
+          const v = ch.doc.data().v;
+          if (_cache[key] !== v) { _cache[key] = v; changed = true; }
+        }
+      });
+      if (changed) _syncRefreshUI();
+    });
+  } catch(e) {
+    console.warn('Firestore error, falling back to localStorage:', e);
+    // Fallback: load from localStorage into cache
+    Object.keys(localStorage).filter(k => k.startsWith('koneo_')).forEach(k => { _cache[k] = localStorage.getItem(k); });
+  }
+}
+
+function _syncRefreshUI() {
+  // Refresh UI components that depend on synced data
+  try { buildDashboard(); } catch(e) {}
+  try { buildRiwayat(); } catch(e) {}
+  try { const s = getSession(); if (s) buildUserManagementCard(); } catch(e) {}
+  try { renderSubmitBar(); } catch(e) {}
+  try { updateBeliCount(); } catch(e) {}
+}
+
 // ── AUTH SYSTEM ──────────────────────────────────────────────────────────────
-function getUsers() { return JSON.parse(localStorage.getItem('koneo_users') || '[]'); }
-function saveUsers(u) { localStorage.setItem('koneo_users', JSON.stringify(u)); }
+function getUsers() { return JSON.parse(DB.getItem('koneo_users') || '[]'); }
+function saveUsers(u) { DB.setItem('koneo_users', JSON.stringify(u)); }
 function getSession() { return JSON.parse(sessionStorage.getItem('koneo_session') || 'null'); }
 function setSession(u) { sessionStorage.setItem('koneo_session', JSON.stringify(u)); }
 function clearSession() { sessionStorage.removeItem('koneo_session'); }
@@ -1810,7 +1904,7 @@ function saveData() {
   };
   // Simpan sebagai draft hari ini (bukan submit final)
   const tgl = document.getElementById('tanggal').value;
-  if (tgl) localStorage.setItem('koneo_draft_' + tgl, JSON.stringify(data));
+  if (tgl) DB.setItem('koneo_draft_' + tgl, JSON.stringify(data));
 }
 
 function clearForm() {
@@ -1866,7 +1960,7 @@ function loadData() {
   let tgl = getLocalDateStr();
 
   // Kalau hari ini sudah disubmit, langsung siapkan untuk hari besok
-  if (localStorage.getItem('koneo_day_' + tgl)) {
+  if (DB.getItem('koneo_day_' + tgl)) {
     const next = new Date(tgl + 'T12:00:00');
     next.setDate(next.getDate() + 1);
     tgl = getLocalDateStr(next);
@@ -1875,8 +1969,8 @@ function loadData() {
   document.getElementById('tanggal').value = tgl;
 
   // Muat draft kalau ada (dan belum disubmit)
-  const draft = localStorage.getItem('koneo_draft_' + tgl);
-  if (draft && !localStorage.getItem('koneo_day_' + tgl)) {
+  const draft = DB.getItem('koneo_draft_' + tgl);
+  if (draft && !DB.getItem('koneo_day_' + tgl)) {
     loadFromData(JSON.parse(draft));
   }
 
@@ -1890,7 +1984,7 @@ function loadData() {
 function renderSubmitBar() {
   const tgl = document.getElementById('tanggal').value;
   const bar = document.getElementById('submit-bar');
-  const submitted = tgl ? localStorage.getItem('koneo_day_' + tgl) : null;
+  const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
   if (submitted) {
     const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
     bar.innerHTML = `<div class="submitted-badge"><i class="ti ti-circle-check"></i> Laporan ${tglFmt} sudah disubmit</div>
@@ -2185,7 +2279,7 @@ function switchLaporan(period) {
 }
 
 function getDataInRange(fromDate, toDate) {
-  return Object.keys(localStorage)
+  return DB.keys()
     .filter(k => k.startsWith('koneo_day_'))
     .sort()
     .filter(k => {
@@ -2194,7 +2288,7 @@ function getDataInRange(fromDate, toDate) {
     })
     .map(k => {
       const tgl = k.replace('koneo_day_', '');
-      const data = JSON.parse(localStorage.getItem(k));
+      const data = JSON.parse(DB.getItem(k));
       const snap = calcSnapshot(data);
       return { tgl, data, ...snap };
     });
@@ -2489,16 +2583,16 @@ function buildDashboard() {
 }
 
 function buildOmsetChart() {
-  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort().slice(-14);
+  const keys = DB.keys().filter(k => k.startsWith('koneo_day_')).sort().slice(-14);
   const el = document.getElementById('omset-chart');
   if (!keys.length) { el.innerHTML = '<div class="empty-state">Belum ada laporan yang disubmit.</div>'; return; }
   if (keys.length === 1) {
-    const { totalP } = calcSnapshot(JSON.parse(localStorage.getItem(keys[0])));
+    const { totalP } = calcSnapshot(JSON.parse(DB.getItem(keys[0])));
     el.innerHTML = `<div style="text-align:center;padding:1.5rem;color:var(--text2);font-size:13px;">Butuh minimal 2 hari data untuk menampilkan grafik tren.<br><br><strong style="color:#093a72;font-size:16px;">${fmt(totalP)}</strong><br>omset tercatat.</div>`;
     return;
   }
   const pts = keys.map(k => {
-    const d = JSON.parse(localStorage.getItem(k));
+    const d = JSON.parse(DB.getItem(k));
     const { totalP, net } = calcSnapshot(d);
     return { tgl: k.replace('koneo_day_',''), totalP, net };
   });
@@ -2534,8 +2628,16 @@ function buildOmsetChart() {
   </svg>`;
 }
 
-loadData();
-initAuth();
+// Tampilkan loading → load Firestore → baru jalankan app
+(async () => {
+  const splash = document.getElementById('fs-loading');
+  if (splash) splash.style.display = 'flex';
+  await initFirestore();
+  if (splash) splash.style.display = 'none';
+  _uiReady = true;
+  loadData();
+  initAuth();
+})();
 
 function doPrint() {
   // Print current laporan view
@@ -2592,8 +2694,8 @@ function confirmSubmit() {
   const snapshot = buildSnapshot();
   snapshot.submitted = true;
   snapshot.submittedAt = new Date().toISOString();
-  localStorage.setItem('koneo_day_' + tgl, JSON.stringify(snapshot));
-  localStorage.removeItem('koneo_draft_' + tgl);
+  DB.setItem('koneo_day_' + tgl, JSON.stringify(snapshot));
+  DB.removeItem('koneo_draft_' + tgl);
 
   const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
   showToast('Laporan ' + tglFmt + ' berhasil disimpan!');
@@ -2654,7 +2756,7 @@ function switchPeriod(period) {
 }
 
 function buildRiwayat() {
-  const keys = Object.keys(localStorage)
+  const keys = DB.keys()
     .filter(k => k.startsWith('koneo_day_'))
     .sort().reverse();
 
@@ -2672,7 +2774,7 @@ function buildRiwayat() {
 
 function buildRiwayatHarian(keys, container) {
   const totalAllNet = keys.reduce((sum, k) => {
-    return sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).net;
+    return sum + calcSnapshot(JSON.parse(DB.getItem(k))).net;
   }, 0);
 
   container.innerHTML = `
@@ -2690,7 +2792,7 @@ function buildRiwayatHarian(keys, container) {
       <div id="riwayat-list">
         ${keys.map(key => {
           const tgl = key.replace('koneo_day_', '');
-          const data = JSON.parse(localStorage.getItem(key));
+          const data = JSON.parse(DB.getItem(key));
           const { totalP, totalK, net } = calcSnapshot(data);
           const tglFmt = new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
           const netClass = net >= 0 ? 'profit' : 'loss';
@@ -2742,9 +2844,9 @@ function buildRiwayatPeriod(keys, container, period) {
   const sortedGroups = Object.keys(groups).sort().reverse();
   const periodLabel = period === 'mingguan' ? 'Mingguan' : period === 'bulanan' ? 'Bulanan' : 'Tahunan';
 
-  const totalAllNet = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).net, 0);
-  const totalAllP = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).totalP, 0);
-  const totalAllK = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(localStorage.getItem(k))).totalK, 0);
+  const totalAllNet = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(DB.getItem(k))).net, 0);
+  const totalAllP = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(DB.getItem(k))).totalP, 0);
+  const totalAllK = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(DB.getItem(k))).totalK, 0);
 
   let html = `
     <div class="card" style="margin-bottom:1rem;">
@@ -2760,7 +2862,7 @@ function buildRiwayatPeriod(keys, container, period) {
     const groupKeys = groups[groupKey].sort().reverse();
     let gP = 0, gK = 0, gNet = 0;
     groupKeys.forEach(k => {
-      const c = calcSnapshot(JSON.parse(localStorage.getItem(k)));
+      const c = calcSnapshot(JSON.parse(DB.getItem(k)));
       gP += c.totalP; gK += c.totalK; gNet += c.net;
     });
 
@@ -2773,7 +2875,7 @@ function buildRiwayatPeriod(keys, container, period) {
 
     const rowsHtml = groupKeys.map(k => {
       const tgl = k.replace('koneo_day_', '');
-      const data = JSON.parse(localStorage.getItem(k));
+      const data = JSON.parse(DB.getItem(k));
       const { totalP, totalK, net } = calcSnapshot(data);
       const tglFmt = new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short' });
       return `<div class="riwayat-row" style="padding:8px 16px;" onclick="lihatDetail('${tgl}')">
@@ -2806,13 +2908,13 @@ function buildRiwayatPeriod(keys, container, period) {
 function hapusRiwayat(tgl) {
   const tglFmt = new Date(tgl + 'T12:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
   if (!confirm('Hapus laporan ' + tglFmt + '?')) return;
-  localStorage.removeItem('koneo_day_' + tgl);
+  DB.removeItem('koneo_day_' + tgl);
   buildRiwayat();
   buildDashboard();
 }
 
 function lihatDetail(tgl) {
-  const data = JSON.parse(localStorage.getItem('koneo_day_' + tgl));
+  const data = JSON.parse(DB.getItem('koneo_day_' + tgl));
   if (!data) return;
   const { totalP, totalK, net, bar, kitchen, pajak, ops, lainnya } = calcSnapshot(data);
   const p = data.simple;
@@ -2879,7 +2981,7 @@ function tutupDetail() {
 
 function muatHari(tgl) {
   tutupDetail();
-  const data = JSON.parse(localStorage.getItem('koneo_day_' + tgl));
+  const data = JSON.parse(DB.getItem('koneo_day_' + tgl));
   if (!data) return;
   document.getElementById('tanggal').value = tgl;
   clearForm();
@@ -2892,7 +2994,7 @@ function resetHariIni() {
   const tgl = document.getElementById('tanggal').value;
   if (!confirm('Reset data hari ini (' + (tgl || '—') + ')? Data yang sudah disubmit tetap tersimpan di Riwayat.')) return;
   clearForm();
-  if (tgl) localStorage.removeItem('koneo_day_' + tgl);
+  if (tgl) DB.removeItem('koneo_day_' + tgl);
   renderSubmitBar();
   calc();
   switchTab('pemasukan');
@@ -2905,7 +3007,7 @@ document.getElementById('modal-overlay').addEventListener('click', function(e) {
 
 // ── PENGATURAN ────────────────────────────────────────────────────────────────
 function buildDataSummary() {
-  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_day_')).sort().reverse();
+  const keys = DB.keys().filter(k => k.startsWith('koneo_day_')).sort().reverse();
   const el = document.getElementById('data-summary');
   const listEl = document.getElementById('all-data-list');
 
@@ -2916,7 +3018,7 @@ function buildDataSummary() {
   }
 
   let totP = 0, totNet = 0;
-  keys.forEach(k => { const c = calcSnapshot(JSON.parse(localStorage.getItem(k))); totP += c.totalP; totNet += c.net; });
+  keys.forEach(k => { const c = calcSnapshot(JSON.parse(DB.getItem(k))); totP += c.totalP; totNet += c.net; });
   const oldest = new Date(keys[keys.length-1].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
   const newest = new Date(keys[0].replace('koneo_day_','') + 'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 
@@ -2943,7 +3045,7 @@ function buildDataSummary() {
     const monthName = new Date(month + '-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
     const monthKeys = byMonth[month];
     let mTotP = 0, mTotNet = 0;
-    monthKeys.forEach(tgl => { const c = calcSnapshot(JSON.parse(localStorage.getItem('koneo_day_'+tgl))); mTotP+=c.totalP; mTotNet+=c.net; });
+    monthKeys.forEach(tgl => { const c = calcSnapshot(JSON.parse(DB.getItem('koneo_day_'+tgl))); mTotP+=c.totalP; mTotNet+=c.net; });
 
     html += `<div style="margin-bottom:1rem;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(9,58,114,0.06);border-radius:10px;margin-bottom:6px;">
@@ -2957,7 +3059,7 @@ function buildDataSummary() {
       </div>`;
 
     monthKeys.forEach(tgl => {
-      const raw = JSON.parse(localStorage.getItem('koneo_day_'+tgl));
+      const raw = JSON.parse(DB.getItem('koneo_day_'+tgl));
       const { totalP, totalK, net } = calcSnapshot(raw);
       const netColor = net >= 0 ? 'var(--green)' : 'var(--red)';
       const tglFmt = new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'});
@@ -2989,8 +3091,8 @@ function editDataHariIni(tgl) {
 function hapusDataTgl(tgl) {
   const d = new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   if (!confirm('Hapus data laporan tanggal ' + d + '?\nTindakan ini tidak bisa dibatalkan.')) return;
-  localStorage.removeItem('koneo_day_' + tgl);
-  localStorage.removeItem('koneo_draft_' + tgl);
+  DB.removeItem('koneo_day_' + tgl);
+  DB.removeItem('koneo_draft_' + tgl);
   buildDataSummary();
   buildRiwayat();
   showToast('Data ' + tgl + ' berhasil dihapus');
@@ -2999,7 +3101,7 @@ function hapusDataTgl(tgl) {
 function hapusBulan(month) {
   const monthName = new Date(month+'-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
   if (!confirm('Hapus SEMUA data bulan ' + monthName + '?\nTindakan ini tidak bisa dibatalkan.')) return;
-  Object.keys(localStorage).filter(k => k.startsWith('koneo_day_'+month) || k.startsWith('koneo_draft_'+month)).forEach(k => localStorage.removeItem(k));
+  DB.keys().filter(k => k.startsWith('koneo_day_'+month) || k.startsWith('koneo_draft_'+month)).forEach(k => DB.removeItem(k));
   buildDataSummary();
   buildRiwayat();
   showToast('Data bulan ' + monthName + ' dihapus');
@@ -3007,8 +3109,8 @@ function hapusBulan(month) {
 
 function exportData() {
   const allData = {};
-  Object.keys(localStorage).filter(k => k.startsWith('koneo_')).forEach(k => {
-    allData[k] = localStorage.getItem(k);
+  Object.keys(_cache).filter(k => k.startsWith('koneo_')).forEach(k => {
+    allData[k] = _cache[k];
   });
   const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -3033,7 +3135,7 @@ function doImport(e) {
       const data = JSON.parse(ev.target.result);
       let count = 0;
       Object.entries(data).forEach(([k, v]) => {
-        if (k.startsWith('koneo_')) { localStorage.setItem(k, v); count++; }
+        if (k.startsWith('koneo_')) { DB.setItem(k, v); count++; }
       });
       showToast(count + ' data berhasil diimpor!');
       buildRiwayat(); buildDashboard(); buildDataSummary();
@@ -3052,7 +3154,7 @@ function doImportOnSetup(e) {
       const data = JSON.parse(ev.target.result);
       let count = 0;
       Object.entries(data).forEach(([k, v]) => {
-        if (k.startsWith('koneo_')) { localStorage.setItem(k, v); count++; }
+        if (k.startsWith('koneo_')) { DB.setItem(k, v); count++; }
       });
       const users = getUsers();
       if (!users.length) { alert('File backup tidak mengandung data akun. Coba file lain.'); return; }
@@ -3072,8 +3174,8 @@ function resetDataHariIniSaja() {
   const tgl = document.getElementById('tanggal').value;
   const tglFmt = tgl ? new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : 'hari ini';
   if (!confirm('Hapus laporan ' + tglFmt + '? Tindakan ini tidak dapat dibatalkan.')) return;
-  localStorage.removeItem('koneo_day_' + tgl);
-  localStorage.removeItem('koneo_draft_' + tgl);
+  DB.removeItem('koneo_day_' + tgl);
+  DB.removeItem('koneo_draft_' + tgl);
   clearForm();
   renderSubmitBar();
   buildRiwayat();
@@ -3083,11 +3185,11 @@ function resetDataHariIniSaja() {
 }
 
 function resetSemuaData() {
-  const keys = Object.keys(localStorage).filter(k => k.startsWith('koneo_'));
+  const keys = DB.keys().filter(k => k.startsWith('koneo_'));
   if (!keys.length) { showToast('Tidak ada data untuk dihapus.'); return; }
   const jumlah = keys.filter(k => k.startsWith('koneo_day_')).length;
   if (!confirm('PERINGATAN: Ini akan menghapus SEMUA ' + jumlah + ' laporan yang tersimpan.\n\nPastikan sudah backup dulu!\n\nKetik OK untuk melanjutkan.')) return;
-  keys.forEach(k => localStorage.removeItem(k));
+  keys.forEach(k => DB.removeItem(k));
   clearForm();
   const tgl = getLocalDateStr();
   document.getElementById('tanggal').value = tgl;
@@ -3103,17 +3205,17 @@ let scanItems = [];
 function saveApiKey() {
   const key = document.getElementById('anthropic-api-key').value.trim();
   if (key) {
-    localStorage.setItem('koneo_anthropic_key', key);
+    DB.setItem('koneo_anthropic_key', key);
     document.getElementById('api-key-status').textContent = '✓ API key tersimpan';
     document.getElementById('api-key-status').style.color = 'var(--green)';
   } else {
-    localStorage.removeItem('koneo_anthropic_key');
+    DB.removeItem('koneo_anthropic_key');
     document.getElementById('api-key-status').textContent = '';
   }
 }
 
 function loadApiKeyInput() {
-  const key = localStorage.getItem('koneo_anthropic_key') || '';
+  const key = DB.getItem('koneo_anthropic_key') || '';
   const el = document.getElementById('anthropic-api-key');
   if (el) el.value = key;
   const status = document.getElementById('api-key-status');
@@ -3122,7 +3224,7 @@ function loadApiKeyInput() {
 }
 
 function openScanModal() {
-  const key = localStorage.getItem('koneo_anthropic_key');
+  const key = DB.getItem('koneo_anthropic_key');
   resetScanModal();
   document.getElementById('scan-modal-overlay').classList.add('show');
   if (!key) {
@@ -3166,7 +3268,7 @@ function handleScanFile(e) {
 }
 
 async function doScanOCR() {
-  const key = localStorage.getItem('koneo_anthropic_key');
+  const key = DB.getItem('koneo_anthropic_key');
   if (!key || !scanImageBase64) return;
 
   showScanStep('loading');
@@ -3305,16 +3407,16 @@ let currentStokTab = 'master';
 let editingItemId = null;
 
 function getStokItems() {
-  try { return JSON.parse(localStorage.getItem('koneo_stock_items') || '[]'); } catch(e) { return []; }
+  try { return JSON.parse(DB.getItem('koneo_stock_items') || '[]'); } catch(e) { return []; }
 }
 function saveStokItems(items) {
-  localStorage.setItem('koneo_stock_items', JSON.stringify(items));
+  DB.setItem('koneo_stock_items', JSON.stringify(items));
 }
 function getOpname(tgl) {
-  try { return JSON.parse(localStorage.getItem('koneo_stock_opname_' + tgl) || '{}'); } catch(e) { return {}; }
+  try { return JSON.parse(DB.getItem('koneo_stock_opname_' + tgl) || '{}'); } catch(e) { return {}; }
 }
 function saveOpnameData(tgl, data) {
-  localStorage.setItem('koneo_stock_opname_' + tgl, JSON.stringify(data));
+  DB.setItem('koneo_stock_opname_' + tgl, JSON.stringify(data));
 }
 
 function buildStokTab() {
@@ -3653,7 +3755,7 @@ function adjOpname(itemId, delta) {
 function resetOpnameHariIni() {
   const tgl = getLocalDateStr();
   if (!confirm('Reset opname hari ini? Semua input hari ini akan dihapus.')) return;
-  localStorage.removeItem('koneo_stock_opname_' + tgl);
+  DB.removeItem('koneo_stock_opname_' + tgl);
   renderOpname();
   updateBeliBadge();
   showToast('Opname hari ini direset');
@@ -3846,10 +3948,10 @@ function printBeliPDF() {
 }
 
 // ── COGS / HPP SYSTEM ─────────────────────────────────────────────────────────
-function getCogsBahan() { return JSON.parse(localStorage.getItem('koneo_cogs_bahan') || '[]'); }
-function saveCogsBahan(d) { localStorage.setItem('koneo_cogs_bahan', JSON.stringify(d)); }
-function getCogsMenu() { return JSON.parse(localStorage.getItem('koneo_cogs_menu') || '[]'); }
-function saveCogsMenu(d) { localStorage.setItem('koneo_cogs_menu', JSON.stringify(d)); }
+function getCogsBahan() { return JSON.parse(DB.getItem('koneo_cogs_bahan') || '[]'); }
+function saveCogsBahan(d) { DB.setItem('koneo_cogs_bahan', JSON.stringify(d)); }
+function getCogsMenu() { return JSON.parse(DB.getItem('koneo_cogs_menu') || '[]'); }
+function saveCogsMenu(d) { DB.setItem('koneo_cogs_menu', JSON.stringify(d)); }
 
 let activeCogsBahanEdit = null;
 let activeCogsMenuEdit = null;
