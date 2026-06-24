@@ -2902,26 +2902,26 @@ function buildDashboard() {
     const netColor = netHari >= 0 ? 'blue' : 'red';
     const netLabel = netHari >= 0 ? 'Keuntungan Hari Ini' : 'Kerugian Hari Ini';
     const isLang = _lang === 'en';
-    statsEl.innerHTML = \`
+    statsEl.innerHTML = `
       <div class="beranda-stat-card green">
         <div class="beranda-stat-icon"><i class="ti ti-trending-up"></i></div>
-        <div class="beranda-stat-label">\${isLang ? 'Revenue Today' : 'Pemasukan Hari Ini'}</div>
-        <div class="beranda-stat-val">\${todayData ? fmtShort(todayPemasukan) : '—'}</div>
-        <div class="beranda-stat-meta">\${isLang ? 'today' : 'hari ini'}</div>
+        <div class="beranda-stat-label">${isLang ? 'Revenue Today' : 'Pemasukan Hari Ini'}</div>
+        <div class="beranda-stat-val">${todayData ? fmtShort(todayPemasukan) : '—'}</div>
+        <div class="beranda-stat-meta">${isLang ? 'today' : 'hari ini'}</div>
       </div>
       <div class="beranda-stat-card red">
         <div class="beranda-stat-icon"><i class="ti ti-trending-down"></i></div>
-        <div class="beranda-stat-label">\${isLang ? 'Expenses Today' : 'Pengeluaran Hari Ini'}</div>
-        <div class="beranda-stat-val">\${todayData ? fmtShort(todayPengeluaran) : '—'}</div>
-        <div class="beranda-stat-meta">\${isLang ? 'today' : 'hari ini'}</div>
+        <div class="beranda-stat-label">${isLang ? 'Expenses Today' : 'Pengeluaran Hari Ini'}</div>
+        <div class="beranda-stat-val">${todayData ? fmtShort(todayPengeluaran) : '—'}</div>
+        <div class="beranda-stat-meta">${isLang ? 'today' : 'hari ini'}</div>
       </div>
-      <div class="beranda-stat-card \${netColor}">
+      <div class="beranda-stat-card ${netColor}">
         <div class="beranda-stat-icon"><i class="ti ti-wallet"></i></div>
-        <div class="beranda-stat-label">\${isLang ? 'Net Today' : netLabel}</div>
-        <div class="beranda-stat-val">\${todayData ? fmtShort(Math.abs(netHari)) : '—'}</div>
-        <div class="beranda-stat-meta">\${totalHari} \${isLang ? 'days recorded' : 'hari tercatat'}</div>
+        <div class="beranda-stat-label">${isLang ? 'Net Today' : netLabel}</div>
+        <div class="beranda-stat-val">${todayData ? fmtShort(Math.abs(netHari)) : '—'}</div>
+        <div class="beranda-stat-meta">${totalHari} ${isLang ? 'days recorded' : 'hari tercatat'}</div>
       </div>
-    \`;
+    `;
   }
 
 }
