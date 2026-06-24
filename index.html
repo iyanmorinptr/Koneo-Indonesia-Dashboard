@@ -1285,6 +1285,16 @@
       <button class="sidebar-item" id="sitem-stok-laporan" onclick="sidebarGoStok('laporan')"><i class="ti ti-chart-bar"></i> Laporan Stok</button>
     </div>
 
+    <!-- SDM -->
+    <button onclick="toggleSidebarGroup('sdm')" id="sg-sdm" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
+      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-users" style="font-size:17px;color:#093a72;"></i> SDM</span>
+      <i class="ti ti-chevron-right" id="sg-sdm-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
+    </button>
+    <div id="sg-sdm-items" style="display:none;padding-left:10px;padding-bottom:4px;">
+      <button class="sidebar-item" id="sitem-jadwal" onclick="switchTab('jadwal')"><i class="ti ti-calendar-week"></i> Jadwal Karyawan</button>
+      <button class="sidebar-item" id="sitem-absensi" onclick="switchTab('absensi')"><i class="ti ti-fingerprint"></i> Absensi</button>
+    </div>
+
     <!-- COGS (owner only) -->
 <button onclick="toggleSidebarGroup('cogs')" id="sg-cogs" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
   <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-calculator" style="font-size:17px;color:#093a72;"></i> COGS</span>
@@ -1642,6 +1652,64 @@
     </div>
 
     <div id="riwayat-content"></div>
+  </div>
+
+  <!-- JADWAL KARYAWAN -->
+  <div id="tab-jadwal" class="section">
+    <div class="card" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem;">
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.3px;">Jadwal Karyawan</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;" id="jadwal-week-label">Minggu ini</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="jadwalPrevWeek()" style="padding:7px 12px;border-radius:10px;border:1px solid rgba(9,58,114,0.15);background:#fff;cursor:pointer;font-size:13px;"><i class="ti ti-chevron-left"></i></button>
+          <button onclick="jadwalNextWeek()" style="padding:7px 12px;border-radius:10px;border:1px solid rgba(9,58,114,0.15);background:#fff;cursor:pointer;font-size:13px;"><i class="ti ti-chevron-right"></i></button>
+          <button id="btn-edit-jadwal" onclick="toggleJadwalEdit()" style="padding:7px 14px;border-radius:10px;border:none;background:#093a72;color:#fff;cursor:pointer;font-size:13px;font-weight:600;display:none;"><i class="ti ti-edit"></i> Edit</button>
+        </div>
+      </div>
+      <div id="jadwal-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem;">
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;"><span style="width:14px;height:14px;border-radius:4px;background:#E6F1FB;border:1px solid #378ADD;display:inline-block;"></span> Full Day</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;"><span style="width:14px;height:14px;border-radius:4px;background:#f0f0f0;border:1px solid #ccc;display:inline-block;"></span> Libur</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;"><span style="width:14px;height:14px;border-radius:4px;background:#E1F5EE;border:1px solid #1D9E75;display:inline-block;"></span> Shift</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <div id="jadwal-grid"></div>
+      </div>
+    </div>
+    <!-- Swap Requests Panel -->
+    <div id="jadwal-swap-panel" class="card" style="padding:1.25rem 1.5rem;display:none;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:0.75rem;"><i class="ti ti-arrows-exchange" style="color:#093a72;"></i> Permintaan Tukar Jadwal</div>
+      <div id="jadwal-swap-list"></div>
+    </div>
+  </div>
+
+  <!-- ABSENSI KARYAWAN -->
+  <div id="tab-absensi" class="section">
+    <div class="card" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;">
+        <div style="font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.3px;">Absensi Karyawan</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input type="date" id="absensi-date" style="padding:8px 12px;border-radius:10px;border:1px solid rgba(9,58,114,0.15);font-family:inherit;font-size:13px;" onchange="buildAbsensiTab()">
+          <button id="btn-set-lokasi" onclick="setLokasiKantor()" style="padding:8px 14px;border-radius:10px;border:none;background:#093a72;color:#fff;cursor:pointer;font-size:13px;font-weight:600;display:none;"><i class="ti ti-map-pin"></i> Set Lokasi Kantor</button>
+        </div>
+      </div>
+      <!-- GPS Status -->
+      <div id="absensi-gps-status" style="background:#E6F1FB;border:1px solid rgba(55,138,221,0.25);border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:13px;display:flex;align-items:center;gap:10px;">
+        <i class="ti ti-map-pin" style="color:#378ADD;font-size:18px;"></i>
+        <div><span id="absensi-gps-text">Mengambil lokasi...</span></div>
+      </div>
+      <div id="absensi-table-wrap" style="overflow-x:auto;">
+        <div id="absensi-table"></div>
+      </div>
+    </div>
+    <!-- Check-in card for karyawan -->
+    <div id="absensi-checkin-card" class="card" style="padding:1.5rem;text-align:center;display:none;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:0.5rem;">Absen Hari Ini</div>
+      <div id="absensi-checkin-status" style="font-size:13px;color:var(--text2);margin-bottom:1rem;"></div>
+      <button id="btn-checkin" onclick="doCheckin()" style="padding:12px 32px;border-radius:14px;border:none;background:#093a72;color:#fff;font-size:15px;font-weight:700;cursor:pointer;"><i class="ti ti-fingerprint"></i> Check In</button>
+      <button id="btn-checkout" onclick="doCheckout()" style="padding:12px 32px;border-radius:14px;border:none;background:#1D9E75;color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:none;"><i class="ti ti-logout"></i> Check Out</button>
+    </div>
   </div>
 
   <!-- PENGATURAN -->
@@ -2022,8 +2090,10 @@ function applyRole(role) {
   if (financeGroup) financeGroup.style.display = canFinance ? '' : 'none';
 
   // Pengaturan & COGS: owner only
+  const sdmGroup = document.getElementById('sg-sdm');
   const pengBtn = document.getElementById('sitem-pengaturan');
   if (pengBtn) pengBtn.style.display = canAdmin ? '' : 'none';
+  if (sdmGroup) sdmGroup.style.display = '';
   const cogsGroup = document.getElementById('sg-cogs');
   if (cogsGroup) cogsGroup.style.display = canAdmin ? '' : 'none';
 
@@ -2350,7 +2420,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'stok', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -2358,11 +2428,13 @@ function switchTab(tab) {
   if (tab === 'riwayat') buildRiwayat();
   if (tab === 'beranda') { buildDashboard(); const bar=document.getElementById('submit-bar'); if(bar) bar.style.display='none'; }
   if (tab === 'stok') buildStokTab();
+  if (tab === 'jadwal') buildJadwalTab();
+  if (tab === 'absensi') { buildAbsensiTab(); initAbsensiGps(); }
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); }
   if (tab === 'cogs') buildCogsTab();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
-  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan') ? 'none' : '';
+  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
 }
@@ -2892,6 +2964,461 @@ function buildDashboard() {
 
 
 
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// JADWAL & ABSENSI
+// ─────────────────────────────────────────────────────────────────────────────
+
+const JADWAL_DEFAULT = {
+  departments: [
+    { id: 'bar', name: 'BAR', employees: [
+      { id: 'rama', name: 'Rama', note: 'M' },
+      { id: 'edi', name: 'EdI' },
+      { id: 'ayun', name: 'Ayun' }
+    ]},
+    { id: 'kitchen', name: 'KITCHEN', employees: [
+      { id: 'nopita', name: 'Nopita', note: 'HC' },
+      { id: 'dwi', name: 'Dwi' },
+      { id: 'gede', name: 'Gede' },
+      { id: 'manda', name: 'Manda' }
+    ]}
+  ],
+  baseSchedule: {
+    rama:   ['F','L','F','F','F','10:00-18:00','F'],
+    edi:    ['L','10:00-18:00','10:00-18:00','16:00-22:00','14:00-22:00','12:00-22:00','14:00-22:00'],
+    ayun:   ['16:00-22:00','14:00-22:00','L','10:00-18:00','10:00-18:00','14:00-22:00','12:00-22:00'],
+    nopita: ['10:00-18:00','16:00-22:00','16:00-22:00','L','F','F','10:00-20:00'],
+    dwi:    ['16:00-22:00','10:00-18:00','10:00-18:00','F','L','14:00-22:00','12:00-22:00'],
+    gede:   ['F','F','F','F','L','F','F'],
+    manda:  ['L','F','F','F','F','F','F']
+  }
+};
+
+const SHIFT_OPTIONS = ['F','L','10:00-18:00','12:00-20:00','14:00-22:00','16:00-22:00','08:00-16:00','10:00-20:00','12:00-22:00'];
+const DAYS_ID = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+let _jadwalWeekOffset = 0;
+let _jadwalEditMode = false;
+let _absensiGpsCoords = null;
+
+function getWeekKey(offset) {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + (offset * 7));
+  const yr = mon.getFullYear();
+  const jan1 = new Date(yr, 0, 1);
+  const weekNum = Math.ceil(((mon - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return `${yr}-W${String(weekNum).padStart(2,'0')}`;
+}
+
+function getWeekDates(offset) {
+  const now = new Date();
+  const day = now.getDay();
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + (offset * 7));
+  return Array.from({length:7}, (_,i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d; });
+}
+
+function getJadwalConfig() {
+  const stored = DB.getItem('koneo_jadwal_config');
+  return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(JADWAL_DEFAULT));
+}
+
+function getWeekSchedule(weekKey, config) {
+  const override = DB.getItem('koneo_jadwal_' + weekKey);
+  const base = config.baseSchedule;
+  if (!override) return JSON.parse(JSON.stringify(base));
+  const merged = JSON.parse(JSON.stringify(base));
+  const ov = JSON.parse(override);
+  Object.keys(ov).forEach(k => { merged[k] = ov[k]; });
+  return merged;
+}
+
+function saveWeekSchedule(weekKey, schedule) {
+  DB.setItem('koneo_jadwal_' + weekKey, JSON.stringify(schedule));
+}
+
+function jadwalPrevWeek() { _jadwalWeekOffset--; _jadwalEditMode = false; buildJadwalTab(); }
+function jadwalNextWeek() { _jadwalWeekOffset++; _jadwalEditMode = false; buildJadwalTab(); }
+
+function toggleJadwalEdit() {
+  _jadwalEditMode = !_jadwalEditMode;
+  const btn = document.getElementById('btn-edit-jadwal');
+  if (btn) { btn.innerHTML = _jadwalEditMode ? '<i class="ti ti-check"></i> Selesai' : '<i class="ti ti-edit"></i> Edit'; btn.style.background = _jadwalEditMode ? '#1D9E75' : '#093a72'; }
+  buildJadwalGrid();
+}
+
+function cellStyle(val) {
+  if (val === 'L') return 'background:#f0f0f0;color:#999;border:1px solid #ddd;';
+  if (val === 'F') return 'background:#E6F1FB;color:#093a72;border:1px solid rgba(55,138,221,0.3);font-weight:700;';
+  return 'background:#E1F5EE;color:#085041;border:1px solid rgba(29,158,117,0.3);font-size:11px;';
+}
+
+function buildJadwalTab() {
+  const session = getSession();
+  const role = session ? session.role : '';
+  const canManage = role === 'owner' || role === 'manager';
+
+  const dates = getWeekDates(_jadwalWeekOffset);
+  const from = dates[0].toLocaleDateString('id-ID', {day:'numeric',month:'short'});
+  const to = dates[6].toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'});
+  const lbl = document.getElementById('jadwal-week-label');
+  if (lbl) lbl.textContent = `${from} – ${to}`;
+
+  const editBtn = document.getElementById('btn-edit-jadwal');
+  if (editBtn) editBtn.style.display = canManage ? '' : 'none';
+
+  buildJadwalGrid();
+  buildSwapPanel();
+}
+
+function buildJadwalGrid() {
+  const session = getSession();
+  const role = session ? session.role : '';
+  const canManage = role === 'owner' || role === 'manager';
+  const myName = session ? (session.name || session.email || '').toLowerCase() : '';
+  const weekKey = getWeekKey(_jadwalWeekOffset);
+  const config = getJadwalConfig();
+  const schedule = getWeekSchedule(weekKey, config);
+  const dates = getWeekDates(_jadwalWeekOffset);
+
+  let html = `<table style="width:100%;border-collapse:collapse;min-width:600px;">
+    <thead><tr>
+      <th style="padding:8px 10px;text-align:left;font-size:12px;color:var(--text3);font-weight:700;border-bottom:2px solid rgba(9,58,114,0.1);min-width:110px;">Karyawan</th>`;
+  dates.forEach((d,i) => {
+    const today = new Date(); const isToday = d.toDateString() === today.toDateString();
+    html += `<th style="padding:8px 6px;text-align:center;font-size:11px;font-weight:700;border-bottom:2px solid rgba(9,58,114,0.1);${isToday?'color:#093a72;':'color:var(--text3);'}">${DAYS_ID[i]}<br><span style="font-size:10px;font-weight:400;">${d.getDate()}/${d.getMonth()+1}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  config.departments.forEach(dept => {
+    html += `<tr><td colspan="8" style="padding:10px 10px 4px;font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#093a72;background:rgba(9,58,114,0.04);border-radius:6px;">${dept.name}</td></tr>`;
+    dept.employees.forEach(emp => {
+      const sched = schedule[emp.id] || Array(7).fill('F');
+      const isMe = myName && (emp.name.toLowerCase().includes(myName) || myName.includes(emp.id));
+      html += `<tr>
+        <td style="padding:8px 10px;font-size:13px;font-weight:600;border-bottom:1px solid rgba(9,58,114,0.06);">
+          ${emp.name}${emp.note ? `<span style="font-size:10px;color:var(--text3);margin-left:4px;">(${emp.note})</span>` : ''}
+          ${canManage && _jadwalEditMode ? `<button onclick="editEmpName('${emp.id}','${dept.id}')" style="margin-left:4px;padding:2px 6px;border-radius:6px;border:1px solid rgba(9,58,114,0.2);background:none;font-size:10px;cursor:pointer;"><i class="ti ti-pencil"></i></button>` : ''}
+        </td>`;
+      sched.forEach((val, dayIdx) => {
+        const cs = cellStyle(val);
+        if (canManage && _jadwalEditMode) {
+          html += `<td style="padding:4px;border-bottom:1px solid rgba(9,58,114,0.06);text-align:center;">
+            <select onchange="updateShift('${weekKey}','${emp.id}',${dayIdx},this.value)" style="width:90px;padding:4px;border-radius:6px;border:1px solid rgba(9,58,114,0.2);font-size:11px;font-family:inherit;">
+              ${SHIFT_OPTIONS.map(o => `<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('')}
+              <option value="_custom_">Custom...</option>
+            </select>
+          </td>`;
+        } else if (!canManage && role === 'karyawan' && isMe && val !== 'L') {
+          html += `<td style="padding:4px;border-bottom:1px solid rgba(9,58,114,0.06);text-align:center;">
+            <span style="display:inline-block;padding:4px 6px;border-radius:6px;${cs}cursor:pointer;" onclick="requestSwapUI('${weekKey}','${emp.id}',${dayIdx})" title="Klik untuk tukar jadwal">${val}</span>
+          </td>`;
+        } else {
+          html += `<td style="padding:4px;border-bottom:1px solid rgba(9,58,114,0.06);text-align:center;"><span style="display:inline-block;padding:4px 8px;border-radius:6px;font-size:12px;${cs}">${val}</span></td>`;
+        }
+      });
+      html += '</tr>';
+    });
+  });
+  html += '</tbody></table>';
+
+  const grid = document.getElementById('jadwal-grid');
+  if (grid) grid.innerHTML = html;
+}
+
+function updateShift(weekKey, empId, dayIdx, val) {
+  if (val === '_custom_') {
+    const custom = prompt('Masukkan jam shift (contoh: 09:00-17:00):');
+    if (!custom) return;
+    val = custom.trim();
+  }
+  const config = getJadwalConfig();
+  const schedule = getWeekSchedule(weekKey, config);
+  if (!schedule[empId]) schedule[empId] = Array(7).fill('F');
+  schedule[empId][dayIdx] = val;
+  saveWeekSchedule(weekKey, schedule);
+}
+
+function editEmpName(empId, deptId) {
+  const config = getJadwalConfig();
+  const dept = config.departments.find(d => d.id === deptId);
+  if (!dept) return;
+  const emp = dept.employees.find(e => e.id === empId);
+  if (!emp) return;
+  const newName = prompt('Nama baru untuk karyawan ini:', emp.name);
+  if (!newName || newName.trim() === emp.name) return;
+  emp.name = newName.trim();
+  DB.setItem('koneo_jadwal_config', JSON.stringify(config));
+  buildJadwalGrid();
+}
+
+function requestSwapUI(weekKey, empId, dayIdx) {
+  const config = getJadwalConfig();
+  const allEmps = config.departments.flatMap(d => d.employees);
+  const me = allEmps.find(e => e.id === empId);
+  const schedule = getWeekSchedule(weekKey, config);
+  const myShift = schedule[empId][dayIdx];
+
+  const names = allEmps.filter(e => e.id !== empId).map(e => e.name).join('\n');
+  const targetName = prompt(`Kamu ingin tukar jadwal ${DAYS_ID[dayIdx]} (${myShift}) dengan siapa?\n\n${names}`);
+  if (!targetName) return;
+  const target = allEmps.find(e => e.name.toLowerCase() === targetName.toLowerCase().trim());
+  if (!target) { showToast('Nama karyawan tidak ditemukan.'); return; }
+
+  const targetDayStr = prompt(`Hari mana yang ingin ditukar? (1=Senin...7=Minggu)`);
+  const targetDay = parseInt(targetDayStr) - 1;
+  if (isNaN(targetDay) || targetDay < 0 || targetDay > 6) { showToast('Hari tidak valid.'); return; }
+
+  const swaps = JSON.parse(DB.getItem('koneo_swap_requests') || '[]');
+  swaps.push({ id: 'swap_' + Date.now(), from: empId, fromDay: dayIdx, to: target.id, toDay: targetDay, weekKey, status: 'pending', requestedAt: new Date().toISOString() });
+  DB.setItem('koneo_swap_requests', JSON.stringify(swaps));
+  showToast('Permintaan tukar jadwal terkirim!');
+  buildSwapPanel();
+}
+
+function buildSwapPanel() {
+  const session = getSession();
+  const role = session ? session.role : '';
+  const canManage = role === 'owner' || role === 'manager';
+  const swaps = JSON.parse(DB.getItem('koneo_swap_requests') || '[]').filter(s => s.status === 'pending');
+  const panel = document.getElementById('jadwal-swap-panel');
+  const list = document.getElementById('jadwal-swap-list');
+  if (!panel || !list) return;
+  if (!swaps.length) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+
+  const config = getJadwalConfig();
+  const allEmps = config.departments.flatMap(d => d.employees);
+  const getName = id => { const e = allEmps.find(e => e.id === id); return e ? e.name : id; };
+
+  list.innerHTML = swaps.map(s => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(9,58,114,0.07);flex-wrap:wrap;gap:8px;">
+      <div style="font-size:13px;">
+        <strong>${getName(s.from)}</strong> (${DAYS_ID[s.fromDay]}) ↔ <strong>${getName(s.to)}</strong> (${DAYS_ID[s.toDay]})
+        <span style="font-size:11px;color:var(--text3);margin-left:6px;">${s.weekKey}</span>
+      </div>
+      ${canManage ? `<div style="display:flex;gap:6px;">
+        <button onclick="approveSwap('${s.id}')" style="padding:6px 12px;border-radius:8px;border:none;background:#1D9E75;color:#fff;font-size:12px;cursor:pointer;">Setujui</button>
+        <button onclick="rejectSwap('${s.id}')" style="padding:6px 12px;border-radius:8px;border:none;background:#E24B4A;color:#fff;font-size:12px;cursor:pointer;">Tolak</button>
+      </div>` : '<span style="font-size:11px;color:#BA7517;background:#FAEEDA;padding:4px 10px;border-radius:20px;">Menunggu persetujuan</span>'}
+    </div>`).join('');
+}
+
+function approveSwap(swapId) {
+  const swaps = JSON.parse(DB.getItem('koneo_swap_requests') || '[]');
+  const s = swaps.find(x => x.id === swapId);
+  if (!s) return;
+  const config = getJadwalConfig();
+  const sched = getWeekSchedule(s.weekKey, config);
+  const tmp = sched[s.from][s.fromDay];
+  if (!sched[s.from]) sched[s.from] = Array(7).fill('F');
+  if (!sched[s.to]) sched[s.to] = Array(7).fill('F');
+  sched[s.from][s.fromDay] = sched[s.to][s.toDay];
+  sched[s.to][s.toDay] = tmp;
+  saveWeekSchedule(s.weekKey, sched);
+  s.status = 'approved';
+  DB.setItem('koneo_swap_requests', JSON.stringify(swaps));
+  showToast('Tukar jadwal disetujui!');
+  buildJadwalTab();
+}
+
+function rejectSwap(swapId) {
+  const swaps = JSON.parse(DB.getItem('koneo_swap_requests') || '[]');
+  const s = swaps.find(x => x.id === swapId);
+  if (s) { s.status = 'rejected'; DB.setItem('koneo_swap_requests', JSON.stringify(swaps)); }
+  showToast('Permintaan ditolak.');
+  buildSwapPanel();
+}
+
+// ── ABSENSI ──
+let _absensiWatchId = null;
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function initAbsensiGps() {
+  const statusEl = document.getElementById('absensi-gps-text');
+  if (!navigator.geolocation) {
+    if (statusEl) statusEl.textContent = 'GPS tidak tersedia di browser ini. Absensi manual.';
+    return;
+  }
+  if (statusEl) statusEl.textContent = 'Mengambil lokasi GPS...';
+  navigator.geolocation.getCurrentPosition(pos => {
+    _absensiGpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    const lokasi = DB.getItem('koneo_lokasi_kantor') ? JSON.parse(DB.getItem('koneo_lokasi_kantor')) : null;
+    if (!lokasi) {
+      if (statusEl) statusEl.innerHTML = `<i class="ti ti-map-pin" style="color:#BA7517;"></i> Lokasi kantor belum diset. Owner perlu klik "Set Lokasi Kantor".`;
+      document.getElementById('absensi-gps-status').style.background = '#FAEEDA';
+      return;
+    }
+    const dist = Math.round(haversineDistance(_absensiGpsCoords.lat, _absensiGpsCoords.lng, lokasi.lat, lokasi.lng));
+    const radius = lokasi.radius || 100;
+    const inRange = dist <= radius;
+    if (statusEl) statusEl.innerHTML = `${inRange ? '<i class="ti ti-circle-check" style="color:#1D9E75;"></i>' : '<i class="ti ti-alert-triangle" style="color:#E24B4A;"></i>'} Jarak dari kantor: <strong>${dist}m</strong> ${inRange ? '— Dalam radius, absensi diizinkan.' : `— Di luar radius ${radius}m.`}`;
+    document.getElementById('absensi-gps-status').style.background = inRange ? '#E1F5EE' : '#FCEBEB';
+    buildAbsensiTable();
+  }, err => {
+    if (statusEl) statusEl.textContent = 'Tidak bisa mengambil lokasi. Pastikan GPS aktif dan izin diberikan.';
+    document.getElementById('absensi-gps-status').style.background = '#FCEBEB';
+  });
+}
+
+function setLokasiKantor() {
+  if (!navigator.geolocation) { showToast('GPS tidak tersedia.'); return; }
+  showToast('Mengambil koordinat lokasi...');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const radiusStr = prompt('Radius absensi (meter, default 100):', '100');
+    const radius = parseInt(radiusStr) || 100;
+    const lokasi = { lat: pos.coords.latitude, lng: pos.coords.longitude, radius };
+    DB.setItem('koneo_lokasi_kantor', JSON.stringify(lokasi));
+    showToast(`Lokasi kantor berhasil disimpan! Radius: ${radius}m`);
+    initAbsensiGps();
+  }, () => showToast('Gagal mengambil lokasi.'));
+}
+
+function buildAbsensiTab() {
+  const dateEl = document.getElementById('absensi-date');
+  if (!dateEl.value) dateEl.value = getLocalDateStr(new Date());
+  const session = getSession();
+  const role = session ? session.role : '';
+  const canManage = role === 'owner' || role === 'manager';
+
+  const lokasiBtn = document.getElementById('btn-set-lokasi');
+  if (lokasiBtn) lokasiBtn.style.display = (role === 'owner') ? '' : 'none';
+
+  const checkinCard = document.getElementById('absensi-checkin-card');
+  if (checkinCard) checkinCard.style.display = (!canManage) ? '' : 'none';
+
+  buildAbsensiTable();
+  if (!canManage) buildCheckinCard();
+}
+
+function buildAbsensiTable() {
+  const dateEl = document.getElementById('absensi-date');
+  const tgl = dateEl ? dateEl.value : getLocalDateStr(new Date());
+  const session = getSession();
+  const role = session ? session.role : '';
+  const canManage = role === 'owner' || role === 'manager';
+  const config = getJadwalConfig();
+  const allEmps = config.departments.flatMap(d => ({ dept: d.name, emps: d.employees })).flatMap(x => x.emps.map(e => ({ ...e, dept: config.departments.find(d => d.employees.some(em => em.id === e.id))?.name || '' })));
+  const absensiData = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
+  const STATUS_OPTS = ['Hadir','Izin','Sakit','Alfa'];
+  const STATUS_COLOR = { Hadir:'#E1F5EE;color:#085041', Izin:'#E6F1FB;color:#0C447C', Sakit:'#FAEEDA;color:#BA7517', Alfa:'#FCEBEB;color:#791F1F', '':'#f5f5f5;color:#999' };
+
+  let html = `<table style="width:100%;border-collapse:collapse;min-width:500px;">
+    <thead><tr style="border-bottom:2px solid rgba(9,58,114,0.1);">
+      <th style="padding:8px 10px;text-align:left;font-size:12px;color:var(--text3);font-weight:700;">Nama</th>
+      <th style="padding:8px 10px;text-align:left;font-size:12px;color:var(--text3);font-weight:700;">Dept</th>
+      <th style="padding:8px 10px;text-align:center;font-size:12px;color:var(--text3);font-weight:700;">Status</th>
+      <th style="padding:8px 10px;text-align:center;font-size:12px;color:var(--text3);font-weight:700;">Jam Masuk</th>
+      <th style="padding:8px 10px;text-align:center;font-size:12px;color:var(--text3);font-weight:700;">Jam Keluar</th>
+      <th style="padding:8px 10px;text-align:left;font-size:12px;color:var(--text3);font-weight:700;">Keterangan</th>
+    </tr></thead><tbody>`;
+
+  allEmps.forEach(emp => {
+    const rec = absensiData[emp.id] || {};
+    const sc = STATUS_COLOR[rec.status || ''];
+    if (canManage) {
+      html += `<tr style="border-bottom:1px solid rgba(9,58,114,0.06);">
+        <td style="padding:8px 10px;font-size:13px;font-weight:600;">${emp.name}</td>
+        <td style="padding:8px 10px;font-size:12px;color:var(--text3);">${emp.dept}</td>
+        <td style="padding:6px 10px;text-align:center;">
+          <select onchange="updateAbsensi('${tgl}','${emp.id}','status',this.value)" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;background:#f9f9f9;">
+            <option value="">—</option>
+            ${STATUS_OPTS.map(s => `<option value="${s}" ${rec.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td style="padding:6px 10px;text-align:center;"><input type="time" value="${rec.jamMasuk||''}" onchange="updateAbsensi('${tgl}','${emp.id}','jamMasuk',this.value)" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;"></td>
+        <td style="padding:6px 10px;text-align:center;"><input type="time" value="${rec.jamKeluar||''}" onchange="updateAbsensi('${tgl}','${emp.id}','jamKeluar',this.value)" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;"></td>
+        <td style="padding:6px 10px;"><input type="text" value="${rec.ket||''}" onchange="updateAbsensi('${tgl}','${emp.id}','ket',this.value)" placeholder="—" style="width:100%;padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;"></td>
+      </tr>`;
+    } else {
+      html += `<tr style="border-bottom:1px solid rgba(9,58,114,0.06);">
+        <td style="padding:8px 10px;font-size:13px;font-weight:600;">${emp.name}</td>
+        <td style="padding:8px 10px;font-size:12px;color:var(--text3);">${emp.dept}</td>
+        <td style="padding:8px 10px;text-align:center;"><span style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:${sc||'#f5f5f5;color:#999'};">${rec.status||'—'}</span></td>
+        <td style="padding:8px 10px;text-align:center;font-size:12px;">${rec.jamMasuk||'—'}</td>
+        <td style="padding:8px 10px;text-align:center;font-size:12px;">${rec.jamKeluar||'—'}</td>
+        <td style="padding:8px 10px;font-size:12px;">${rec.ket||'—'}</td>
+      </tr>`;
+    }
+  });
+  html += '</tbody></table>';
+  const wrap = document.getElementById('absensi-table');
+  if (wrap) wrap.innerHTML = html;
+}
+
+function updateAbsensi(tgl, empId, field, value) {
+  const data = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
+  if (!data[empId]) data[empId] = {};
+  data[empId][field] = value;
+  DB.setItem('koneo_absensi_' + tgl, JSON.stringify(data));
+}
+
+function buildCheckinCard() {
+  const session = getSession();
+  const tgl = getLocalDateStr(new Date());
+  const empId = session ? session.email.split('@')[0].toLowerCase() : '';
+  const data = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
+  const rec = data[empId] || {};
+  const statusEl = document.getElementById('absensi-checkin-status');
+  const btnIn = document.getElementById('btn-checkin');
+  const btnOut = document.getElementById('btn-checkout');
+  if (!statusEl) return;
+  if (rec.jamMasuk && rec.jamKeluar) {
+    statusEl.textContent = `Sudah check-in ${rec.jamMasuk} & check-out ${rec.jamKeluar}`;
+    if (btnIn) btnIn.style.display = 'none';
+    if (btnOut) btnOut.style.display = 'none';
+  } else if (rec.jamMasuk) {
+    statusEl.textContent = `Check-in: ${rec.jamMasuk} — Belum check-out`;
+    if (btnIn) btnIn.style.display = 'none';
+    if (btnOut) btnOut.style.display = '';
+  } else {
+    statusEl.textContent = 'Belum check-in hari ini';
+    if (btnIn) btnIn.style.display = '';
+    if (btnOut) btnOut.style.display = 'none';
+  }
+}
+
+function isInRadius() {
+  const lokasi = DB.getItem('koneo_lokasi_kantor') ? JSON.parse(DB.getItem('koneo_lokasi_kantor')) : null;
+  if (!lokasi || !_absensiGpsCoords) return false;
+  return haversineDistance(_absensiGpsCoords.lat, _absensiGpsCoords.lng, lokasi.lat, lokasi.lng) <= (lokasi.radius || 100);
+}
+
+function doCheckin() {
+  if (!isInRadius()) { showToast('Kamu belum berada di dalam radius kantor!'); return; }
+  const session = getSession();
+  const tgl = getLocalDateStr(new Date());
+  const empId = session ? session.email.split('@')[0].toLowerCase() : '';
+  const now = new Date();
+  const jam = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  updateAbsensi(tgl, empId, 'jamMasuk', jam);
+  updateAbsensi(tgl, empId, 'status', 'Hadir');
+  showToast(`Check-in berhasil pukul ${jam}`);
+  buildCheckinCard();
+  buildAbsensiTable();
+}
+
+function doCheckout() {
+  if (!isInRadius()) { showToast('Kamu belum berada di dalam radius kantor!'); return; }
+  const session = getSession();
+  const tgl = getLocalDateStr(new Date());
+  const empId = session ? session.email.split('@')[0].toLowerCase() : '';
+  const now = new Date();
+  const jam = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  updateAbsensi(tgl, empId, 'jamKeluar', jam);
+  showToast(`Check-out berhasil pukul ${jam}`);
+  buildCheckinCard();
+  buildAbsensiTable();
 }
 
 function buildOmsetChart() {
