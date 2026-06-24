@@ -1298,13 +1298,16 @@
       </button>
     </div>
 
-    <!-- Bahan Baku -->
+    <!-- Bahan Baku (dari Master Barang Stock) -->
     <div id="cogs-section-bahan">
+      <div style="background:var(--blue-light);border-radius:14px;padding:12px 16px;margin-bottom:1rem;font-size:13px;color:var(--blue-dark);display:flex;align-items:center;gap:10px;">
+        <i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0;"></i>
+        <span>Bahan baku diambil dari <b>Master Barang (Stock)</b>. Untuk menambah atau mengedit bahan beserta harganya, pergi ke <b>Stock → Master Barang</b>.</span>
+        <button onclick="sidebarGoStok('master')" style="flex-shrink:0;padding:6px 12px;background:#093a72;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Buka Master Barang →</button>
+      </div>
       <div class="card">
-        <div class="card-title"><i class="ti ti-basket"></i> Master Bahan Baku</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Daftarkan semua bahan baku beserta harga beli per satuan. Data ini digunakan untuk kalkulasi HPP menu.</p>
+        <div class="card-title"><i class="ti ti-basket"></i> Daftar Bahan Baku</div>
         <div id="cogs-bahan-list"></div>
-        <button class="btn-add" onclick="openCogsBahanModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Bahan Baku</button>
       </div>
     </div>
 
@@ -3309,6 +3312,7 @@ function renderMasterBarang() {
           <span class="stok-badge ${item.kategori.toLowerCase()}">${item.kategori}</span>
           &nbsp;·&nbsp; Satuan: <b>${item.satuan}</b>
           &nbsp;·&nbsp; Stok awal: <b>${item.stokAwal || 0}</b>
+          ${item.hargaSatuan ? `&nbsp;·&nbsp; Harga: <b style="color:var(--green);">${fmt(item.hargaSatuan)}/${item.satuan}</b>` : ''}
           ${item.lokasi ? `&nbsp;·&nbsp; <i class="ti ti-map-pin" style="font-size:11px;"></i> <b>${item.lokasi}</b>` : ''}
           ${item.stokMin !== null && item.stokMin !== undefined ? `&nbsp;·&nbsp; Min: <b style="color:var(--red);">${item.stokMin} ${item.satuan}</b>` : ''}
         </div>
@@ -3338,6 +3342,7 @@ function openAddItemModal() {
   document.getElementById('item-modal-title').textContent = 'Tambah Barang';
   document.getElementById('item-modal-nama').value = '';
   document.getElementById('item-modal-satuan').value = '';
+  document.getElementById('item-modal-harga').value = '';
   document.getElementById('item-modal-stok-awal').value = '';
   document.getElementById('item-modal-stok-min').value = '';
   document.getElementById('item-modal-lokasi').value = '';
@@ -3354,6 +3359,7 @@ function openEditItemModal(id) {
   document.getElementById('item-modal-title').textContent = 'Edit Barang';
   document.getElementById('item-modal-nama').value = item.nama;
   document.getElementById('item-modal-satuan').value = item.satuan;
+  document.getElementById('item-modal-harga').value = item.hargaSatuan ? fmtRupiah(item.hargaSatuan) : '';
   document.getElementById('item-modal-stok-awal').value = item.stokAwal || 0;
   document.getElementById('item-modal-stok-min').value = item.stokMin || '';
   document.getElementById('item-modal-lokasi').value = item.lokasi || '';
@@ -3370,6 +3376,7 @@ function saveItemModal() {
   const nama = document.getElementById('item-modal-nama').value.trim();
   const satuan = document.getElementById('item-modal-satuan').value.trim();
   const kategori = document.getElementById('item-modal-kategori').value;
+  const hargaSatuan = getRawVal(document.getElementById('item-modal-harga'));
   const stokAwal = parseInt(document.getElementById('item-modal-stok-awal').value) || 0;
   const lokasi = document.getElementById('item-modal-lokasi').value.trim();
   const stokMinRaw = document.getElementById('item-modal-stok-min').value;
@@ -3378,11 +3385,11 @@ function saveItemModal() {
 
   let items = getStokItems();
   if (editingItemId) {
-    items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, lokasi, stokAwal, stokMin } : i);
+    items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, lokasi, hargaSatuan, stokAwal, stokMin } : i);
     showToast('Barang diperbarui');
   } else {
     const id = 'item_' + Date.now();
-    items.push({ id, nama, satuan, kategori, lokasi, stokAwal, stokMin });
+    items.push({ id, nama, satuan, kategori, lokasi, hargaSatuan, stokAwal, stokMin });
     showToast('Barang ditambahkan');
   }
   saveStokItems(items);
@@ -3665,21 +3672,21 @@ function buildCogsTab() {
 }
 
 function renderCogsBahan() {
-  const items = getCogsBahan().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+  const items = getStokItems().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
   const container = document.getElementById('cogs-bahan-list');
   if (!items.length) {
-    container.innerHTML = '<div class="empty-state"><i class="ti ti-basket-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada bahan baku. Tambahkan dulu.</div>';
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-basket-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada barang di Master Barang. Tambahkan lewat Stock → Master Barang.</div>';
     return;
   }
   container.innerHTML = items.map(b => `
     <div class="stok-item-row">
       <div class="stok-item-info">
         <div class="stok-item-nama">${b.nama}</div>
-        <div class="stok-item-meta">Satuan: <b>${b.satuan}</b> &nbsp;·&nbsp; Harga: <b style="color:var(--green);">${fmt(b.hargaSatuan)} / ${b.satuan}</b></div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button onclick="openCogsBahanModal('${b.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" onmouseover="this.style.color='#093a72';this.style.background='var(--blue-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Edit"><i class="ti ti-edit"></i></button>
-        <button onclick="hapusCogsBahan('${b.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" onmouseover="this.style.color='var(--red)';this.style.background='var(--red-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Hapus"><i class="ti ti-trash"></i></button>
+        <div class="stok-item-meta">
+          <span class="stok-badge ${b.kategori.toLowerCase()}">${b.kategori}</span>
+          &nbsp;·&nbsp; Satuan: <b>${b.satuan}</b>
+          &nbsp;·&nbsp; Harga: <b style="color:${b.hargaSatuan?'var(--green)':'var(--text3)'};">${b.hargaSatuan ? fmt(b.hargaSatuan)+'/'+b.satuan : 'belum diisi'}</b>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -3755,7 +3762,7 @@ function saveCogsBahanModal() {
 
 // ── COGS MENU / RESEP ──
 function calcHPPMenu(menu) {
-  const bahans = getCogsBahan();
+  const bahans = getStokItems();
   let total = 0;
   (menu.bahan || []).forEach(b => {
     const found = bahans.find(x => x.id === b.bahanId);
@@ -3771,7 +3778,7 @@ function renderCogsMenu() {
     container.innerHTML = '<div class="empty-state"><i class="ti ti-tools-kitchen-2" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada resep menu. Tambahkan menu pertama.</div>';
     return;
   }
-  const bahans = getCogsBahan();
+  const bahans = getStokItems();
   container.innerHTML = menus.map(menu => {
     const hpp = calcHPPMenu(menu);
     const fcPct = menu.hargaJual > 0 ? ((hpp / menu.hargaJual) * 100).toFixed(1) : null;
@@ -3828,7 +3835,7 @@ function openCogsMenuModal(editId) {
   cogsMenuBahanRows = existing ? existing.bahan.map(b => ({ ...b, _rid: 'r' + Math.random().toString(36).slice(2) })) : [];
 
   const buildModal = () => {
-    const bahans = getCogsBahan().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+    const bahans = getStokItems().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
     const bahanOptions = bahans.map(b => `<option value="${b.id}">${b.nama} (${b.satuan}) — ${fmt(b.hargaSatuan)}</option>`).join('');
 
     if (document.getElementById('cogs-menu-modal-ov')) {
@@ -3860,7 +3867,7 @@ function openCogsMenuModal(editId) {
         </div>
 
         <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Bahan-Bahan Resep</div>
-        ${!bahans.length ? `<div style="background:var(--amber-light);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--amber);margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Tambahkan bahan baku di tab "Bahan Baku" terlebih dahulu.</div>` : ''}
+        ${!bahans.length ? `<div style="background:var(--amber-light);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--amber);margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Tambahkan barang di <b>Stock → Master Barang</b> terlebih dahulu.</div>` : ''}
         <div id="cm-bahan-rows"></div>
         ${bahans.length ? `<button onclick="addCogsMenuBahanRow()" class="btn-add" style="margin-bottom:14px;"><i class="ti ti-plus"></i> Tambah Bahan</button>` : ''}
 
@@ -3903,14 +3910,14 @@ function removeCogsMenuBahanRow(rid) {
 function renderCogsMenuBahanRows() {
   const container = document.getElementById('cm-bahan-rows');
   if (!container) return;
-  const bahans = getCogsBahan().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+  const bahans = getStokItems().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
   if (!bahans.length) { container.innerHTML = ''; return; }
   container.innerHTML = cogsMenuBahanRows.map(r => {
     const found = bahans.find(b => b.id === r.bahanId);
     return `<div style="display:grid;grid-template-columns:1fr 110px 36px;gap:8px;align-items:center;margin-bottom:8px;">
       <select onchange="cogsMenuBahanRows.find(x=>x._rid==='${r._rid}').bahanId=this.value;updateCogsMenuHPP()" style="font-size:13px;padding:9px 10px;border:1.5px solid rgba(9,58,114,0.13);border-radius:10px;background:#fff;outline:none;font-family:inherit;color:var(--text);">
         <option value="">-- Pilih Bahan --</option>
-        ${bahans.map(b => `<option value="${b.id}" ${b.id===r.bahanId?'selected':''}>${b.nama} (${b.satuan})</option>`).join('')}
+        ${bahans.map(b => `<option value="${b.id}" ${b.id===r.bahanId?'selected':''}>${b.nama} (${b.satuan})${b.hargaSatuan?' — '+fmt(b.hargaSatuan)+'/'+b.satuan:''}</option>`).join('')}
       </select>
       <div style="position:relative;">
         <input type="number" min="0.001" step="0.01" value="${r.jumlah}" oninput="cogsMenuBahanRows.find(x=>x._rid==='${r._rid}').jumlah=parseFloat(this.value)||0;updateCogsMenuHPP()" style="width:100%;font-size:13px;padding:9px 10px;border:1.5px solid rgba(9,58,114,0.13);border-radius:10px;background:#fff;outline:none;font-family:inherit;text-align:center;">
@@ -3922,7 +3929,7 @@ function renderCogsMenuBahanRows() {
 }
 
 function updateCogsMenuHPP() {
-  const bahans = getCogsBahan();
+  const bahans = getStokItems();
   let total = 0;
   cogsMenuBahanRows.forEach(r => {
     const found = bahans.find(b => b.id === r.bahanId);
@@ -4080,6 +4087,10 @@ function formatTanggal(tgl) {
       <div class="input-group">
         <label>Lokasi Pembelian</label>
         <input type="text" id="item-modal-lokasi" placeholder="cth: Pasar Induk, Toko Surya, PT. Bintang Mas...">
+      </div>
+      <div class="input-group">
+        <label>Harga Beli per Satuan (Rp) — untuk kalkulasi COGS/HPP</label>
+        <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="item-modal-harga" placeholder="0" oninput="fmtInput(this)"></div>
       </div>
       <div class="input-group">
         <label>Stok Awal (Opening Stock)</label>
