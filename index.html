@@ -125,10 +125,10 @@
     color: rgba(255,255,255,0.4);
   }
   .beranda-mipo-logo {
-    height: 32px;
+    height: 28px;
     width: auto;
-    filter: brightness(0) invert(1);
-    opacity: 0.85;
+    mix-blend-mode: screen;
+    opacity: 0.9;
   }
   .beranda-meta-row {
     display: flex;
@@ -1362,18 +1362,6 @@
     <!-- STATS CARDS -->
     <div id="beranda-stats" class="beranda-stats-grid"></div>
 
-    <!-- OMSET CHART -->
-    <div class="beranda-chart-card">
-      <div class="beranda-chart-header">
-        <div>
-          <div class="beranda-chart-title" data-i18n="chart_title">Tren Omset 14 Hari</div>
-          <div class="beranda-chart-sub" data-i18n="chart_sub">Perbandingan pemasukan harian</div>
-        </div>
-        <div class="beranda-chart-icon"><i class="ti ti-chart-line"></i></div>
-      </div>
-      <div id="omset-chart" style="min-height:160px;"></div>
-    </div>
-
     <!-- FOOTER BRAND -->
     <div class="beranda-footer-brand">
       <span>Koneo Indonesia</span>
@@ -2286,6 +2274,10 @@ function loadData() {
 function renderSubmitBar() {
   const tgl = document.getElementById('tanggal').value;
   const bar = document.getElementById('submit-bar');
+  // Hide submit bar on beranda
+  const activeTab = document.querySelector('.section.active');
+  if (activeTab && activeTab.id === 'tab-beranda') { bar.style.display = 'none'; return; }
+  bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
   if (submitted) {
     const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
@@ -2365,7 +2357,7 @@ function switchTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'laporan') { switchLaporan(currentLaporan || 'harian'); }
   if (tab === 'riwayat') buildRiwayat();
-  if (tab === 'beranda') buildDashboard();
+  if (tab === 'beranda') { buildDashboard(); const bar=document.getElementById('submit-bar'); if(bar) bar.style.display='none'; }
   if (tab === 'stok') buildStokTab();
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); }
   if (tab === 'cogs') buildCogsTab();
@@ -2932,7 +2924,6 @@ function buildDashboard() {
     \`;
   }
 
-  buildOmsetChart();
 }
 
 function buildOmsetChart() {
