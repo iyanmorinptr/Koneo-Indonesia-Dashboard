@@ -899,6 +899,17 @@
   /* Stok tab labels: hide text on very small phones, icon only */
   @media (max-width: 380px) {
     .stok-tab-label { display: none; }
+    /* Finance & COGS tabs: smaller padding on mobile */
+    #tab-pemasukan > div[style*="border-radius:50px"],
+    #tab-pengeluaran > div[style*="border-radius:50px"],
+    #tab-laporan > div[style*="border-radius:50px"],
+    #tab-riwayat > div[style*="border-radius:50px"] { gap: 4px; padding: 3px; }
+    /* Jadwal grid responsive */
+    #jadwal-grid table { min-width: 480px; }
+    /* Absensi table responsive */
+    #absensi-table table { min-width: 480px; }
+    /* Beranda hero mobile */
+    .beranda-hero-content { padding: 1.25rem; }
   }
 
   /* Filter category buttons */
@@ -1270,7 +1281,7 @@
       <button class="sidebar-item" id="sitem-pemasukan" onclick="sidebarGo('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
       <button class="sidebar-item" id="sitem-pengeluaran" onclick="sidebarGo('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
       <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
-      <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> Riwayat</button>
+      <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
     </div>
 
     <!-- Stock -->
@@ -1383,10 +1394,10 @@
   <div id="tab-pemasukan" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-up"></i> Pemasukan</button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> Pengeluaran</button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> Laporan</button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> Riwayat</button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
     </div>
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Majoo</div>
@@ -1445,10 +1456,10 @@
   <div id="tab-pengeluaran" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> Pemasukan</button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-down"></i> Pengeluaran</button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> Laporan</button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> Riwayat</button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
     </div>
 
     <div style="margin-bottom:1.25rem;">
@@ -1607,10 +1618,10 @@
   <div id="tab-laporan" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> Pemasukan</button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> Pengeluaran</button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-chart-bar"></i> Laporan</button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> Riwayat</button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
     </div>
 
     <!-- Print header: hanya tampil saat cetak -->
@@ -1672,10 +1683,10 @@
   <div id="tab-riwayat" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> Pemasukan</button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> Pengeluaran</button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> Laporan</button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-history"></i> Riwayat</button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
     </div>
     <!-- Period sub-tabs -->
     <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
@@ -1754,11 +1765,11 @@
   <div id="tab-cogs" class="section">
     <!-- Sub-tab nav -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;">
-      <button id="cogs-tab-bahan" onclick="switchCogsTab('bahan')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.30);">
-        <i class="ti ti-basket"></i> Bahan Baku
+      <button id="cogs-tab-bahan" onclick="switchCogsTab('bahan')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.30);">
+        <i class="ti ti-basket"></i> <span class="stok-tab-label">Bahan Baku</span>
       </button>
-      <button id="cogs-tab-menu" onclick="switchCogsTab('menu')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
-        <i class="ti ti-tools-kitchen-2"></i> Resep & Menu
+      <button id="cogs-tab-menu" onclick="switchCogsTab('menu')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;">
+        <i class="ti ti-tools-kitchen-2"></i> <span class="stok-tab-label">Resep & Menu</span>
       </button>
     </div>
 
