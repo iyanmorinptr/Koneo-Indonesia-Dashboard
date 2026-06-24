@@ -639,6 +639,109 @@
     .tab { padding: 8px 10px; }
   }
 
+  /* ── MOBILE EXTENDED — gaps dari audit ── */
+
+  /* Sidebar: 85vw on very small screens */
+  @media (max-width: 300px) {
+    #sidebar { width: 85vw; }
+  }
+
+  /* Welcome hero title: override inline 42px */
+  @media (max-width: 768px) {
+    .welcome-hero-title { font-size: clamp(24px, 7vw, 38px) !important; letter-spacing: clamp(-1px, -0.3vw, -2px) !important; }
+  }
+
+  /* Stock sub-tabs: scrollable row, no squish */
+  .stok-subtabs {
+    display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; padding: 4px; background: var(--surface2);
+    border-radius: 14px; margin-bottom: 1.25rem;
+  }
+  .stok-subtabs::-webkit-scrollbar { display: none; }
+  .stok-subtab {
+    flex: 0 0 auto; padding: 8px 14px; border-radius: 10px; border: none;
+    background: none; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--text2); font-family: inherit; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px; transition: all 0.15s;
+  }
+  .stok-subtab.active { background: #fff; color: #093a72; box-shadow: 0 1px 6px rgba(9,58,114,0.12); }
+  @media (max-width: 480px) {
+    .stok-subtab { padding: 8px 10px; font-size: 12px; gap: 4px; }
+    .stok-subtab span { display: none; }
+  }
+
+  /* Stok tab labels: hide text on very small phones, icon only */
+  @media (max-width: 380px) {
+    .stok-tab-label { display: none; }
+  }
+
+  /* Filter category buttons */
+  @media (max-width: 480px) {
+    .cat-filter-btn { padding: 7px 8px !important; font-size: 11px !important; }
+  }
+  @media (max-width: 360px) {
+    .cat-filter-btn { font-size: 10px !important; padding: 6px 5px !important; }
+  }
+
+  /* Laporan period tabs: scrollable like stock subtabs */
+  .lpt-tabs {
+    display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; padding: 4px;
+  }
+  .lpt-tabs::-webkit-scrollbar { display: none; }
+  @media (max-width: 480px) {
+    .lpt-tab-btn { padding: 7px 10px !important; font-size: 11px !important; }
+  }
+
+  /* Extra-row (pengeluaran): stack to 2 cols then 1 col */
+  @media (max-width: 420px) {
+    .extra-row { grid-template-columns: 1fr 80px !important; }
+    .extra-row .btn-danger-sm { grid-column: 2 / 3; grid-row: 1; align-self: center; }
+  }
+
+  /* Opname qty input */
+  @media (max-width: 480px) {
+    .opname-qty-input { width: 64px; font-size: 15px; padding: 7px 6px; }
+  }
+
+  /* Stock & Report tables: horizontal scroll wrapper */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+  @media (max-width: 768px) {
+    .stok-table { font-size: 12px; }
+    .stok-table th { padding: 8px 10px; font-size: 9px; }
+    .stok-table td { padding: 9px 10px; }
+    table.report th { white-space: nowrap; }
+    table.report td { white-space: nowrap; }
+  }
+
+  /* Modals: ensure 95vw cap on all small screens */
+  @media (max-width: 500px) {
+    .modal { max-width: 95vw !important; padding: 1.25rem !important; border-radius: 18px !important; }
+  }
+
+  /* COGS cards grid */
+  .cogs-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  @media (max-width: 560px) {
+    .cogs-card-grid { grid-template-columns: 1fr; }
+  }
+
+  /* User management row: don't squash on tiny screens */
+  @media (max-width: 360px) {
+    .user-row { flex-wrap: wrap !important; }
+    .user-row > div:first-child { width: 100%; }
+  }
+
+  /* Beranda quick-nav grid: 2 cols → 1 col on very small */
+  @media (max-width: 340px) {
+    .beranda-quicknav { grid-template-columns: 1fr !important; }
+  }
+
+  /* Bottom safe area padding for phones with home bar */
+  .main { padding-bottom: max(3rem, env(safe-area-inset-bottom, 3rem)); }
+  @media (max-width: 768px) {
+    .main { padding-bottom: max(4rem, env(safe-area-inset-bottom, 4rem)); }
+  }
+
   /* ── AUTH / LOGIN ── */
   #auth-overlay, #setup-overlay {
     position: fixed; inset: 0; z-index: 9000;
@@ -987,13 +1090,13 @@
     <div class="welcome-hero" style="min-height:220px;display:flex;align-items:center;">
       <div style="position:relative;z-index:1;width:100%;">
         <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.6;margin-bottom:10px;">Sistem Manajemen Internal</div>
-        <div style="font-size:42px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:10px;">KONEO<br>DASHBOARD</div>
+        <div class="welcome-hero-title" style="font-size:42px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:10px;">KONEO<br>DASHBOARD</div>
         <div style="font-size:14px;opacity:0.65;margin-bottom:20px;max-width:400px;line-height:1.6;">Platform pencatatan keuangan harian & manajemen stok untuk seluruh tim Koneo Indonesia.</div>
         <div class="welcome-date-badge"><i class="ti ti-calendar"></i> <span id="welcome-date-str">—</span></div>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;">
+    <div class="beranda-quicknav" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.25rem;">
       <div onclick="sidebarGo('pemasukan')" style="background:#fff;border:1px solid rgba(9,58,114,0.08);border-radius:18px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 6px rgba(9,58,114,0.06);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(9,58,114,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 6px rgba(9,58,114,0.06)'">
         <div style="width:40px;height:40px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="ti ti-arrow-down-circle" style="font-size:20px;color:var(--green);"></i></div>
         <div style="font-size:14px;font-weight:700;color:var(--text);">Pemasukan</div>
@@ -1145,18 +1248,18 @@
   <div id="tab-stok" class="section">
 
     <!-- Sub-tab nav -->
-    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;">
-      <button id="stok-tab-master" onclick="switchStokTab('master')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.30);">
-        <i class="ti ti-list-details"></i> Master Barang
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button id="stok-tab-master" onclick="switchStokTab('master')" style="flex:0 0 auto;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.30);white-space:nowrap;">
+        <i class="ti ti-list-details"></i> <span class="stok-tab-label">Master Barang</span>
       </button>
-      <button id="stok-tab-opname" onclick="switchStokTab('opname')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
-        <i class="ti ti-clipboard-check"></i> Opname Harian
+      <button id="stok-tab-opname" onclick="switchStokTab('opname')" style="flex:0 0 auto;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;white-space:nowrap;">
+        <i class="ti ti-clipboard-check"></i> <span class="stok-tab-label">Opname Harian</span>
       </button>
-      <button id="stok-tab-beli" onclick="switchStokTab('beli')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
-        <i class="ti ti-shopping-cart"></i> Perlu Dibeli <span id="beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span>
+      <button id="stok-tab-beli" onclick="switchStokTab('beli')" style="flex:0 0 auto;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;white-space:nowrap;">
+        <i class="ti ti-shopping-cart"></i> <span class="stok-tab-label">Perlu Dibeli</span> <span id="beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span>
       </button>
-      <button id="stok-tab-laporan" onclick="switchStokTab('laporan')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
-        <i class="ti ti-chart-bar"></i> Laporan
+      <button id="stok-tab-laporan" onclick="switchStokTab('laporan')" style="flex:0 0 auto;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;white-space:nowrap;">
+        <i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span>
       </button>
     </div>
 
@@ -1242,19 +1345,19 @@
     </div>
 
     <!-- Period sub-tabs -->
-    <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
-      <button class="lp-tab active" id="lpt-harian" onclick="switchLaporan('harian')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:var(--surface);color:#093a72;border-radius:7px;box-shadow:0 1px 3px rgba(9,58,114,0.1);display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-day"></i> Harian</button>
-      <button class="lp-tab" id="lpt-mingguan" onclick="switchLaporan('mingguan')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-week"></i> Mingguan</button>
-      <button class="lp-tab" id="lpt-bulanan" onclick="switchLaporan('bulanan')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar-month"></i> Bulanan</button>
-      <button class="lp-tab" id="lpt-tahunan" onclick="switchLaporan('tahunan')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-calendar"></i> Tahunan</button>
-      <button class="lp-tab" id="lpt-kustom" onclick="switchLaporan('kustom')" style="flex:1;padding:7px 8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-adjustments-horizontal"></i> Kustom</button>
+    <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button class="lp-tab active" id="lpt-harian" onclick="switchLaporan('harian')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:var(--surface);color:#093a72;border-radius:7px;box-shadow:0 1px 3px rgba(9,58,114,0.1);display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar-day"></i> Harian</button>
+      <button class="lp-tab" id="lpt-mingguan" onclick="switchLaporan('mingguan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar-week"></i> Mingguan</button>
+      <button class="lp-tab" id="lpt-bulanan" onclick="switchLaporan('bulanan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar-month"></i> Bulanan</button>
+      <button class="lp-tab" id="lpt-tahunan" onclick="switchLaporan('tahunan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar"></i> Tahunan</button>
+      <button class="lp-tab" id="lpt-kustom" onclick="switchLaporan('kustom')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-adjustments-horizontal"></i> Kustom</button>
     </div>
 
     <!-- Date selector -->
     <div class="card" id="laporan-selector" style="margin-bottom:1rem;">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
         <div id="laporan-date-inputs" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
-          <div class="input-group" style="min-width:140px;">
+          <div class="input-group" style="min-width:min(140px,100%);">
             <label id="laporan-from-label" style="font-size:11px;font-weight:600;color:var(--text2);">Tanggal</label>
             <input type="date" id="laporan-from" style="font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);outline:none;">
           </div>
@@ -2180,18 +2283,18 @@ function buildSingleDayDetail(rec) {
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-title"><i class="ti ti-arrow-down-circle"></i> Detail Pemasukan</div>
       ${buildHorizBar(peRows, '#1D9E75')}
-      <table class="report" style="margin-top:10px;">
+      <div class="table-scroll"><table class="report" style="margin-top:10px;">
         <thead><tr><th>Sumber</th><th style="text-align:right">Jumlah</th></tr></thead>
         <tbody>${peRows.length?peRows.map(r=>`<tr><td>${r.src}</td><td style="text-align:right;font-weight:500">${fmt(r.val)}</td></tr>`).join('')+'<tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(rec.totalP)}</td></tr>':'<tr><td colspan="2" class="empty-state">Belum ada data</td></tr>'}</tbody>
-      </table>
+      </table></div>
     </div>
     <div class="card" style="margin-bottom:1rem;">
       <div class="card-title"><i class="ti ti-arrow-up-circle"></i> Detail Pengeluaran</div>
       ${buildHorizBar(keRows.map(r=>({src:r.ket,val:r.val})), '#E24B4A')}
-      <table class="report" style="margin-top:10px;">
+      <div class="table-scroll"><table class="report" style="margin-top:10px;">
         <thead><tr><th>Kategori</th><th>Keterangan</th><th style="text-align:right">Jumlah</th></tr></thead>
         <tbody>${keRows.length?keRows.map(r=>`<tr><td>${r.cat}</td><td style="color:var(--text2)">${r.ket}</td><td style="text-align:right;font-weight:500">${fmt(r.val)}</td></tr>`).join('')+'<tr class="total-row"><td colspan="2">Total</td><td style="text-align:right">${fmt(rec.totalK)}</td></tr>':'<tr><td colspan="3" class="empty-state">Belum ada data</td></tr>'}</tbody>
-      </table>
+      </table></div>
     </div>`;
 }
 
@@ -2313,25 +2416,25 @@ function buildAggregatedTable(records) {
   const totK = records.reduce((s,r)=>s+r.totalK,0);
 
   return `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:1rem;">
       <div class="card" style="padding:1rem;">
         <div class="card-title" style="font-size:13px;margin-bottom:0.75rem;"><i class="ti ti-arrow-down-circle"></i> Rekap Pemasukan</div>
-        <table class="report"><thead><tr><th>Sumber</th><th style="text-align:right">Total</th></tr></thead>
+        <div class="table-scroll"><table class="report"><thead><tr><th>Sumber</th><th style="text-align:right">Total</th></tr></thead>
         <tbody>
           ${[['Majoo Tunai','majoo_tunai'],['Majoo Non-Tunai','majoo_nontunai'],['POS Tunai','pos_tunai'],['POS Non-Tunai','pos_nontunai'],['GoFood','gojek'],['GrabFood','grab']]
             .map(([label,id])=>{ const v=records.reduce((s,r)=>s+(r.data.simple[id]||0),0); return v>0?`<tr><td>${label}</td><td style="text-align:right">${fmt(v)}</td></tr>`:''; }).join('')}
           <tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(totP)}</td></tr>
-        </tbody></table>
+        </tbody></table></div>
       </div>
       <div class="card" style="padding:1rem;">
         <div class="card-title" style="font-size:13px;margin-bottom:0.75rem;"><i class="ti ti-arrow-up-circle"></i> Rekap Pengeluaran</div>
-        <table class="report"><thead><tr><th>Kategori</th><th style="text-align:right">Total</th></tr></thead>
-        <tbody>${catRows}<tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(totK)}</td></tr></tbody></table>
+        <div class="table-scroll"><table class="report"><thead><tr><th>Kategori</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>${catRows}<tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(totK)}</td></tr></tbody></table></div>
       </div>
     </div>
     <div class="card" style="padding:1rem;margin-bottom:1rem;">
       <div class="card-title" style="font-size:13px;margin-bottom:0.75rem;"><i class="ti ti-calendar-stats"></i> Detail Per Hari</div>
-      <table class="report">
+      <div class="table-scroll"><table class="report">
         <thead><tr><th>Tanggal</th><th style="text-align:right">Pemasukan</th><th style="text-align:right">Pengeluaran</th><th style="text-align:right">Laba/Rugi</th></tr></thead>
         <tbody>${records.slice().reverse().map(r=>{
           const tglFmt = new Date(r.tgl+'T12:00:00').toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'});
@@ -2344,7 +2447,7 @@ function buildAggregatedTable(records) {
         }).join('')}
         <tr class="total-row"><td>TOTAL</td><td style="text-align:right">${fmt(totP)}</td><td style="text-align:right">${fmt(totK)}</td><td style="text-align:right;font-weight:700;color:${(totP-totK)>=0?'var(--green)':'var(--red)'};">${(totP-totK)>=0?'+':'−'} ${fmt(Math.abs(totP-totK))}</td></tr>
         </tbody>
-      </table>
+      </table></div>
     </div>`;
 }
 
