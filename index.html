@@ -921,6 +921,16 @@
       <button class="sidebar-item" id="sitem-stok-laporan" onclick="sidebarGoStok('laporan')"><i class="ti ti-chart-bar"></i> Laporan Stok</button>
     </div>
 
+    <!-- COGS (owner only) -->
+<button onclick="toggleSidebarGroup('cogs')" id="sg-cogs" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
+  <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-calculator" style="font-size:17px;color:#093a72;"></i> COGS</span>
+  <i class="ti ti-chevron-right" id="sg-cogs-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
+</button>
+<div id="sg-cogs-items" style="display:none;padding-left:10px;padding-bottom:4px;">
+  <button class="sidebar-item" id="sitem-cogs-bahan" onclick="sidebarGoCogs('bahan')"><i class="ti ti-basket"></i> Bahan Baku</button>
+  <button class="sidebar-item" id="sitem-cogs-menu" onclick="sidebarGoCogs('menu')"><i class="ti ti-menu-2"></i> Resep & Menu</button>
+</div>
+
     <!-- Pengaturan langsung -->
     <button class="sidebar-item" id="sitem-pengaturan" onclick="sidebarGo('pengaturan')" style="width:100%;padding:12px 14px;font-size:14px;font-weight:700;color:#1a1a18;margin-top:2px;">
       <i class="ti ti-settings" style="font-size:17px;color:#093a72;"></i> Pengaturan
@@ -1276,6 +1286,39 @@
   </div>
 
   <!-- PENGATURAN -->
+  <!-- COGS / HPP -->
+  <div id="tab-cogs" class="section">
+    <!-- Sub-tab nav -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;">
+      <button id="cogs-tab-bahan" onclick="switchCogsTab('bahan')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.30);">
+        <i class="ti ti-basket"></i> Bahan Baku
+      </button>
+      <button id="cogs-tab-menu" onclick="switchCogsTab('menu')" style="flex:1;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;background:none;color:#6b6b68;">
+        <i class="ti ti-tools-kitchen-2"></i> Resep & Menu
+      </button>
+    </div>
+
+    <!-- Bahan Baku -->
+    <div id="cogs-section-bahan">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-basket"></i> Master Bahan Baku</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Daftarkan semua bahan baku beserta harga beli per satuan. Data ini digunakan untuk kalkulasi HPP menu.</p>
+        <div id="cogs-bahan-list"></div>
+        <button class="btn-add" onclick="openCogsBahanModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Bahan Baku</button>
+      </div>
+    </div>
+
+    <!-- Resep & Menu -->
+    <div id="cogs-section-menu" style="display:none;">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-tools-kitchen-2"></i> Resep & Kalkulasi HPP</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Buat resep menu baru, pilih bahan-bahan yang dipakai, dan sistem akan otomatis menghitung HPP (Harga Pokok Penjualan) setiap menu.</p>
+        <div id="cogs-menu-list"></div>
+        <button class="btn-add" onclick="openCogsMenuModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Menu / Resep</button>
+      </div>
+    </div>
+  </div>
+
   <div id="tab-pengaturan" class="section">
     <!-- User Management (owner only) -->
     <div class="card" id="user-mgmt-card" style="margin-bottom:1rem;display:none;"></div>
@@ -1418,6 +1461,7 @@ function doLogout() {
 }
 
 const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
+const OWNER_ONLY_TABS = [...FINANCE_TABS, 'pengaturan', 'cogs'];
 
 function applyRole(role) {
   const isOwner = role === 'owner';
@@ -1429,6 +1473,9 @@ function applyRole(role) {
   // Pengaturan: sembunyikan untuk karyawan
   const pengBtn = document.getElementById('sitem-pengaturan');
   if (pengBtn) pengBtn.style.display = isOwner ? '' : 'none';
+  // COGS: sembunyikan untuk karyawan
+  const cogsGroup = document.getElementById('sg-cogs');
+  if (cogsGroup) cogsGroup.style.display = isOwner ? '' : 'none';
 
   // User info di sidebar bottom
   const session = getSession();
@@ -1732,12 +1779,12 @@ function showToast(msg) {
 function switchTab(tab) {
   const session = getSession();
   const isOwner = session && session.role === 'owner';
-  const restricted = [...FINANCE_TABS, 'pengaturan'];
+  const restricted = OWNER_ONLY_TABS;
   if (restricted.includes(tab) && !isOwner) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'stok', 'pengaturan'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'stok', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -1746,6 +1793,7 @@ function switchTab(tab) {
   if (tab === 'beranda') buildDashboard();
   if (tab === 'stok') buildStokTab();
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); }
+  if (tab === 'cogs') buildCogsTab();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
   if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan') ? 'none' : '';
@@ -3588,6 +3636,346 @@ function printBeliPDF() {
   </body></html>`);
   win.document.close();
 }
+
+// ── COGS / HPP SYSTEM ─────────────────────────────────────────────────────────
+function getCogsBahan() { return JSON.parse(localStorage.getItem('koneo_cogs_bahan') || '[]'); }
+function saveCogsBahan(d) { localStorage.setItem('koneo_cogs_bahan', JSON.stringify(d)); }
+function getCogsMenu() { return JSON.parse(localStorage.getItem('koneo_cogs_menu') || '[]'); }
+function saveCogsMenu(d) { localStorage.setItem('koneo_cogs_menu', JSON.stringify(d)); }
+
+let activeCogsBahanEdit = null;
+let activeCogsMenuEdit = null;
+
+function switchCogsTab(sub) {
+  ['bahan','menu'].forEach(s => {
+    document.getElementById('cogs-section-' + s).style.display = s === sub ? '' : 'none';
+    const btn = document.getElementById('cogs-tab-' + s);
+    if (btn) {
+      btn.style.background = s === sub ? '#093a72' : 'none';
+      btn.style.color = s === sub ? '#fff' : '#6b6b68';
+      btn.style.boxShadow = s === sub ? '0 2px 8px rgba(9,58,114,0.30)' : 'none';
+    }
+  });
+  if (sub === 'bahan') renderCogsBahan();
+  if (sub === 'menu') renderCogsMenu();
+}
+
+function buildCogsTab() {
+  switchCogsTab('bahan');
+}
+
+function renderCogsBahan() {
+  const items = getCogsBahan().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+  const container = document.getElementById('cogs-bahan-list');
+  if (!items.length) {
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-basket-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada bahan baku. Tambahkan dulu.</div>';
+    return;
+  }
+  container.innerHTML = items.map(b => `
+    <div class="stok-item-row">
+      <div class="stok-item-info">
+        <div class="stok-item-nama">${b.nama}</div>
+        <div class="stok-item-meta">Satuan: <b>${b.satuan}</b> &nbsp;·&nbsp; Harga: <b style="color:var(--green);">${fmt(b.hargaSatuan)} / ${b.satuan}</b></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button onclick="openCogsBahanModal('${b.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" onmouseover="this.style.color='#093a72';this.style.background='var(--blue-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Edit"><i class="ti ti-edit"></i></button>
+        <button onclick="hapusCogsBahan('${b.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" onmouseover="this.style.color='var(--red)';this.style.background='var(--red-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Hapus"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function hapusCogsBahan(id) {
+  const items = getCogsBahan();
+  const b = items.find(x => x.id === id);
+  if (!b || !confirm('Hapus bahan "' + b.nama + '"? Bahan yang sudah dipakai di resep akan ikut terhapus dari kalkulasi.')) return;
+  saveCogsBahan(items.filter(x => x.id !== id));
+  renderCogsBahan();
+  showToast('Bahan ' + b.nama + ' dihapus');
+}
+
+function openCogsBahanModal(editId) {
+  activeCogsBahanEdit = editId || null;
+  const existing = editId ? getCogsBahan().find(b => b.id === editId) : null;
+  if (document.getElementById('cogs-bahan-modal-ov')) {
+    document.getElementById('cogs-bahan-modal-ov').style.display = 'flex';
+  } else {
+    const div = document.createElement('div');
+    div.id = 'cogs-bahan-modal-ov';
+    div.style.cssText = 'position:fixed;inset:0;background:rgba(9,58,114,0.32);backdrop-filter:blur(8px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    div.innerHTML = `
+      <div style="background:#fff;border-radius:24px;padding:2rem;max-width:400px;width:100%;box-shadow:0 24px 80px rgba(9,58,114,0.25);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+          <div id="cogs-bahan-modal-title" style="font-size:18px;font-weight:800;color:var(--text);"><i class="ti ti-basket" style="color:#093a72;margin-right:6px;"></i>Tambah Bahan Baku</div>
+          <button onclick="closeCogsBahanModal()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text3);"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="auth-field"><label>Nama Bahan *</label><input type="text" id="cb-nama" placeholder="cth: Susu UHT, Kopi Robusta, Gula Pasir" onkeydown="if(event.key==='Enter')saveCogsBahanModal()"></div>
+        <div class="auth-field"><label>Satuan *</label><input type="text" id="cb-satuan" placeholder="cth: liter, kg, pcs, sachet" onkeydown="if(event.key==='Enter')saveCogsBahanModal()"></div>
+        <div class="auth-field"><label>Harga Beli per Satuan (Rp) *</label>
+          <div style="position:relative;"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none;font-weight:500;">Rp</span>
+          <input type="text" inputmode="numeric" id="cb-harga" placeholder="0" style="padding-left:36px;" oninput="fmtInput(this)" onkeydown="if(event.key==='Enter')saveCogsBahanModal()"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:1.25rem;">
+          <button onclick="closeCogsBahanModal()" style="flex:1;padding:11px;background:rgba(9,58,114,0.07);border:none;border-radius:50px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Batal</button>
+          <button onclick="saveCogsBahanModal()" style="flex:1;padding:11px;background:#093a72;color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(9,58,114,0.28);">Simpan</button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+  }
+  const titleEl = document.getElementById('cogs-bahan-modal-title');
+  if (titleEl) titleEl.innerHTML = `<i class="ti ti-basket" style="color:#093a72;margin-right:6px;"></i>${existing ? 'Edit Bahan Baku' : 'Tambah Bahan Baku'}`;
+  document.getElementById('cb-nama').value = existing ? existing.nama : '';
+  document.getElementById('cb-satuan').value = existing ? existing.satuan : '';
+  document.getElementById('cb-harga').value = existing ? fmtRupiah(existing.hargaSatuan) : '';
+  setTimeout(() => document.getElementById('cb-nama').focus(), 100);
+}
+
+function closeCogsBahanModal() {
+  const el = document.getElementById('cogs-bahan-modal-ov');
+  if (el) el.style.display = 'none';
+}
+
+function saveCogsBahanModal() {
+  const nama = document.getElementById('cb-nama').value.trim();
+  const satuan = document.getElementById('cb-satuan').value.trim();
+  const harga = getRawVal(document.getElementById('cb-harga'));
+  if (!nama || !satuan) { showToast('Nama dan satuan wajib diisi'); return; }
+  const items = getCogsBahan();
+  if (activeCogsBahanEdit) {
+    const idx = items.findIndex(b => b.id === activeCogsBahanEdit);
+    if (idx > -1) items[idx] = { ...items[idx], nama, satuan, hargaSatuan: harga };
+  } else {
+    items.push({ id: 'cb' + Date.now(), nama, satuan, hargaSatuan: harga });
+  }
+  saveCogsBahan(items);
+  closeCogsBahanModal();
+  renderCogsBahan();
+  showToast(activeCogsBahanEdit ? 'Bahan diperbarui' : 'Bahan berhasil ditambahkan');
+  activeCogsBahanEdit = null;
+}
+
+// ── COGS MENU / RESEP ──
+function calcHPPMenu(menu) {
+  const bahans = getCogsBahan();
+  let total = 0;
+  (menu.bahan || []).forEach(b => {
+    const found = bahans.find(x => x.id === b.bahanId);
+    if (found) total += (found.hargaSatuan * b.jumlah);
+  });
+  return total;
+}
+
+function renderCogsMenu() {
+  const menus = getCogsMenu().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+  const container = document.getElementById('cogs-menu-list');
+  if (!menus.length) {
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-tools-kitchen-2" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada resep menu. Tambahkan menu pertama.</div>';
+    return;
+  }
+  const bahans = getCogsBahan();
+  container.innerHTML = menus.map(menu => {
+    const hpp = calcHPPMenu(menu);
+    const fcPct = menu.hargaJual > 0 ? ((hpp / menu.hargaJual) * 100).toFixed(1) : null;
+    const fcColor = fcPct === null ? 'var(--text3)' : fcPct < 30 ? 'var(--green)' : fcPct < 40 ? 'var(--amber)' : 'var(--red)';
+    const fcBg = fcPct === null ? 'var(--surface2)' : fcPct < 30 ? 'var(--green-light)' : fcPct < 40 ? 'var(--amber-light)' : 'var(--red-light)';
+    const catIcon = menu.kategori === 'Bar' ? 'ti-glass-full' : menu.kategori === 'Kitchen' ? 'ti-chef-hat' : 'ti-tools-kitchen-2';
+    const bahanDetail = (menu.bahan || []).map(b => {
+      const found = bahans.find(x => x.id === b.bahanId);
+      if (!found) return '';
+      return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(9,58,114,0.05);font-size:12px;">
+        <span style="color:var(--text2);">${found.nama} × ${b.jumlah} ${found.satuan}</span>
+        <span style="font-weight:600;color:var(--text);">${fmt(found.hargaSatuan * b.jumlah)}</span>
+      </div>`;
+    }).filter(Boolean).join('');
+    return `
+      <div style="border:1px solid rgba(9,58,114,0.08);border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:12px;background:var(--surface);box-shadow:0 1px 4px rgba(9,58,114,0.06);">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:700;color:var(--text);">${menu.nama}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;">
+              <span class="stok-badge ${menu.kategori ? menu.kategori.toLowerCase() : ''}"><i class="ti ${catIcon}"></i> ${menu.kategori || '—'}</span>
+              ${menu.hargaJual ? `&nbsp;·&nbsp; Harga Jual: <b>${fmt(menu.hargaJual)}</b>` : ''}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:18px;font-weight:800;color:#093a72;">${fmt(hpp)}</div>
+            <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">HPP</div>
+            ${fcPct !== null ? `<div style="margin-top:4px;background:${fcBg};color:${fcColor};border-radius:50px;padding:2px 8px;font-size:11px;font-weight:700;">FC ${fcPct}%</div>` : ''}
+          </div>
+        </div>
+        ${bahanDetail ? `<div style="background:var(--surface2);border-radius:10px;padding:8px 12px;margin-bottom:10px;">${bahanDetail}</div>` : ''}
+        <div style="display:flex;gap:6px;justify-content:flex-end;">
+          <button onclick="openCogsMenuModal('${menu.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1.5px solid rgba(9,58,114,0.15);background:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='#093a72';this.style.color='#093a72'" onmouseout="this.style.borderColor='rgba(9,58,114,0.15)';this.style.color='var(--text2)'"><i class="ti ti-edit"></i> Edit</button>
+          <button onclick="hapusCogsMenu('${menu.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1.5px solid rgba(9,58,114,0.15);background:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='rgba(9,58,114,0.15)';this.style.color='var(--text2)'"><i class="ti ti-trash"></i> Hapus</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function hapusCogsMenu(id) {
+  const menus = getCogsMenu();
+  const m = menus.find(x => x.id === id);
+  if (!m || !confirm('Hapus resep "' + m.nama + '"?')) return;
+  saveCogsMenu(menus.filter(x => x.id !== id));
+  renderCogsMenu();
+  showToast('Resep ' + m.nama + ' dihapus');
+}
+
+let cogsMenuBahanRows = [];
+
+function openCogsMenuModal(editId) {
+  activeCogsMenuEdit = editId || null;
+  const existing = editId ? getCogsMenu().find(m => m.id === editId) : null;
+  cogsMenuBahanRows = existing ? existing.bahan.map(b => ({ ...b, _rid: 'r' + Math.random().toString(36).slice(2) })) : [];
+
+  const buildModal = () => {
+    const bahans = getCogsBahan().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+    const bahanOptions = bahans.map(b => `<option value="${b.id}">${b.nama} (${b.satuan}) — ${fmt(b.hargaSatuan)}</option>`).join('');
+
+    if (document.getElementById('cogs-menu-modal-ov')) {
+      document.getElementById('cogs-menu-modal-ov').remove();
+    }
+    const div = document.createElement('div');
+    div.id = 'cogs-menu-modal-ov';
+    div.style.cssText = 'position:fixed;inset:0;background:rgba(9,58,114,0.32);backdrop-filter:blur(8px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;';
+    div.innerHTML = `
+      <div style="background:#fff;border-radius:24px;padding:2rem;max-width:500px;width:100%;box-shadow:0 24px 80px rgba(9,58,114,0.25);margin:auto;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+          <div style="font-size:18px;font-weight:800;color:var(--text);"><i class="ti ti-tools-kitchen-2" style="color:#093a72;margin-right:6px;"></i>${existing ? 'Edit Resep' : 'Tambah Resep'}</div>
+          <button onclick="closeCogsMenuModal()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text3);"><i class="ti ti-x"></i></button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div class="auth-field" style="margin-bottom:0;"><label>Nama Menu *</label><input type="text" id="cm-nama" placeholder="cth: Es Kopi Susu" value="${existing ? existing.nama : ''}"></div>
+          <div class="auth-field" style="margin-bottom:0;"><label>Kategori</label>
+            <select id="cm-kategori" style="width:100%;font-size:14px;padding:11px 12px;border:1.5px solid rgba(9,58,114,0.13);border-radius:12px;background:#fff;outline:none;font-family:inherit;">
+              <option value="Bar" ${existing?.kategori==='Bar'?'selected':''}>Bar</option>
+              <option value="Kitchen" ${existing?.kategori==='Kitchen'?'selected':''}>Kitchen</option>
+              <option value="Lainnya" ${existing?.kategori==='Lainnya'?'selected':''}>Lainnya</option>
+            </select>
+          </div>
+        </div>
+        <div class="auth-field"><label>Harga Jual (Rp) — untuk kalkulasi Food Cost %</label>
+          <div style="position:relative;"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none;font-weight:500;">Rp</span>
+          <input type="text" inputmode="numeric" id="cm-hargajual" placeholder="0" style="padding-left:36px;" oninput="fmtInput(this);updateCogsMenuHPP()" value="${existing ? fmtRupiah(existing.hargaJual||0) : ''}"></div>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Bahan-Bahan Resep</div>
+        ${!bahans.length ? `<div style="background:var(--amber-light);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--amber);margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Tambahkan bahan baku di tab "Bahan Baku" terlebih dahulu.</div>` : ''}
+        <div id="cm-bahan-rows"></div>
+        ${bahans.length ? `<button onclick="addCogsMenuBahanRow()" class="btn-add" style="margin-bottom:14px;"><i class="ti ti-plus"></i> Tambah Bahan</button>` : ''}
+
+        <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;font-weight:600;color:var(--text2);">Total HPP</span>
+          <span id="cm-hpp-total" style="font-size:20px;font-weight:800;color:#093a72;">Rp 0</span>
+        </div>
+        <div id="cm-fc-display" style="margin-bottom:1.25rem;display:none;text-align:center;font-size:13px;font-weight:600;padding:8px;border-radius:10px;"></div>
+
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeCogsMenuModal()" style="flex:1;padding:11px;background:rgba(9,58,114,0.07);border:none;border-radius:50px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Batal</button>
+          <button onclick="saveCogsMenuModal()" style="flex:1;padding:11px;background:#093a72;color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(9,58,114,0.28);">Simpan Resep</button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+    renderCogsMenuBahanRows();
+    updateCogsMenuHPP();
+  };
+
+  buildModal();
+}
+
+function closeCogsMenuModal() {
+  const el = document.getElementById('cogs-menu-modal-ov');
+  if (el) el.remove();
+}
+
+function addCogsMenuBahanRow() {
+  cogsMenuBahanRows.push({ bahanId: '', jumlah: 1, _rid: 'r' + Math.random().toString(36).slice(2) });
+  renderCogsMenuBahanRows();
+  updateCogsMenuHPP();
+}
+
+function removeCogsMenuBahanRow(rid) {
+  cogsMenuBahanRows = cogsMenuBahanRows.filter(r => r._rid !== rid);
+  renderCogsMenuBahanRows();
+  updateCogsMenuHPP();
+}
+
+function renderCogsMenuBahanRows() {
+  const container = document.getElementById('cm-bahan-rows');
+  if (!container) return;
+  const bahans = getCogsBahan().sort((a,b) => a.nama.localeCompare(b.nama,'id'));
+  if (!bahans.length) { container.innerHTML = ''; return; }
+  container.innerHTML = cogsMenuBahanRows.map(r => {
+    const found = bahans.find(b => b.id === r.bahanId);
+    return `<div style="display:grid;grid-template-columns:1fr 110px 36px;gap:8px;align-items:center;margin-bottom:8px;">
+      <select onchange="cogsMenuBahanRows.find(x=>x._rid==='${r._rid}').bahanId=this.value;updateCogsMenuHPP()" style="font-size:13px;padding:9px 10px;border:1.5px solid rgba(9,58,114,0.13);border-radius:10px;background:#fff;outline:none;font-family:inherit;color:var(--text);">
+        <option value="">-- Pilih Bahan --</option>
+        ${bahans.map(b => `<option value="${b.id}" ${b.id===r.bahanId?'selected':''}>${b.nama} (${b.satuan})</option>`).join('')}
+      </select>
+      <div style="position:relative;">
+        <input type="number" min="0.001" step="0.01" value="${r.jumlah}" oninput="cogsMenuBahanRows.find(x=>x._rid==='${r._rid}').jumlah=parseFloat(this.value)||0;updateCogsMenuHPP()" style="width:100%;font-size:13px;padding:9px 10px;border:1.5px solid rgba(9,58,114,0.13);border-radius:10px;background:#fff;outline:none;font-family:inherit;text-align:center;">
+        ${found ? `<span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);pointer-events:none;">${found.satuan}</span>` : ''}
+      </div>
+      <button onclick="removeCogsMenuBahanRow('${r._rid}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:8px;border-radius:8px;font-size:15px;transition:all 0.15s;" onmouseover="this.style.color='var(--red)';this.style.background='var(--red-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function updateCogsMenuHPP() {
+  const bahans = getCogsBahan();
+  let total = 0;
+  cogsMenuBahanRows.forEach(r => {
+    const found = bahans.find(b => b.id === r.bahanId);
+    if (found && r.jumlah > 0) total += found.hargaSatuan * r.jumlah;
+  });
+  const totalEl = document.getElementById('cm-hpp-total');
+  if (totalEl) totalEl.textContent = fmt(total);
+
+  const hargaJualEl = document.getElementById('cm-hargajual');
+  const fcEl = document.getElementById('cm-fc-display');
+  if (hargaJualEl && fcEl) {
+    const hj = getRawVal(hargaJualEl);
+    if (hj > 0 && total > 0) {
+      const fc = (total / hj * 100).toFixed(1);
+      const isGood = fc < 30, isMid = fc < 40;
+      fcEl.style.display = '';
+      fcEl.style.background = isGood ? 'var(--green-light)' : isMid ? 'var(--amber-light)' : 'var(--red-light)';
+      fcEl.style.color = isGood ? 'var(--green)' : isMid ? 'var(--amber)' : 'var(--red)';
+      fcEl.textContent = 'Food Cost: ' + fc + '% — ' + (isGood ? '✓ Bagus' : isMid ? '⚠ Perlu perhatian' : '✗ Terlalu tinggi');
+    } else {
+      fcEl.style.display = 'none';
+    }
+  }
+}
+
+function saveCogsMenuModal() {
+  const nama = document.getElementById('cm-nama').value.trim();
+  const kategori = document.getElementById('cm-kategori').value;
+  const hargaJual = getRawVal(document.getElementById('cm-hargajual'));
+  if (!nama) { showToast('Nama menu wajib diisi'); return; }
+  const bahanClean = cogsMenuBahanRows.filter(r => r.bahanId && r.jumlah > 0).map(r => ({ bahanId: r.bahanId, jumlah: r.jumlah }));
+  const menus = getCogsMenu();
+  if (activeCogsMenuEdit) {
+    const idx = menus.findIndex(m => m.id === activeCogsMenuEdit);
+    if (idx > -1) menus[idx] = { ...menus[idx], nama, kategori, hargaJual, bahan: bahanClean };
+  } else {
+    menus.push({ id: 'cm' + Date.now(), nama, kategori, hargaJual, bahan: bahanClean });
+  }
+  saveCogsMenu(menus);
+  closeCogsMenuModal();
+  renderCogsMenu();
+  showToast(activeCogsMenuEdit ? 'Resep diperbarui' : 'Resep berhasil disimpan');
+  activeCogsMenuEdit = null;
+}
+
+function sidebarGoCogs(sub) {
+  openSidebarGroup('cogs');
+  switchTab('cogs');
+  updateSidebarActive('sitem-cogs-' + sub);
+  switchCogsTab(sub);
+  if (window.innerWidth < 768) closeSidebar();
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function formatTanggal(tgl) {
   if (!tgl) return '—';
