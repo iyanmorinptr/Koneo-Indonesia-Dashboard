@@ -951,6 +951,12 @@
       <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="auth-btn" onclick="doLogin()"><i class="ti ti-login"></i> Masuk</button>
+    <div style="margin-top:12px;text-align:center;">
+      <button onclick="document.getElementById('login-import-file').click()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:50px;color:rgba(237,230,221,0.75);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.10)'">
+        <i class="ti ti-upload" style="font-size:13px;"></i> Import backup
+      </button>
+      <input type="file" id="login-import-file" accept=".json" style="display:none;" onchange="doImportOnSetup(event)">
+    </div>
   </div>
 </div>
 
@@ -966,6 +972,13 @@
     <div class="auth-field"><label>Password</label><input type="password" id="setup-password" placeholder="Minimal 6 karakter" onkeydown="if(event.key==='Enter')doSetup()"></div>
     <div class="auth-field"><label>Konfirmasi Password</label><input type="password" id="setup-password2" placeholder="Ulangi password" onkeydown="if(event.key==='Enter')doSetup()"></div>
     <button class="auth-btn" onclick="doSetup()">Buat Akun Owner</button>
+    <div style="margin-top:16px;text-align:center;">
+      <div style="font-size:12px;color:rgba(237,230,221,0.55);margin-bottom:10px;">— atau —</div>
+      <button onclick="document.getElementById('setup-import-file').click()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:50px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
+        <i class="ti ti-upload"></i> Sudah punya backup? Import data
+      </button>
+      <input type="file" id="setup-import-file" accept=".json" style="display:none;" onchange="doImportOnSetup(event)">
+    </div>
   </div>
 </div>
 
@@ -3025,6 +3038,31 @@ function doImport(e) {
       showToast(count + ' data berhasil diimpor!');
       buildRiwayat(); buildDashboard(); buildDataSummary();
     } catch(err) { showToast('File tidak valid!'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function doImportOnSetup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      let count = 0;
+      Object.entries(data).forEach(([k, v]) => {
+        if (k.startsWith('koneo_')) { localStorage.setItem(k, v); count++; }
+      });
+      const users = getUsers();
+      if (!users.length) { alert('File backup tidak mengandung data akun. Coba file lain.'); return; }
+      // Sembunyikan kedua overlay, tampilkan login
+      document.getElementById('setup-overlay').style.display = 'none';
+      document.getElementById('auth-overlay').style.display = 'flex';
+      document.getElementById('auth-error').style.display = 'none';
+      setTimeout(() => { const el = document.getElementById('auth-email'); if(el) el.focus(); }, 200);
+      showToast('Data berhasil diimpor! Silakan login.');
+    } catch(err) { alert('File tidak valid. Pastikan file adalah backup JSON dari KONEO.'); }
   };
   reader.readAsText(file);
   e.target.value = '';
