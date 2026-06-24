@@ -1695,9 +1695,12 @@
         </div>
       </div>
       <!-- GPS Status -->
-      <div id="absensi-gps-status" style="background:#E6F1FB;border:1px solid rgba(55,138,221,0.25);border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:13px;display:flex;align-items:center;gap:10px;">
-        <i class="ti ti-map-pin" style="color:#378ADD;font-size:18px;"></i>
-        <div><span id="absensi-gps-text">Mengambil lokasi...</span></div>
+      <div id="absensi-gps-status" style="background:#E6F1FB;border:1px solid rgba(55,138,221,0.25);border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <i class="ti ti-map-pin" style="color:#378ADD;font-size:18px;flex-shrink:0;"></i>
+          <span id="absensi-gps-text">Tekan tombol untuk aktifkan GPS</span>
+        </div>
+        <button onclick="initAbsensiGps()" style="padding:7px 14px;border-radius:10px;border:none;background:#093a72;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;"><i class="ti ti-map-pin"></i> Aktifkan GPS</button>
       </div>
       <div id="absensi-table-wrap" style="overflow-x:auto;">
         <div id="absensi-table"></div>
@@ -2429,7 +2432,7 @@ function switchTab(tab) {
   if (tab === 'beranda') { buildDashboard(); const bar=document.getElementById('submit-bar'); if(bar) bar.style.display='none'; }
   if (tab === 'stok') buildStokTab();
   if (tab === 'jadwal') buildJadwalTab();
-  if (tab === 'absensi') { buildAbsensiTab(); initAbsensiGps(); }
+  if (tab === 'absensi') buildAbsensiTab();
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); }
   if (tab === 'cogs') buildCogsTab();
   // sembunyikan submit bar di stok dan pengaturan
@@ -2980,9 +2983,7 @@ const JADWAL_DEFAULT = {
     ]},
     { id: 'kitchen', name: 'KITCHEN', employees: [
       { id: 'nopita', name: 'Nopita', note: 'HC' },
-      { id: 'dwi', name: 'Dwi' },
-      { id: 'gede', name: 'Gede' },
-      { id: 'manda', name: 'Manda' }
+      { id: 'dwi', name: 'Dwi' }
     ]}
   ],
   baseSchedule: {
@@ -2991,8 +2992,7 @@ const JADWAL_DEFAULT = {
     ayun:   ['16:00-22:00','14:00-22:00','L','10:00-18:00','10:00-18:00','14:00-22:00','12:00-22:00'],
     nopita: ['10:00-18:00','16:00-22:00','16:00-22:00','L','F','F','10:00-20:00'],
     dwi:    ['16:00-22:00','10:00-18:00','10:00-18:00','F','L','14:00-22:00','12:00-22:00'],
-    gede:   ['F','F','F','F','L','F','F'],
-    manda:  ['L','F','F','F','F','F','F']
+
   }
 };
 
@@ -3023,7 +3023,16 @@ function getWeekDates(offset) {
 
 function getJadwalConfig() {
   const stored = DB.getItem('koneo_jadwal_config');
-  return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(JADWAL_DEFAULT));
+  if (stored) {
+    const config = JSON.parse(stored);
+    // Migrate: remove resigned employees
+    const resigned = ['gede', 'manda'];
+    config.departments.forEach(d => {
+      d.employees = d.employees.filter(e => !resigned.includes(e.id));
+    });
+    return config;
+  }
+  return JSON.parse(JSON.stringify(JADWAL_DEFAULT));
 }
 
 function getWeekSchedule(weekKey, config) {
@@ -3246,29 +3255,37 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 
 function initAbsensiGps() {
   const statusEl = document.getElementById('absensi-gps-text');
+  const statusBox = document.getElementById('absensi-gps-status');
   if (!navigator.geolocation) {
-    if (statusEl) statusEl.textContent = 'GPS tidak tersedia di browser ini. Absensi manual.';
+    if (statusEl) statusEl.textContent = 'GPS tidak didukung browser ini. Gunakan Chrome/Safari terbaru.';
+    if (statusBox) statusBox.style.background = '#FCEBEB';
     return;
   }
-  if (statusEl) statusEl.textContent = 'Mengambil lokasi GPS...';
+  if (statusEl) statusEl.textContent = 'Sedang mengambil lokasi GPS...';
+  if (statusBox) statusBox.style.background = '#E6F1FB';
   navigator.geolocation.getCurrentPosition(pos => {
     _absensiGpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     const lokasi = DB.getItem('koneo_lokasi_kantor') ? JSON.parse(DB.getItem('koneo_lokasi_kantor')) : null;
     if (!lokasi) {
-      if (statusEl) statusEl.innerHTML = `<i class="ti ti-map-pin" style="color:#BA7517;"></i> Lokasi kantor belum diset. Owner perlu klik "Set Lokasi Kantor".`;
-      document.getElementById('absensi-gps-status').style.background = '#FAEEDA';
+      if (statusEl) statusEl.textContent = 'GPS aktif! Tapi lokasi kantor belum diset — owner perlu klik "Set Lokasi Kantor" dulu.';
+      if (statusBox) statusBox.style.background = '#FAEEDA';
       return;
     }
     const dist = Math.round(haversineDistance(_absensiGpsCoords.lat, _absensiGpsCoords.lng, lokasi.lat, lokasi.lng));
     const radius = lokasi.radius || 100;
     const inRange = dist <= radius;
-    if (statusEl) statusEl.innerHTML = `${inRange ? '<i class="ti ti-circle-check" style="color:#1D9E75;"></i>' : '<i class="ti ti-alert-triangle" style="color:#E24B4A;"></i>'} Jarak dari kantor: <strong>${dist}m</strong> ${inRange ? '— Dalam radius, absensi diizinkan.' : `— Di luar radius ${radius}m.`}`;
-    document.getElementById('absensi-gps-status').style.background = inRange ? '#E1F5EE' : '#FCEBEB';
-    buildAbsensiTable();
+    if (statusEl) statusEl.innerHTML = `${inRange ? '✅' : '❌'} Jarak dari kantor: <strong>${dist}m</strong> ${inRange ? '— Dalam radius, absensi diizinkan.' : `— Di luar radius ${radius}m, tidak bisa absen.`}`;
+    if (statusBox) statusBox.style.background = inRange ? '#E1F5EE' : '#FCEBEB';
+    const session = getSession(); const role = session ? session.role : '';
+    if (role === 'karyawan') buildCheckinCard();
   }, err => {
-    if (statusEl) statusEl.textContent = 'Tidak bisa mengambil lokasi. Pastikan GPS aktif dan izin diberikan.';
-    document.getElementById('absensi-gps-status').style.background = '#FCEBEB';
-  });
+    let msg = 'Tidak bisa mengambil lokasi GPS.';
+    if (err.code === 1) msg = 'Izin GPS ditolak. Buka Pengaturan browser → izinkan akses lokasi untuk situs ini, lalu tekan Aktifkan GPS lagi.';
+    else if (err.code === 2) msg = 'GPS tidak tersedia. Pastikan sinyal GPS aktif di perangkat.';
+    else if (err.code === 3) msg = 'Timeout mengambil GPS. Coba tekan Aktifkan GPS lagi.';
+    if (statusEl) statusEl.textContent = msg;
+    if (statusBox) statusBox.style.background = '#FCEBEB';
+  }, { timeout: 10000, maximumAge: 60000 });
 }
 
 function setLokasiKantor() {
