@@ -4392,7 +4392,8 @@ function updateBeliBadge() {
   const perlu = items.filter(item => {
     if (!item.stokMin) return false;
     const aktual = saved[item.id] !== undefined ? saved[item.id] : null;
-    return aktual !== null && aktual <= item.stokMin;
+    if (aktual === null) return true;
+    return aktual <= item.stokMin;
   });
   [document.getElementById('beli-badge'), document.getElementById('sidebar-beli-badge')].forEach(badge => {
     if (!badge) return;
@@ -4407,13 +4408,16 @@ function renderPerluDibeli() {
   const saved = getOpname(tgl);
   const container = document.getElementById('beli-container');
 
+  // Show all items with stokMin set — whether opname done or not
   const perlu = items.filter(item => {
     if (!item.stokMin) return false;
     const aktual = saved[item.id] !== undefined ? saved[item.id] : null;
-    return aktual !== null && aktual <= item.stokMin;
+    // If opname done: show if at/below min. If not done: show anyway (assume needs buying)
+    if (aktual === null) return true;
+    return aktual <= item.stokMin;
   }).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
 
-  const belumOpname = items.filter(item => item.stokMin && saved[item.id] === undefined).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  const belumOpname = [];
 
   let html = '';
 
@@ -4457,16 +4461,20 @@ function renderPerluDibeli() {
       <p style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Stok di bawah atau sama dengan batas minimum.</p>`;
 
     perlu.forEach(item => {
-      const aktual = saved[item.id] ?? 0;
-      const kurang = item.stokMin - aktual;
-      const persen = Math.round((aktual / item.stokMin) * 100);
+      const aktualRaw = saved[item.id];
+      const aktual = aktualRaw !== undefined ? aktualRaw : null;
+      const kurang = aktual !== null ? Math.max(0, item.stokMin - aktual) : item.stokMin;
+      const persen = aktual !== null ? Math.round((aktual / item.stokMin) * 100) : 0;
+      const noOpname = aktual === null;
       html += `<div id="beli-row-${item.id}" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--red-light);border-radius:12px;margin-bottom:8px;">
-        <div onclick="toggleBeliCheck('${item.id}')" style="width:32px;height:32px;border-radius:10px;background:#fff;border:2px solid var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">
+        <div onclick="toggleBeliCheck('${item.id}')" style="width:32px;height:32px;border-radius:10px;background:#fff;border:2px solid var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.2s;" title="Centang jika sudah dibeli">
+          <i class="ti ti-shopping-cart" style="font-size:14px;color:var(--red);opacity:0.5;"></i>
         </div>
         <div style="flex:1;">
           <div style="font-size:14px;font-weight:700;color:var(--text);">${item.nama} <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:rgba(9,58,114,0.08);color:var(--text3);margin-left:4px;">${item.kategori||''}</span></div>
           <div style="font-size:12px;color:var(--text2);margin-top:2px;">
-            Sisa: <b style="color:var(--red);">${aktual} ${item.satuan}</b> · Perlu beli: <b>${kurang} ${item.satuan}</b>${item.lokasi ? ` · <i class="ti ti-map-pin" style="font-size:11px;color:#093a72;"></i> <b style="color:#093a72;">${item.lokasi}</b>` : ''}
+            ${noOpname ? '<span style="color:#BA7517;font-weight:600;">Belum di-opname</span> · ' : `Sisa: <b style="color:var(--red);">${aktual} ${item.satuan}</b> · `}
+            Beli min: <b>${kurang} ${item.satuan}</b>${item.lokasi ? ` · <i class="ti ti-map-pin" style="font-size:11px;color:#093a72;"></i> <b style="color:#093a72;">${item.lokasi}</b>` : ''}
           </div>
           <div style="height:5px;background:rgba(226,75,74,0.2);border-radius:3px;margin-top:6px;overflow:hidden;">
             <div style="height:100%;width:${Math.min(persen,100)}%;background:var(--red);border-radius:3px;"></div>
