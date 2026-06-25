@@ -1381,7 +1381,7 @@
           <div class="beranda-greeting-wrap">
             <div class="beranda-eyebrow" data-i18n="welcome_sub">Koneo Indonesia &nbsp;&bull;&nbsp; Powered by Mipo Group</div>
             <div class="beranda-title">KONEO<br><span>DASHBOARD</span></div>
-            <div class="beranda-sub" data-i18n="welcome_desc">Hari ini adalah kesempatan baru untuk memberikan yang terbaik bagi Koneo.</div>
+            <div class="beranda-sub" id="beranda-motivasi" data-i18n="welcome_desc">Hari ini adalah kesempatan baru untuk memberikan yang terbaik bagi Koneo.</div>
           </div>
           <div class="beranda-mipo-badge">
             <div class="beranda-mipo-label">Powered by</div>
@@ -2439,9 +2439,10 @@ function loadData() {
 function renderSubmitBar() {
   const tgl = document.getElementById('tanggal').value;
   const bar = document.getElementById('submit-bar');
-  // Hide submit bar on beranda
+  // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  if (activeTab && activeTab.id === 'tab-beranda') { bar.style.display = 'none'; return; }
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs'];
+  if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
   if (submitted) {
@@ -2530,7 +2531,7 @@ function switchTab(tab) {
   if (tab === 'cogs') buildCogsTab();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
-  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs') ? 'none' : '';
+  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
 }
