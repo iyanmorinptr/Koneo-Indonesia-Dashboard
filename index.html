@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260625-008';
+  var VER = 'v20260625-009';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -30,6 +30,7 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1319,6 +1320,7 @@
       <button class="sidebar-item" id="sitem-pengeluaran" onclick="sidebarGo('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
       <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
       <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
+      <button class="sidebar-item" id="sitem-laporan-pajak" onclick="sidebarGo('laporan-pajak')"><i class="ti ti-receipt-tax"></i> Laporan Pajak</button>
     </div>
 
     <!-- Stock -->
@@ -1568,6 +1570,57 @@
   </div>
 
   <!-- STOK -->
+  <!-- LAPORAN PAJAK -->
+  <div id="tab-laporan-pajak" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-receipt-tax"></i> Laporan Pajak Bulanan</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;">Data otomatis dari Pajak Majoo harian</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="month" id="pajak-month-picker" onchange="renderLaporanPajak()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);">
+          <button onclick="downloadPajakPNG()" style="padding:8px 14px;background:#093a72;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"><i class="ti ti-download"></i> Download PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Laporan yang akan di-render dan di-capture -->
+    <div id="pajak-report-wrapper" style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+      <div id="pajak-report-content">
+        <div style="text-align:center;font-size:16px;font-weight:700;font-family:serif;margin-bottom:16px;color:#000;">LAPORAN PENJUALAN</div>
+        <table style="border-collapse:collapse;width:100%;margin-bottom:16px;">
+          <tr><td style="padding:2px 8px;font-size:12px;color:#000;width:160px;">NPWPD</td><td style="padding:2px 8px;font-size:12px;color:#000;">: 300114600411</td></tr>
+          <tr><td style="padding:2px 8px;font-size:12px;color:#000;">NAMA WAJIB PAJAK</td><td style="padding:2px 8px;font-size:12px;color:#000;">: KONEO COFFEE</td></tr>
+          <tr><td style="padding:2px 8px;font-size:12px;color:#000;">ALAMAT</td><td style="padding:2px 8px;font-size:12px;color:#000;">: Jl. Nangka Utara No.189, Denpasar Utara</td></tr>
+          <tr><td style="padding:2px 8px;font-size:12px;color:#000;">NO TELEPON</td><td style="padding:2px 8px;font-size:12px;color:#000;">: 0821 835 43432</td></tr>
+          <tr><td style="padding:2px 8px;font-size:12px;color:#000;">MASA PAJAK (BULAN)</td><td id="pajak-header-bulan" style="padding:2px 8px;font-size:12px;color:#000;font-weight:600;">: -</td></tr>
+        </table>
+        <table id="pajak-table" style="border-collapse:collapse;width:100%;font-size:12px;color:#000;">
+          <thead>
+            <tr style="background:#f0f0f0;">
+              <th style="border:1px solid #999;padding:7px 10px;text-align:center;font-weight:700;">TANGGAL</th>
+              <th style="border:1px solid #999;padding:7px 10px;text-align:center;font-weight:700;">TOTAL PENDAPATAN (BRUTO)</th>
+              <th style="border:1px solid #999;padding:7px 10px;text-align:center;font-weight:700;">PAJAK YANG DIKENAKAN (10%)</th>
+            </tr>
+          </thead>
+          <tbody id="pajak-tbody"></tbody>
+          <tfoot>
+            <tr style="background:#f0f0f0;font-weight:700;">
+              <td style="border:1px solid #999;padding:7px 10px;text-align:center;">TOTAL</td>
+              <td id="pajak-total-bruto" style="border:1px solid #999;padding:7px 10px;text-align:right;">Rp -</td>
+              <td id="pajak-total-pajak" style="border:1px solid #999;padding:7px 10px;text-align:right;">Rp -</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style="margin-top:32px;text-align:right;font-size:12px;color:#000;">
+          <div style="font-weight:600;">TANDA TANGAN</div>
+          <div style="margin-top:60px;">(...................................)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="tab-stok" class="section">
 
     <!-- Sub-tab nav -->
@@ -2701,7 +2754,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -2777,7 +2830,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -2789,9 +2842,10 @@ function switchTab(tab) {
   if (tab === 'absensi') buildAbsensiTab();
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); }
   if (tab === 'cogs') buildCogsTab();
+  if (tab === 'laporan-pajak') renderLaporanPajak();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
-  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda') ? 'none' : '';
+  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
 }
@@ -2841,6 +2895,86 @@ function updateSidebarActive(id) {
   document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById(id);
   if (el) el.classList.add('active');
+}
+
+// ── LAPORAN PAJAK ──────────────────────────────────────────────────────────────
+function renderLaporanPajak() {
+  const picker = document.getElementById('pajak-month-picker');
+  if (!picker.value) {
+    const now = new Date();
+    picker.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  }
+  const [yr, mo] = picker.value.split('-').map(Number);
+  const daysInMonth = new Date(yr, mo, 0).getDate();
+  const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('pajak-header-bulan').textContent = ': ' + monthNames[mo-1].toUpperCase() + ' ' + yr;
+
+  const tbody = document.getElementById('pajak-tbody');
+  tbody.innerHTML = '';
+  let totalBruto = 0, totalPajak = 0;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = yr + '-' + String(mo).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const raw = DB.getItem('koneo_day_' + dateStr);
+    let pajakMajoo = 0;
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        pajakMajoo = (data.simple && data.simple.pajak_majoo) ? Number(data.simple.pajak_majoo) : 0;
+      } catch(e) {}
+    }
+    const bruto = pajakMajoo * 10;
+    totalBruto += bruto;
+    totalPajak += pajakMajoo;
+
+    const ddMM = String(d).padStart(2,'0') + '/' + String(mo).padStart(2,'0') + '/' + yr;
+    const tr = document.createElement('tr');
+    tr.style.cssText = d % 2 === 0 ? 'background:#fafafa;' : '';
+    tr.innerHTML = `
+      <td style="border:1px solid #ccc;padding:5px 10px;text-align:center;">${ddMM}</td>
+      <td style="border:1px solid #ccc;padding:5px 10px;text-align:right;">${bruto > 0 ? 'Rp ' + bruto.toLocaleString('id-ID',{minimumFractionDigits:2}) : 'Rp -'}</td>
+      <td style="border:1px solid #ccc;padding:5px 10px;text-align:right;">${pajakMajoo > 0 ? 'Rp ' + pajakMajoo.toLocaleString('id-ID',{minimumFractionDigits:2}) : 'Rp -'}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('pajak-total-bruto').textContent = 'Rp ' + totalBruto.toLocaleString('id-ID',{minimumFractionDigits:2});
+  document.getElementById('pajak-total-pajak').textContent = 'Rp ' + totalPajak.toLocaleString('id-ID',{minimumFractionDigits:2});
+}
+
+function downloadPajakPNG() {
+  const wrapper = document.getElementById('pajak-report-wrapper');
+  const picker = document.getElementById('pajak-month-picker');
+  const [yr, mo] = picker.value ? picker.value.split('-') : [new Date().getFullYear(), String(new Date().getMonth()+1).padStart(2,'0')];
+  const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const filename = 'Laporan_Pajak_' + monthNames[Number(mo)-1] + '_' + yr + '.png';
+
+  // Use html2canvas if available, otherwise use native approach
+  if (typeof html2canvas !== 'undefined') {
+    html2canvas(wrapper, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
+      const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
+    });
+    return;
+  }
+
+  // Fallback: draw to canvas manually via SVG foreignObject
+  const w = wrapper.offsetWidth, h = wrapper.offsetHeight;
+  const html = wrapper.innerHTML;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><foreignObject width='100%' height='100%'><div xmlns='http://www.w3.org/1999/xhtml' style='font-family:sans-serif;font-size:12px;background:#fff;padding:24px;'>${wrapper.innerHTML}</div></foreignObject></svg>`;
+  const blob = new Blob([svg], {type:'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = function() {
+    const canvas = document.createElement('canvas');
+    canvas.width = w * 2; canvas.height = h * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
+  };
+  img.src = url;
 }
 
 function sidebarGo(tab) {
