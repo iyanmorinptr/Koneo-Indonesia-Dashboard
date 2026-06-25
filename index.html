@@ -1591,6 +1591,33 @@
     <!-- Laporan Stok -->
     <!-- Perlu Dibeli -->
     <div id="stok-section-beli" style="display:none;">
+      <!-- Add item form -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-title"><i class="ti ti-plus"></i> Tambah Item Belanja</div>
+        <div style="display:grid;grid-template-columns:1fr 80px 90px 110px auto;gap:8px;align-items:end;">
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Nama Barang</label>
+            <input id="beli-input-nama" type="text" placeholder="Contoh: Susu UHT" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Jumlah</label>
+            <input id="beli-input-qty" type="number" min="1" placeholder="1" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Satuan</label>
+            <input id="beli-input-satuan" type="text" placeholder="liter / pcs" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Kategori</label>
+            <select id="beli-input-kat" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);box-sizing:border-box;">
+              <option value="Bar">Bar</option>
+              <option value="Kitchen">Kitchen</option>
+              <option value="Operasional">Operasional</option>
+            </select>
+          </div>
+          <button onclick="addBeliItem()" style="padding:9px 18px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">+ Tambah</button>
+        </div>
+      </div>
       <div id="beli-container"></div>
     </div>
 
@@ -4386,142 +4413,115 @@ function switchStokTab(tab) {
 }
 
 function updateBeliBadge() {
-  const items = getStokItems();
-  const tgl = getLocalDateStr();
-  const saved = getOpname(tgl);
-  const perlu = items.filter(item => {
-    if (!item.stokMin) return false;
-    const aktual = saved[item.id] !== undefined ? saved[item.id] : null;
-    if (aktual === null) return true;
-    return aktual <= item.stokMin;
-  });
+  const list = getBeliList();
   [document.getElementById('beli-badge'), document.getElementById('sidebar-beli-badge')].forEach(badge => {
     if (!badge) return;
-    if (perlu.length > 0) { badge.style.display = 'inline'; badge.textContent = perlu.length; }
+    if (list.length > 0) { badge.style.display = 'inline'; badge.textContent = list.length; }
     else badge.style.display = 'none';
   });
 }
 
+function getBeliList() {
+  const raw = DB.getItem('koneo_beli_list');
+  try { return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
+}
+
+function saveBeliList(list) {
+  DB.setItem('koneo_beli_list', JSON.stringify(list));
+}
+
+function addBeliItem() {
+  const nama = document.getElementById('beli-input-nama').value.trim();
+  const qty = parseFloat(document.getElementById('beli-input-qty').value) || 1;
+  const satuan = document.getElementById('beli-input-satuan').value.trim() || 'pcs';
+  const kategori = document.getElementById('beli-input-kat').value;
+  if (!nama) { showToast('Masukkan nama barang dulu'); document.getElementById('beli-input-nama').focus(); return; }
+  const list = getBeliList();
+  list.push({ id: 'beli_' + Date.now(), nama, qty, satuan, kategori, addedAt: new Date().toISOString() });
+  saveBeliList(list);
+  document.getElementById('beli-input-nama').value = '';
+  document.getElementById('beli-input-qty').value = '';
+  document.getElementById('beli-input-satuan').value = '';
+  document.getElementById('beli-input-nama').focus();
+  renderPerluDibeli();
+  updateBeliBadge();
+  showToast(nama + ' ditambahkan ke daftar belanja');
+}
+
 function renderPerluDibeli() {
-  const items = getStokItems();
-  const tgl = getLocalDateStr();
-  const saved = getOpname(tgl);
+  const list = getBeliList();
   const container = document.getElementById('beli-container');
+  const now = new Date().toLocaleDateString('id-ID', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-  // Show all items with stokMin set — whether opname done or not
-  const perlu = items.filter(item => {
-    if (!item.stokMin) return false;
-    const aktual = saved[item.id] !== undefined ? saved[item.id] : null;
-    // If opname done: show if at/below min. If not done: show anyway (assume needs buying)
-    if (aktual === null) return true;
-    return aktual <= item.stokMin;
-  }).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
-
-  const belumOpname = [];
-
-  let html = '';
-
-  // Hero header
-  html += `<div class="welcome-hero" style="padding:1.5rem 2rem;margin-bottom:1.25rem;">
-    <div style="position:relative;z-index:1;">
-      <div class="welcome-greeting">Daftar Belanja Hari Ini</div>
-      <div class="welcome-title" style="font-size:22px;">${perlu.length > 0 ? perlu.length + ' barang perlu dibeli' : 'Semua stok aman!'}</div>
-      <div class="welcome-sub" style="font-size:13px;">Berdasarkan hasil opname ${new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div>
-      ${perlu.length > 0 ? `<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-        <button onclick="kirimBeliWA()" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;border:none;padding:10px 20px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(37,211,102,0.35);">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.556 4.112 1.526 5.835L.057 23.927l6.235-1.635A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.359-.214-3.7.97.987-3.607-.234-.371A9.818 9.818 0 1112 21.818z"/></svg>
-          Kirim ke WhatsApp
-        </button>
-        <button onclick="printBeliPDF()" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.18);color:#fff;border:1.5px solid rgba(255,255,255,0.35);padding:10px 20px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
-          <i class="ti ti-printer"></i> Cetak / PDF
-        </button>
-      </div>` : ''}
-    </div>
-  </div>`;
-
-  if (!items.length) {
-    container.innerHTML = html + '<div class="card"><div class="empty-state">Belum ada master barang. Tambahkan barang dan set stok minimum dulu.</div></div>';
-    return;
+  let html = '<div class="welcome-hero" style="padding:1.5rem 2rem;margin-bottom:1.25rem;"><div style="position:relative;z-index:1;">';
+  html += '<div class="welcome-greeting">Daftar Belanja</div>';
+  html += '<div class="welcome-title" style="font-size:22px;">' + (list.length > 0 ? list.length + ' item perlu dibeli' : 'Daftar belanja kosong') + '</div>';
+  html += '<div class="welcome-sub" style="font-size:13px;">' + now + '</div>';
+  if (list.length > 0) {
+    html += '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">';
+    html += '<button onclick="kirimBeliWA()" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;border:none;padding:10px 20px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(37,211,102,0.35);"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.556 4.112 1.526 5.835L.057 23.927l6.235-1.635A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.359-.214-3.7.97.987-3.607-.234-.371A9.818 9.818 0 1112 21.818z"/></svg> Kirim ke WhatsApp</button>';
+    html += '</div>';
   }
+  html += '</div></div>';
 
-  if (perlu.length === 0 && belumOpname.length === 0) {
-    html += `<div class="card" style="text-align:center;padding:2rem;">
-      <div style="font-size:48px;margin-bottom:12px;">✅</div>
-      <div style="font-size:17px;font-weight:700;color:var(--green);margin-bottom:6px;">Semua Stok Aman</div>
-      <div style="font-size:13px;color:var(--text3);">Tidak ada barang yang perlu dibeli hari ini.</div>
-    </div>`;
+  if (list.length === 0) {
+    html += '<div class="card" style="text-align:center;padding:2rem;"><div style="font-size:48px;margin-bottom:12px;">🛒</div><div style="font-size:17px;font-weight:700;color:var(--text2);margin-bottom:6px;">Daftar Belanja Kosong</div><div style="font-size:13px;color:var(--text3);">Tambahkan item di form atas untuk memulai daftar belanja.</div></div>';
     container.innerHTML = html;
     return;
   }
 
-  // Daftar perlu dibeli
-  if (perlu.length > 0) {
-    html += `<div class="card" style="margin-bottom:1rem;border:1.5px solid var(--red-light);">
-      <div class="card-title" style="color:var(--red);"><i class="ti ti-shopping-cart" style="color:var(--red);"></i> Harus Dibeli Sekarang</div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Stok di bawah atau sama dengan batas minimum.</p>`;
+  html += '<div class="card" style="border:1.5px solid var(--border);">';
+  html += '<div class="card-title"><i class="ti ti-shopping-cart"></i> Item Perlu Dibeli</div>';
+  html += '<p style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Centang item yang sudah dibeli — item akan langsung hilang dari daftar.</p>';
 
-    perlu.forEach(item => {
-      const aktualRaw = saved[item.id];
-      const aktual = aktualRaw !== undefined ? aktualRaw : null;
-      const kurang = aktual !== null ? Math.max(0, item.stokMin - aktual) : item.stokMin;
-      const persen = aktual !== null ? Math.round((aktual / item.stokMin) * 100) : 0;
-      const noOpname = aktual === null;
-      html += `<div id="beli-row-${item.id}" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--red-light);border-radius:12px;margin-bottom:8px;">
-        <div onclick="toggleBeliCheck('${item.id}')" style="width:32px;height:32px;border-radius:10px;background:#fff;border:2px solid var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.2s;" title="Centang jika sudah dibeli">
-          <i class="ti ti-shopping-cart" style="font-size:14px;color:var(--red);opacity:0.5;"></i>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:700;color:var(--text);">${item.nama} <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:rgba(9,58,114,0.08);color:var(--text3);margin-left:4px;">${item.kategori||''}</span></div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px;">
-            ${noOpname ? '<span style="color:#BA7517;font-weight:600;">Belum di-opname</span> · ' : `Sisa: <b style="color:var(--red);">${aktual} ${item.satuan}</b> · `}
-            Beli min: <b>${kurang} ${item.satuan}</b>${item.lokasi ? ` · <i class="ti ti-map-pin" style="font-size:11px;color:#093a72;"></i> <b style="color:#093a72;">${item.lokasi}</b>` : ''}
-          </div>
-          <div style="height:5px;background:rgba(226,75,74,0.2);border-radius:3px;margin-top:6px;overflow:hidden;">
-            <div style="height:100%;width:${Math.min(persen,100)}%;background:var(--red);border-radius:3px;"></div>
-          </div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:11px;font-weight:700;color:var(--red);">BELI</div>
-          <div style="font-size:18px;font-weight:900;color:var(--red);">${kurang}</div>
-          <div style="font-size:11px;color:var(--text3);">${item.satuan}</div>
-        </div>
-      </div>`;
-    });
+  const catColors = {Bar:'#093a72',Kitchen:'#2e7d32',Operasional:'#7b5ea7'};
+  const catBg = {Bar:'rgba(9,58,114,0.08)',Kitchen:'rgba(46,125,50,0.08)',Operasional:'rgba(123,94,167,0.08)'};
+
+  list.forEach(function(item) {
+    const color = catColors[item.kategori] || '#666';
+    const bg = catBg[item.kategori] || 'rgba(0,0,0,0.05)';
+    html += '<div id="beli-row-' + item.id + '" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;margin-bottom:8px;background:var(--surface2,rgba(9,58,114,0.03));border:1px solid var(--border);">';
+    html += '<div onclick="toggleBeliCheck(\'' + item.id + '\')" style="width:36px;height:36px;border-radius:10px;background:#fff;border:2px solid ' + color + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.2s;" title="Centang jika sudah dibeli"><i class="ti ti-check" style="font-size:16px;color:' + color + ';opacity:0.4;"></i></div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="font-size:14px;font-weight:700;color:var(--text);">' + item.nama + ' <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:' + bg + ';color:' + color + ';margin-left:4px;">' + item.kategori + '</span></div>';
+    html += '<div style="font-size:12px;color:var(--text3);margin-top:2px;">Jumlah: <b>' + item.qty + ' ' + item.satuan + '</b></div>';
     html += '</div>';
-  }
+    html += '<div style="display:flex;align-items:center;gap:8px;">';
+    html += '<div style="text-align:right;"><div style="font-size:18px;font-weight:900;color:' + color + ';">' + item.qty + '</div><div style="font-size:11px;color:var(--text3);">' + item.satuan + '</div></div>';
+    html += '<button onclick="hapusBeliItem(\'' + item.id + '\')" style="width:30px;height:30px;border:none;background:rgba(226,75,74,0.1);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#E24B4A;" title="Hapus"><i class="ti ti-trash" style="font-size:14px;"></i></button>';
+    html += '</div></div>';
+  });
 
-  // Belum di-opname tapi ada stok minimum
-  if (belumOpname.length > 0) {
-    html += `<div class="card" style="border:1.5px solid var(--amber-light);">
-      <div class="card-title" style="color:var(--amber);"><i class="ti ti-alert-triangle" style="color:var(--amber);"></i> Belum Di-Opname</div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Barang ini punya stok minimum tapi belum ada data opname hari ini.</p>`;
-    belumOpname.forEach(item => {
-      html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);">
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:600;">${item.nama}</div>
-          <div style="font-size:12px;color:var(--text3);">Min: ${item.stokMin} ${item.satuan} · <span class="stok-badge ${item.kategori.toLowerCase()}">${item.kategori}</span></div>
-        </div>
-        <button onclick="switchStokTab('opname')" style="background:var(--amber-light);border:none;cursor:pointer;color:var(--amber);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;">Input Opname →</button>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
+  html += '</div>';
   container.innerHTML = html;
 }
 
 function toggleBeliCheck(itemId) {
-  // Auto-reset stok to stokMin immediately on check
-  const items = getStokItems();
-  const item = items.find(i => i.id === itemId);
-  if (!item || !item.stokMin) return;
+  let list = getBeliList();
+  const item = list.find(function(i) { return i.id === itemId; });
+  if (!item) return;
+  const row = document.getElementById('beli-row-' + itemId);
+  if (row) {
+    row.style.opacity = '0';
+    row.style.transform = 'translateX(30px)';
+    row.style.transition = 'all 0.3s ease';
+  }
+  setTimeout(function() {
+    list = list.filter(function(i) { return i.id !== itemId; });
+    saveBeliList(list);
+    renderPerluDibeli();
+    updateBeliBadge();
+    showToast(item.nama + ' sudah dibeli dan dihapus dari daftar');
+  }, 300);
+}
 
-  const tgl = getLocalDateStr();
-  const opname = getOpname(tgl);
-  opname[itemId] = item.stokMin;
-  DB.setItem('koneo_opname_' + tgl, JSON.stringify(opname));
-
-  showToast(item.nama + ' sudah dibeli — stok direset ke ' + item.stokMin + ' ' + item.satuan);
+function hapusBeliItem(itemId) {
+  let list = getBeliList();
+  const item = list.find(function(i) { return i.id === itemId; });
+  if (!item) return;
+  if (!confirm('Hapus "' + item.nama + '" dari daftar?')) return;
+  list = list.filter(function(i) { return i.id !== itemId; });
+  saveBeliList(list);
   renderPerluDibeli();
   updateBeliBadge();
 }
@@ -4829,40 +4829,27 @@ function buildStokLaporan() {
 }
 
 function kirimBeliWA() {
-  const items = getStokItems();
-  const tgl = getLocalDateStr();
-  const saved = getOpname(tgl);
-  const tglFmt = new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-
-  const perlu = items.filter(item => item.stokMin && saved[item.id] !== undefined && saved[item.id] <= item.stokMin);
-  if (!perlu.length) { showToast('Tidak ada barang yang perlu dibeli'); return; }
-
+  const list = getBeliList();
+  if (!list.length) { showToast('Daftar belanja kosong'); return; }
+  const tglFmt = new Date().toLocaleDateString('id-ID', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const cats = ['Bar','Kitchen','Operasional'];
-  let msg = `🛒 *DAFTAR BELANJA KONEO*\n`;
-  msg += `📅 ${tglFmt}\n`;
-  msg += `─────────────────────\n\n`;
-
-  cats.forEach(cat => {
-    const catItems = perlu.filter(i => i.kategori === cat);
+  const icons = {Bar:'🍹',Kitchen:'🍳',Operasional:'⚙️'};
+  let msg = '🛒 *DAFTAR BELANJA KONEO*\n';
+  msg += '📅 ' + tglFmt + '\n';
+  msg += '─────────────────────\n\n';
+  cats.forEach(function(cat) {
+    const catItems = list.filter(function(i) { return i.kategori === cat; });
     if (!catItems.length) return;
-    const icons = {Bar:'🍹',Kitchen:'🍳',Operasional:'⚙️'};
-    msg += `${icons[cat] || '📦'} *${cat.toUpperCase()}*\n`;
-    catItems.forEach(item => {
-      const aktual = saved[item.id] ?? 0;
-      const kurang = item.stokMin - aktual;
-      msg += `• ${item.nama} — beli *${kurang} ${item.satuan}*`;
-      if (item.lokasi) msg += ` (${item.lokasi})`;
-      msg += `\n`;
+    msg += (icons[cat] || '📦') + ' *' + cat.toUpperCase() + '*\n';
+    catItems.forEach(function(item) {
+      msg += '• ' + item.nama + ' — *' + item.qty + ' ' + item.satuan + '*\n';
     });
-    msg += `\n`;
+    msg += '\n';
   });
-
-  msg += `─────────────────────\n`;
-  msg += `Total: *${perlu.length} item* perlu dibeli\n`;
-  msg += `_Dikirim dari Koneo Dashboard_`;
-
-  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
+  msg += '─────────────────────\n';
+  msg += 'Total: *' + list.length + ' item* perlu dibeli\n';
+  msg += '_Dikirim dari Koneo Dashboard_';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function printBeliPDF() {
