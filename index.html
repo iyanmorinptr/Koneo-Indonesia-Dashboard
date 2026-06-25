@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260625-009';
+  var VER = 'v20260625-010';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -1321,6 +1321,7 @@
       <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
       <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
       <button class="sidebar-item" id="sitem-laporan-pajak" onclick="sidebarGo('laporan-pajak')"><i class="ti ti-receipt-tax"></i> Laporan Pajak</button>
+      <button class="sidebar-item" id="sitem-invoice" onclick="sidebarGo('invoice')"><i class="ti ti-file-invoice"></i> Invoice</button>
     </div>
 
     <!-- Stock -->
@@ -1570,6 +1571,85 @@
   </div>
 
   <!-- STOK -->
+  <!-- INVOICE -->
+  <div id="tab-invoice" class="section">
+    <!-- Form inputs -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-file-invoice"></i> Invoice Generator</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="downloadInvoicePNG()" style="padding:8px 14px;background:#093a72;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"><i class="ti ti-download"></i> Download PNG</button>
+        </div>
+      </div>
+      <div class="grid-2" style="gap:10px 16px;">
+        <div class="input-group"><label>Invoice No.</label><input type="text" id="inv-no" placeholder="00001" oninput="renderInvoicePreview()"></div>
+        <div class="input-group"><label>Tanggal</label><input type="date" id="inv-date" oninput="renderInvoicePreview()"></div>
+        <div class="input-group"><label>Nama Client</label><input type="text" id="inv-client-name" placeholder="Nama lengkap" oninput="renderInvoicePreview()"></div>
+        <div class="input-group"><label>No. Telepon</label><input type="text" id="inv-client-phone" placeholder="+62 8xx-xxxx-xxxx" oninput="renderInvoicePreview()"></div>
+        <div class="input-group"><label>Kota / Alamat</label><input type="text" id="inv-client-city" placeholder="Jakarta" oninput="renderInvoicePreview()"></div>
+        <div class="input-group"><label>DP (%)</label><input type="number" id="inv-dp-pct" value="50" min="0" max="100" oninput="renderInvoicePreview()" style="width:100%;"></div>
+      </div>
+      <div style="margin-top:12px;font-size:13px;font-weight:600;color:#093a72;margin-bottom:8px;">Item</div>
+      <div id="inv-items-container"></div>
+      <button onclick="addInvoiceItem()" style="margin-top:8px;padding:7px 14px;background:rgba(9,58,114,0.08);color:#093a72;border:1.5px dashed rgba(9,58,114,0.3);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;"><i class="ti ti-plus"></i> Tambah Item</button>
+    </div>
+
+    <!-- Preview -->
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;text-align:center;">Preview Invoice</div>
+    <div id="invoice-preview-wrapper" style="background:#f5f0e0;border-radius:12px;padding:36px 40px;max-width:680px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,0.10);font-family:sans-serif;">
+      <!-- Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;">
+        <div>
+          <img id="inv-logo-img" src="" style="width:90px;height:90px;object-fit:contain;display:block;margin-bottom:6px;">
+          <div style="font-size:14px;font-weight:800;color:#093a72;letter-spacing:2px;">KONEO</div>
+          <div style="margin-top:14px;">
+            <div style="font-size:11px;font-weight:700;color:#093a72;margin-bottom:4px;">BILLED TO:</div>
+            <div id="inv-prev-name" style="font-size:13px;color:#093a72;">-</div>
+            <div id="inv-prev-phone" style="font-size:13px;color:#093a72;">-</div>
+            <div id="inv-prev-city" style="font-size:13px;color:#093a72;">-</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:52px;font-weight:900;color:#093a72;line-height:1;font-family:serif;letter-spacing:-1px;">INVOICE</div>
+          <div style="margin-top:16px;">
+            <div id="inv-prev-no" style="font-size:13px;color:#555;">Invoice No. -</div>
+            <div id="inv-prev-date" style="font-size:13px;color:#555;">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <table id="inv-prev-table" style="width:100%;border-collapse:collapse;margin-bottom:0;font-size:13px;">
+        <thead>
+          <tr style="border-top:2px solid #093a72;border-bottom:2px solid #093a72;">
+            <th style="padding:10px 8px;text-align:left;color:#093a72;font-weight:700;">Item</th>
+            <th style="padding:10px 8px;text-align:center;color:#093a72;font-weight:700;">Quantity</th>
+            <th style="padding:10px 8px;text-align:right;color:#093a72;font-weight:700;">Unit Price</th>
+            <th style="padding:10px 8px;text-align:right;color:#093a72;font-weight:700;">Total</th>
+          </tr>
+        </thead>
+        <tbody id="inv-prev-tbody"></tbody>
+        <tfoot id="inv-prev-tfoot"></tfoot>
+      </table>
+
+      <!-- Thank you -->
+      <div style="margin-top:32px;font-size:30px;font-weight:400;color:#093a72;">Thank you!</div>
+
+      <!-- Payment info -->
+      <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#093a72;margin-bottom:4px;">PAYMENT INFORMATION</div>
+          <div style="font-size:12px;color:#093a72;">Blu by BCA Digital</div>
+          <div style="font-size:12px;color:#093a72;">Account Name: Iyan Morin Putra Nikad</div>
+          <div style="font-size:12px;color:#093a72;">Account No.: 002205030001</div>
+          <div style="font-size:12px;color:#093a72;">Please make payment 7 days before the day</div>
+          <div style="font-size:12px;color:#093a72;margin-top:12px;">Jl. Nangka utara 189, Denpasar, Bali</div>
+        </div>
+        <img id="inv-logo-img2" src="" style="width:80px;height:80px;object-fit:contain;opacity:0.85;">
+      </div>
+    </div>
+  </div>
+
   <!-- LAPORAN PAJAK -->
   <div id="tab-laporan-pajak" class="section">
     <div class="card" style="margin-bottom:1rem;">
@@ -2754,7 +2834,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -2830,7 +2910,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -2843,9 +2923,10 @@ function switchTab(tab) {
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); }
   if (tab === 'cogs') buildCogsTab();
   if (tab === 'laporan-pajak') renderLaporanPajak();
+  if (tab === 'invoice') initInvoice();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
-  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak') ? 'none' : '';
+  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak' || tab === 'invoice') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
 }
@@ -2895,6 +2976,130 @@ function updateSidebarActive(id) {
   document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById(id);
   if (el) el.classList.add('active');
+}
+
+// ── INVOICE ────────────────────────────────────────────────────────────────────
+let invoiceItems = [];
+let invoiceItemId = 0;
+
+function initInvoice() {
+  const today = new Date();
+  const el = document.getElementById('inv-date');
+  if (el && !el.value) el.value = today.toISOString().split('T')[0];
+  const noEl = document.getElementById('inv-no');
+  if (noEl && !noEl.value) {
+    const stored = DB.getItem('koneo_invoice_counter') || '0';
+    noEl.value = String(Number(stored) + 1).padStart(5, '0');
+  }
+  if (!invoiceItems.length) addInvoiceItem();
+  const logoSrc = document.querySelector('#ws-logo img') ? document.querySelector('#ws-logo img').src : (document.querySelector('.auth-logo img') ? document.querySelector('.auth-logo img').src : '');
+  ['inv-logo-img','inv-logo-img2'].forEach(id => { const el=document.getElementById(id); if(el) el.src = logoSrc; });
+  renderInvoicePreview();
+}
+
+function addInvoiceItem() {
+  invoiceItems.push({ id: ++invoiceItemId });
+  renderInvoiceItemInputs();
+  renderInvoicePreview();
+}
+
+function removeInvoiceItem(id) {
+  invoiceItems = invoiceItems.filter(i => i.id !== id);
+  renderInvoiceItemInputs();
+  renderInvoicePreview();
+}
+
+function renderInvoiceItemInputs() {
+  const c = document.getElementById('inv-items-container');
+  if (!c) return;
+  c.innerHTML = '';
+  invoiceItems.forEach(item => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:grid;grid-template-columns:1fr 80px 120px 40px;gap:8px;margin-bottom:8px;align-items:center;';
+    div.innerHTML = `
+      <input type="text" placeholder="Nama item / deskripsi" id="inv-item-name-${item.id}" oninput="renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;">
+      <input type="number" placeholder="Qty" id="inv-item-qty-${item.id}" value="1" min="1" oninput="renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;text-align:center;">
+      <input type="text" inputmode="numeric" placeholder="Harga" id="inv-item-price-${item.id}" oninput="fmtInput(this)" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;">
+      <button onclick="removeInvoiceItem(${item.id})" style="padding:8px;background:#fee2e2;border:none;border-radius:8px;cursor:pointer;color:#dc2626;font-size:14px;"><i class="ti ti-trash"></i></button>
+    `;
+    c.appendChild(div);
+  });
+}
+
+function fmtNum(n) {
+  return n.toLocaleString('id-ID', { minimumFractionDigits: 0 });
+}
+
+function renderInvoicePreview() {
+  const invNo = document.getElementById('inv-no')?.value || '-';
+  const invDateRaw = document.getElementById('inv-date')?.value || '';
+  const clientName = document.getElementById('inv-client-name')?.value || '-';
+  const clientPhone = document.getElementById('inv-client-phone')?.value || '-';
+  const clientCity = document.getElementById('inv-client-city')?.value || '-';
+  const dpPct = Number(document.getElementById('inv-dp-pct')?.value || 50);
+
+  const dateStr = invDateRaw ? new Date(invDateRaw + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+
+  document.getElementById('inv-prev-no').textContent = 'Invoice No. ' + invNo;
+  document.getElementById('inv-prev-date').textContent = dateStr;
+  document.getElementById('inv-prev-name').textContent = clientName;
+  document.getElementById('inv-prev-phone').textContent = clientPhone;
+  document.getElementById('inv-prev-city').textContent = clientCity;
+
+  // Build table rows
+  const tbody = document.getElementById('inv-prev-tbody');
+  tbody.innerHTML = '';
+  let subtotal = 0;
+  invoiceItems.forEach(item => {
+    const name = document.getElementById('inv-item-name-' + item.id)?.value || '';
+    const qty = Number(document.getElementById('inv-item-qty-' + item.id)?.value || 1);
+    const priceRaw = getRawVal(document.getElementById('inv-item-price-' + item.id));
+    const total = qty * priceRaw;
+    subtotal += total;
+    const tr = document.createElement('tr');
+    tr.style.cssText = 'border-bottom:1px solid rgba(9,58,114,0.12);';
+    tr.innerHTML = `
+      <td style="padding:10px 8px;color:#093a72;">${name || '—'}</td>
+      <td style="padding:10px 8px;text-align:center;color:#555;">${qty}</td>
+      <td style="padding:10px 8px;text-align:right;color:#555;">${fmtNum(priceRaw)}</td>
+      <td style="padding:10px 8px;text-align:right;color:#555;">${fmtNum(total)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const dp = subtotal * dpPct / 100;
+  const tfoot = document.getElementById('inv-prev-tfoot');
+  tfoot.innerHTML = `
+    <tr style="border-top:2px solid #093a72;">
+      <td colspan="2"></td>
+      <td style="padding:10px 8px;text-align:right;font-weight:700;color:#093a72;">Subtotal</td>
+      <td style="padding:10px 8px;text-align:right;color:#555;">${fmtNum(subtotal)}</td>
+    </tr>
+    <tr>
+      <td colspan="2"></td>
+      <td style="padding:10px 8px;text-align:right;font-weight:700;color:#093a72;font-size:16px;">Dp ${dpPct}%</td>
+      <td style="padding:10px 8px;text-align:right;font-weight:700;color:#093a72;font-size:16px;">${fmtNum(dp)}</td>
+    </tr>
+  `;
+}
+
+function downloadInvoicePNG() {
+  const wrapper = document.getElementById('invoice-preview-wrapper');
+  const invNo = document.getElementById('inv-no')?.value || '00001';
+  const clientName = document.getElementById('inv-client-name')?.value || 'Invoice';
+  const filename = 'Invoice_' + invNo + '_' + clientName.replace(/\s+/g,'_') + '.png';
+
+  // Save invoice counter
+  const num = Number(document.getElementById('inv-no')?.value || 0);
+  if (num > 0) DB.setItem('koneo_invoice_counter', String(num));
+
+  if (typeof html2canvas !== 'undefined') {
+    html2canvas(wrapper, { scale: 2, backgroundColor: '#f5f0e0', useCORS: true, logging: false }).then(canvas => {
+      const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
+    });
+  } else {
+    showToast('html2canvas belum dimuat, coba refresh halaman');
+  }
 }
 
 // ── LAPORAN PAJAK ──────────────────────────────────────────────────────────────
