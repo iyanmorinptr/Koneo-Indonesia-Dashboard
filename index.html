@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260626-001';
+  var VER = 'v20260625-004';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -1318,7 +1318,7 @@
       <button class="sidebar-item" id="sitem-pemasukan" onclick="sidebarGo('pemasukan')"><i class="ti ti-arrow-down-circle"></i> Pemasukan</button>
       <button class="sidebar-item" id="sitem-pengeluaran" onclick="sidebarGo('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
       <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
-      <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
+      <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
     </div>
 
     <!-- Stock -->
@@ -1431,20 +1431,20 @@
   <div id="tab-pemasukan" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-up"></i> <span class="stok-tab-label" data-i18n="tab_pemasukan">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
     </div>
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Majoo</div>
       <div class="grid-2">
         <div class="input-group">
-          <label>Majoo Tunai</label>
+          <label data-i18n="lbl_majoo_tunai">Majoo Tunai</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="majoo_tunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
-          <label>Majoo Non-Tunai</label>
+          <label data-i18n="lbl_majoo_nontunai">Majoo Non-Tunai</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="majoo_nontunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
@@ -1454,11 +1454,11 @@
       <div class="card-title"><i class="ti ti-device-desktop"></i> POS</div>
       <div class="grid-2">
         <div class="input-group">
-          <label>POS Tunai</label>
+          <label data-i18n="lbl_pos_tunai">POS Tunai</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pos_tunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
-          <label>POS Non-Tunai</label>
+          <label data-i18n="lbl_pos_nontunai">POS Non-Tunai</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pos_nontunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
@@ -1468,22 +1468,22 @@
       <div class="card-title"><i class="ti ti-motorbike"></i> Online Order</div>
       <div class="grid-2">
         <div class="input-group">
-          <label>GoFood (Gojek)</label>
+          <label data-i18n="lbl_gofood">GoFood (Gojek)</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="gojek" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
-          <label>GrabFood (Grab)</label>
+          <label data-i18n="lbl_grabfood">GrabFood (Grab)</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="grab" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
     </div>
 
     <div class="summary-card">
-      <div class="card-title" style="margin-bottom:0.75rem;font-size:13px;">Ringkasan Pemasukan</div>
+      <div class="card-title" style="margin-bottom:0.75rem;font-size:13px;" data-i18n="card_ringkasan_p">Ringkasan Pemasukan</div>
       <div class="summary-grid">
-        <div class="metric green"><div class="mlabel">Total Tunai</div><div class="mval" id="s_tunai">Rp 0</div></div>
-        <div class="metric blue"><div class="mlabel">Total Non-Tunai</div><div class="mval" id="s_nontunai">Rp 0</div></div>
-        <div class="metric amber"><div class="mlabel">Total Online</div><div class="mval" id="s_online">Rp 0</div></div>
+        <div class="metric green"><div class="mlabel" data-i18n="lbl_total_tunai">Total Tunai</div><div class="mval" id="s_tunai">Rp 0</div></div>
+        <div class="metric blue"><div class="mlabel" data-i18n="lbl_total_nontunai">Total Non-Tunai</div><div class="mval" id="s_nontunai">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel" data-i18n="lbl_total_online">Total Online</div><div class="mval" id="s_online">Rp 0</div></div>
         <div class="metric green"><div class="mlabel">Grand Total</div><div class="mval" id="s_pemasukan">Rp 0</div></div>
       </div>
     </div>
@@ -1493,10 +1493,10 @@
   <div id="tab-pengeluaran" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label" data-i18n="tab_pemasukan">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
     </div>
 
     <div style="margin-bottom:1.25rem;">
@@ -1523,38 +1523,38 @@
       <div class="card-title"><i class="ti ti-receipt-tax"></i> Pajak</div>
       <div class="grid-2">
         <div class="input-group">
-          <label><i class="ti ti-building-store" style="font-size:12px;"></i> Pajak Majoo</label>
+          <label data-i18n="lbl_pajak_majoo"><i class="ti ti-building-store" style="font-size:12px;"></i> Pajak Majoo</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pajak_majoo" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
-          <label><i class="ti ti-device-desktop" style="font-size:12px;"></i> Pajak POS</label>
+          <label data-i18n="lbl_pajak_pos"><i class="ti ti-device-desktop" style="font-size:12px;"></i> Pajak POS</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pajak_pos" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title"><i class="ti ti-settings"></i> Operasional</div>
+      <div class="card-title" data-i18n="card_operasional"><i class="ti ti-settings"></i> Operasional</div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Tambah item biaya operasional</p>
       <div id="operasional-rows"></div>
       <button class="btn-add" onclick="addOperasionalRow()"><i class="ti ti-plus"></i> Tambah item</button>
     </div>
 
     <div class="card">
-      <div class="card-title"><i class="ti ti-list"></i> Pengeluaran Lainnya</div>
+      <div class="card-title" data-i18n="card_lainnya"><i class="ti ti-list"></i> Pengeluaran Lainnya</div>
       <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Tambah item pengeluaran dengan keterangan bebas</p>
       <div id="extra-rows"></div>
       <button class="btn-add" onclick="addRow()"><i class="ti ti-plus"></i> Tambah item</button>
     </div>
 
     <div class="summary-card">
-      <div class="card-title" style="margin-bottom:0.75rem;font-size:13px;">Ringkasan Pengeluaran</div>
+      <div class="card-title" style="margin-bottom:0.75rem;font-size:13px;" data-i18n="card_ringkasan_k">Ringkasan Pengeluaran</div>
       <div class="summary-grid">
         <div class="metric amber"><div class="mlabel">Bar</div><div class="mval" id="s_bar">Rp 0</div></div>
         <div class="metric amber"><div class="mlabel">Kitchen</div><div class="mval" id="s_kitchen">Rp 0</div></div>
-        <div class="metric amber"><div class="mlabel">Pajak</div><div class="mval" id="s_pajakops">Rp 0</div></div>
-        <div class="metric amber"><div class="mlabel">Operasional</div><div class="mval" id="s_ops">Rp 0</div></div>
-        <div class="metric amber"><div class="mlabel">Lainnya</div><div class="mval" id="s_lainnya">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel" data-i18n="lbl_pajak_sum">Pajak</div><div class="mval" id="s_pajakops">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel" data-i18n="lbl_ops_sum">Operasional</div><div class="mval" id="s_ops">Rp 0</div></div>
+        <div class="metric amber"><div class="mlabel" data-i18n="lbl_lainnya_sum">Lainnya</div><div class="mval" id="s_lainnya">Rp 0</div></div>
         <div class="metric red"><div class="mlabel">Grand Total</div><div class="mval" id="s_pengeluaran">Rp 0</div></div>
       </div>
     </div>
@@ -1575,7 +1575,7 @@
         <i class="ti ti-shopping-cart"></i> <span class="stok-tab-label">Perlu Dibeli</span> <span id="beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span>
       </button>
       <button id="stok-tab-laporan" onclick="switchStokTab('laporan')" style="flex:1;padding:8px 10px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;">
-        <i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span>
+        <i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span>
       </button>
     </div>
 
@@ -1636,11 +1636,11 @@
         <div class="card-title"><i class="ti ti-calendar-search"></i> Pilih Tanggal</div>
         <div class="grid-2" style="gap:12px;">
           <div class="input-group">
-            <label>Dari Tanggal</label>
+            <label data-i18n="laporan_dari">Dari Tanggal</label>
             <input type="date" id="stok-from" style="width:100%;font-size:14px;padding:9px 12px;border:1.5px solid rgba(9,58,114,0.13);border-radius:12px;background:var(--surface);outline:none;font-family:inherit;">
           </div>
           <div class="input-group">
-            <label>Sampai Tanggal</label>
+            <label data-i18n="laporan_sampai">Sampai Tanggal</label>
             <input type="date" id="stok-to" style="width:100%;font-size:14px;padding:9px 12px;border:1.5px solid rgba(9,58,114,0.13);border-radius:12px;background:var(--surface);outline:none;font-family:inherit;">
           </div>
         </div>
@@ -1655,10 +1655,10 @@
   <div id="tab-laporan" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label" data-i18n="tab_pemasukan">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
     </div>
 
     <!-- Print header: hanya tampil saat cetak -->
@@ -1720,10 +1720,10 @@
   <div id="tab-riwayat" class="section">
     <!-- Finance sub-tab bar -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label">Pemasukan</span></button>
-      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label">Pengeluaran</span></button>
-      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label">Laporan</span></button>
-      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-history"></i> <span class="stok-tab-label">Riwayat</span></button>
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label" data-i18n="tab_pemasukan">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
     </div>
     <!-- Period sub-tabs -->
     <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
