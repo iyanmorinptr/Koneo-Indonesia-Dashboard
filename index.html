@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260625-010';
+  var VER = 'v20260625-011';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -1600,7 +1600,7 @@
       <!-- Header -->
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;">
         <div>
-          <img id="inv-logo-img" src="" style="width:90px;height:90px;object-fit:contain;display:block;margin-bottom:6px;">
+          <img id="inv-logo-img" src="" style="width:90px;height:90px;object-fit:contain;display:block;margin-bottom:6px;mix-blend-mode:multiply;background:transparent;">
           <div style="font-size:14px;font-weight:800;color:#093a72;letter-spacing:2px;">KONEO</div>
           <div style="margin-top:14px;">
             <div style="font-size:11px;font-weight:700;color:#093a72;margin-bottom:4px;">BILLED TO:</div>
@@ -1645,7 +1645,7 @@
           <div style="font-size:12px;color:#093a72;">Please make payment 7 days before the day</div>
           <div style="font-size:12px;color:#093a72;margin-top:12px;">Jl. Nangka utara 189, Denpasar, Bali</div>
         </div>
-        <img id="inv-logo-img2" src="" style="width:80px;height:80px;object-fit:contain;opacity:0.85;">
+        
       </div>
     </div>
   </div>
@@ -2993,7 +2993,7 @@ function initInvoice() {
   }
   if (!invoiceItems.length) addInvoiceItem();
   const logoSrc = document.querySelector('#ws-logo img') ? document.querySelector('#ws-logo img').src : (document.querySelector('.auth-logo img') ? document.querySelector('.auth-logo img').src : '');
-  ['inv-logo-img','inv-logo-img2'].forEach(id => { const el=document.getElementById(id); if(el) el.src = logoSrc; });
+  const logoEl=document.getElementById('inv-logo-img'); if(logoEl) logoEl.src = logoSrc;
   renderInvoicePreview();
 }
 
@@ -3019,7 +3019,7 @@ function renderInvoiceItemInputs() {
     div.innerHTML = `
       <input type="text" placeholder="Nama item / deskripsi" id="inv-item-name-${item.id}" oninput="renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;">
       <input type="number" placeholder="Qty" id="inv-item-qty-${item.id}" value="1" min="1" oninput="renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;text-align:center;">
-      <input type="text" inputmode="numeric" placeholder="Harga" id="inv-item-price-${item.id}" oninput="fmtInput(this)" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;">
+      <input type="text" inputmode="numeric" placeholder="Harga" id="inv-item-price-${item.id}" oninput="fmtInput(this);renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;">
       <button onclick="removeInvoiceItem(${item.id})" style="padding:8px;background:#fee2e2;border:none;border-radius:8px;cursor:pointer;color:#dc2626;font-size:14px;"><i class="ti ti-trash"></i></button>
     `;
     c.appendChild(div);
