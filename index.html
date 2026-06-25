@@ -2012,26 +2012,36 @@ const I18N = {
     beranda_hint1: 'Pilih menu dari atas untuk mulai bekerja',
     beranda_hint2: 'Ketuk ☰ di pojok kiri atas untuk navigasi lengkap',
     brand_sub: 'Laporan Keuangan Harian',
-    welcome_sub: 'Sistem Manajemen Internal',
+    welcome_sub: 'Koneo Indonesia &nbsp;&bull;&nbsp; Powered by Mipo Group',
     welcome_desc: 'Hari ini adalah kesempatan baru untuk memberikan yang terbaik bagi Koneo.',
+    greeting_pagi: 'Selamat Pagi', greeting_siang: 'Selamat Siang', greeting_sore: 'Selamat Sore', greeting_malam: 'Selamat Malam',
     tab_beranda: 'Beranda', tab_pemasukan: 'Pemasukan', tab_pengeluaran: 'Pengeluaran',
     tab_laporan: 'Laporan', tab_riwayat: 'Riwayat', tab_stok: 'Stok',
     tab_pengaturan: 'Pengaturan', tab_cogs: 'COGS/HPP',
-    nav_beranda: 'Beranda', nav_finance: 'Finance', nav_stok: 'Stock', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Pengaturan',
+    nav_beranda: 'Beranda', nav_finance: 'Finance', nav_stok: 'Stock', nav_sdm: 'SDM', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Pengaturan',
+    nav_pemasukan: 'Pemasukan', nav_pengeluaran: 'Pengeluaran', nav_laporan: 'Laporan', nav_riwayat: 'Riwayat',
+    nav_master: 'Master Barang', nav_pembelian: 'Pembelian Stock', nav_perlu: 'Perlu Dibeli', nav_lapstok: 'Laporan Stok',
+    nav_jadwal: 'Jadwal Karyawan', nav_absensi: 'Absensi',
     submit_btn: 'Submit Data', submit_info: 'Konfirmasi Data — Pastikan semua data sudah benar sebelum submit',
+    motivasi: ['Kerja keras hari ini adalah investasi untuk Koneo yang lebih besar esok hari.','Setiap detail kecil yang kamu jaga membuat Koneo makin kuat.','Tim hebat dimulai dari kamu yang hadir dan bersemangat.','Bersama kita bisa membangun Koneo menjadi yang terbaik di Bali.','Pelayanan terbaikmu hari ini adalah kebanggaan Koneo besok.','Setiap tantangan adalah batu loncatan menuju versi Koneo yang lebih baik.','Konsistensi kecilmu hari ini menciptakan dampak besar untuk Koneo.','Kamu adalah bagian penting dari perjalanan besar Koneo Indonesia.'],
   },
   en: {
     label_tanggal: 'Date',
     beranda_hint1: 'Select a menu above to start working',
     beranda_hint2: 'Tap ☰ in the top left corner for full navigation',
     brand_sub: 'Daily Financial Report',
-    welcome_sub: 'Internal Management System',
-    welcome_desc: 'Daily financial recording & stock management platform for the entire Koneo Indonesia team.',
+    welcome_sub: 'Koneo Indonesia &nbsp;&bull;&nbsp; Powered by Mipo Group',
+    welcome_desc: 'Today is a new opportunity to give your best for Koneo.',
+    greeting_pagi: 'Good Morning', greeting_siang: 'Good Afternoon', greeting_sore: 'Good Afternoon', greeting_malam: 'Good Evening',
     tab_beranda: 'Home', tab_pemasukan: 'Revenue', tab_pengeluaran: 'Expenses',
     tab_laporan: 'Reports', tab_riwayat: 'History', tab_stok: 'Stock',
     tab_pengaturan: 'Settings', tab_cogs: 'COGS/HPP',
-    nav_beranda: 'Home', nav_finance: 'Finance', nav_stok: 'Stock', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Settings',
+    nav_beranda: 'Home', nav_finance: 'Finance', nav_stok: 'Stock', nav_sdm: 'HR', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Settings',
+    nav_pemasukan: 'Revenue', nav_pengeluaran: 'Expenses', nav_laporan: 'Reports', nav_riwayat: 'History',
+    nav_master: 'Item Master', nav_pembelian: 'Purchase Stock', nav_perlu: 'Need to Buy', nav_lapstok: 'Stock Report',
+    nav_jadwal: 'Staff Schedule', nav_absensi: 'Attendance',
     submit_btn: 'Submit Data', submit_info: 'Confirm Data — Make sure all data is correct before submitting',
+    motivasi: ['Hard work today is an investment for a greater Koneo tomorrow.','Every small detail you maintain makes Koneo stronger.','A great team starts with you being present and enthusiastic.','Together we can build Koneo into the best in Bali.','Your best service today is Koneo\'s pride tomorrow.','Every challenge is a stepping stone to a better Koneo.','Your consistency today creates a big impact for Koneo.','You are an important part of Koneo Indonesia\'s great journey.'],
   }
 };
 let _lang = localStorage.getItem('koneo_lang') || 'id';
@@ -2053,6 +2063,31 @@ function applyLang() {
   if (submitInfo) submitInfo.innerHTML = '<strong>' + (_lang === 'en' ? 'Confirm Data' : 'Konfirmasi Data') + '</strong> — ' + (_lang === 'en' ? 'Make sure all data is correct before submitting' : 'Pastikan semua data sudah benar sebelum submit');
   const submitBtn = document.querySelector('.btn-submit');
   if (submitBtn) submitBtn.innerHTML = '<i class="ti ti-check"></i> ' + t('submit_btn');
+  // Sidebar items
+  const sidebarMap = {
+    'sitem-beranda': t('nav_beranda'),
+    'sg-finance': t('nav_finance'), 'sg-stok': t('nav_stok'), 'sg-sdm': t('nav_sdm'), 'sg-cogs': t('nav_cogs'),
+    'sitem-pemasukan': t('nav_pemasukan'), 'sitem-pengeluaran': t('nav_pengeluaran'),
+    'sitem-laporan': t('nav_laporan'), 'sitem-riwayat': t('nav_riwayat'),
+    'sitem-stok-master': t('nav_master'), 'sitem-stok-opname': t('nav_pembelian'),
+    'sitem-stok-beli': t('nav_perlu'), 'sitem-stok-laporan': t('nav_lapstok'),
+    'sitem-jadwal': t('nav_jadwal'), 'sitem-absensi': t('nav_absensi'),
+    'sitem-pengaturan': t('nav_pengaturan'),
+  };
+  Object.entries(sidebarMap).forEach(([id, label]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const icon = el.querySelector('i');
+    const badge = el.querySelector('span[id]');
+    el.childNodes.forEach(n => { if (n.nodeType === 3) n.remove(); });
+    if (icon) el.insertBefore(document.createTextNode(' ' + label), icon.nextSibling);
+    else el.textContent = label;
+    if (icon) el.insertBefore(icon, el.firstChild);
+    if (badge) el.appendChild(badge);
+  });
+  // Re-run beranda if active
+  const activeSection = document.querySelector('.section.active');
+  if (activeSection && activeSection.id === 'tab-beranda') buildDashboard();
 }
 
 function toggleLang() {
@@ -3040,21 +3075,13 @@ function buildBar(id, data, color) {
 function buildDashboard() {
   const now = new Date();
   const hour = now.getHours();
-  const greeting = hour < 12 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
+  const greetKey = hour < 12 ? 'greeting_pagi' : hour < 15 ? 'greeting_siang' : hour < 18 ? 'greeting_sore' : 'greeting_malam';
+  const greeting = t(greetKey);
   const greetEl = document.getElementById('welcome-greeting');
   const session = getSession();
   const namaUser = (session && session.nama) ? session.nama : 'Koneo';
   if (greetEl) greetEl.textContent = greeting + ', ' + namaUser + '!';
-  const motivasiList = [
-    'Kerja keras hari ini adalah investasi untuk Koneo yang lebih besar esok hari.',
-    'Setiap detail kecil yang kamu jaga membuat Koneo makin kuat.',
-    'Tim hebat dimulai dari kamu yang hadir dan bersemangat.',
-    'Bersama kita bisa membangun Koneo menjadi yang terbaik di Bali.',
-    'Pelayanan terbaikmu hari ini adalah kebanggaan Koneo besok.',
-    'Setiap tantangan adalah batu loncatan menuju versi Koneo yang lebih baik.',
-    'Konsistensi kecilmu hari ini menciptakan dampak besar untuk Koneo.',
-    'Kamu adalah bagian penting dari perjalanan besar Koneo Indonesia.',
-  ];
+  const motivasiList = I18N[_lang] && I18N[_lang].motivasi ? I18N[_lang].motivasi : I18N.id.motivasi;
   const motEl = document.getElementById('beranda-motivasi');
   if (motEl) motEl.textContent = motivasiList[new Date().getDate() % motivasiList.length];
   const dateEl = document.getElementById('welcome-date-str');
