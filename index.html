@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260625-005';
+  var VER = 'v20260625-006';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -1376,7 +1376,6 @@
       <h1>Koneo Indonesia</h1>
       <p>Laporan Keuangan Harian</p>
     </div>
-    <button id="lang-toggle" onclick="toggleLang()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:50px;color:#fff;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;flex-shrink:0;letter-spacing:0.5px;">ID</button>
     <div class="date-wrap">
       <label data-i18n="label_tanggal">Tanggal</label>
       <input type="date" id="tanggal">
