@@ -2042,6 +2042,40 @@ const I18N = {
     nav_jadwal: 'Staff Schedule', nav_absensi: 'Attendance',
     submit_btn: 'Submit Data', submit_info: 'Confirm Data — Make sure all data is correct before submitting',
     motivasi: ['Hard work today is an investment for a greater Koneo tomorrow.','Every small detail you maintain makes Koneo stronger.','A great team starts with you being present and enthusiastic.','Together we can build Koneo into the best in Bali.','Your best service today is Koneo\'s pride tomorrow.','Every challenge is a stepping stone to a better Koneo.','Your consistency today creates a big impact for Koneo.','You are an important part of Koneo Indonesia\'s great journey.'],
+    // Finance
+    lbl_majoo_tunai:'Majoo Cash', lbl_majoo_nontunai:'Majoo Non-Cash',
+    lbl_pos_tunai:'POS Cash', lbl_pos_nontunai:'POS Non-Cash',
+    lbl_gojek:'GoFood (Gojek)', lbl_grab:'GrabFood (Grab)',
+    lbl_pajak_majoo:'Majoo Tax', lbl_pajak_pos:'POS Tax',
+    card_majoo:'Majoo', card_pos:'POS', card_online:'Online Order',
+    card_bar:'Bar', card_kitchen:'Kitchen', card_pajak:'Tax',
+    card_operasional:'Operational', card_lainnya:'Other Expenses',
+    card_ringkasan_p:'Revenue Summary', card_ringkasan_k:'Expense Summary',
+    lbl_total_tunai:'Total Cash', lbl_total_nontunai:'Total Non-Cash',
+    lbl_total_online:'Total Online', lbl_grand_total:'Grand Total',
+    lbl_lainnya:'Others',
+    hint_bar:'Add Bar purchase items', hint_kitchen:'Add Kitchen purchase items',
+    hint_ops:'Add operational cost items', hint_lainnya:'Add expense items with free description',
+    btn_tambah_item:'Add item', btn_scan:'Scan Receipt / Invoice',
+    // Stock
+    card_semua:'All Items', lbl_search:'Search items...',
+    lbl_opname_hint:'Click + to add to shopping list',
+    lbl_beli_hint:'Check items when purchased — they disappear from the list',
+    btn_tambah_barang:'Add Item', btn_kirim_wa:'Send to WhatsApp',
+    // Laporan
+    lbl_filter_dari:'From', lbl_filter_sampai:'To',
+    btn_filter:'Filter', btn_export:'Export',
+    // Settings
+    card_profil:'Profile', card_users:'User Management', card_lokasi:'Office Location',
+    card_api:'AI / API Key', card_data:'Data Summary',
+    lbl_nama:'Full Name', lbl_email:'Email', lbl_password:'Password',
+    lbl_role:'Role', btn_simpan:'Save', btn_batal:'Cancel',
+    btn_hapus:'Delete', btn_edit:'Edit', btn_reset:'Reset',
+    btn_cetak:'Print / PDF',
+    // Jadwal & Absensi
+    lbl_jadwal_title:'Staff Schedule', lbl_absensi_title:'Attendance',
+    btn_checkin:'Check In', btn_checkout:'Check Out',
+    lbl_shift:'Shift', lbl_status:'Status',
   }
 };
 let _lang = localStorage.getItem('koneo_lang') || 'id';
@@ -2088,6 +2122,136 @@ function applyLang() {
   // Re-run beranda if active
   const activeSection = document.querySelector('.section.active');
   if (activeSection && activeSection.id === 'tab-beranda') buildDashboard();
+
+  const en = _lang === 'en';
+  // Helper: set text inside element preserving child nodes (icons)
+  function setLabelText(el, text) {
+    if (!el) return;
+    Array.from(el.childNodes).forEach(n => { if (n.nodeType === 3) n.parentNode.removeChild(n); });
+    el.appendChild(document.createTextNode(text));
+  }
+  // Finance tab labels (stok-tab-label spans inside finance tabs)
+  [['fin-tab-pemasukan', en?'Revenue':'Pemasukan'],
+   ['fin-tab-pengeluaran', en?'Expenses':'Pengeluaran'],
+   ['fin-tab-laporan', en?'Reports':'Laporan'],
+   ['fin-tab-riwayat', en?'History':'Riwayat']
+  ].forEach(([id, label]) => {
+    document.querySelectorAll('#'+id+' .stok-tab-label').forEach(el => el.textContent = label);
+  });
+  // Finance card titles & labels via querySelectorAll on label elements
+  const labelMap = {
+    'majoo_tunai': en?'Majoo Cash':'Majoo Tunai',
+    'majoo_nontunai': en?'Majoo Non-Cash':'Majoo Non-Tunai',
+    'pos_tunai': en?'POS Cash':'POS Tunai',
+    'pos_nontunai': en?'POS Non-Cash':'POS Non-Tunai',
+    'pajak_majoo': en?'Majoo Tax':'Pajak Majoo',
+    'pajak_pos': en?'POS Tax':'Pajak POS',
+  };
+  Object.entries(labelMap).forEach(([inputId, label]) => {
+    const input = document.getElementById(inputId);
+    if (input) {
+      const grp = input.closest('.input-group');
+      if (grp) { const lbl = grp.querySelector('label'); if (lbl) { const icon = lbl.querySelector('i'); lbl.textContent = label; if (icon) lbl.insertBefore(icon, lbl.firstChild); } }
+    }
+  });
+  // Summary metric labels
+  const metricMap = {
+    's_tunai': en?'Total Cash':'Total Tunai',
+    's_nontunai': en?'Total Non-Cash':'Total Non-Tunai',
+    's_online': en?'Total Online':'Total Online',
+    's_pemasukan': en?'Grand Total':'Grand Total',
+    's_pajakops': en?'Tax':'Pajak',
+    's_ops': en?'Operational':'Operasional',
+    's_lainnya': en?'Others':'Lainnya',
+    's_pengeluaran': en?'Grand Total':'Grand Total',
+    's_bar': 'Bar', 's_kitchen': 'Kitchen',
+  };
+  Object.entries(metricMap).forEach(([id, label]) => {
+    const el = document.getElementById(id);
+    if (el) { const mlabel = el.parentElement && el.parentElement.querySelector('.mlabel'); if (mlabel) mlabel.textContent = label; }
+  });
+  // Card titles using card-title elements (find by text content)
+  document.querySelectorAll('.card-title, .card > .card-title').forEach(el => {
+    const txt = el.textContent.trim();
+    const map = {
+      'Ringkasan Pemasukan':'Revenue Summary','Ringkasan Pengeluaran':'Expense Summary',
+      'Pajak':'Tax','Operasional':'Operational','Pengeluaran Lainnya':'Other Expenses',
+      'Daftar Belanja':'Shopping List','Harus Dibeli Sekarang':'Must Buy Now',
+      'Item Perlu Dibeli':'Items to Buy','Tambah Item Belanja':'Add Shopping Item',
+      'Pilih Barang yang Perlu Dibeli':'Select Items to Buy',
+      'Semua Aman':'All Clear','Master Barang':'Item Master',
+      'Harga Pokok Penjualan':'Cost of Goods Sold',
+      'Bahan Baku':'Raw Materials','Resep & Menu':'Recipe & Menu',
+      'Lokasi Kantor':'Office Location','Manajemen Pengguna':'User Management',
+      'Ringkasan Data':'Data Summary', 'Profil Saya':'My Profile',
+    };
+    if (!en) return;
+    const icon = el.querySelector('i');
+    const key2 = txt.split('\n').map(s=>s.trim()).join(' ').trim(); const translated = map[txt] || map[key2];
+    if (translated) { el.textContent = translated; if (icon) el.insertBefore(icon, el.firstChild); }
+  });
+  // Paragraph hints in pengeluaran
+  document.querySelectorAll('.card > p').forEach(el => {
+    const txt = el.textContent.trim();
+    const map = {
+      'Tambah item pembelian Bar': 'Add Bar purchase items',
+      'Tambah item pembelian Kitchen': 'Add Kitchen purchase items',
+      'Tambah item biaya operasional': 'Add operational cost items',
+      'Tambah item pengeluaran dengan keterangan bebas': 'Add expense items with free description',
+      'Klik tombol + untuk menambahkan ke daftar belanja': 'Click + to add items to shopping list',
+      'Centang item yang sudah dibeli — item akan langsung hilang dari daftar.': 'Check items when purchased — they will disappear from the list.',
+    };
+    if (en && map[txt]) el.textContent = map[txt];
+    else if (!en && Object.values(map).includes(txt)) {
+      const rev = Object.entries(map).find(([k,v]) => v === txt);
+      if (rev) el.textContent = rev[0];
+    }
+  });
+  // btn-add buttons
+  document.querySelectorAll('.btn-add').forEach(el => {
+    const icon = el.querySelector('i');
+    const txt = el.textContent.trim();
+    const map = {
+      'Tambah Barang': en?'Add Item':'Tambah Barang',
+      'Tambah item': en?'Add item':'Tambah item',
+    };
+    Object.entries(map).forEach(([id, label]) => {
+      if (txt.includes(id.replace('Tambah ','').replace('Tambah','').trim()) || txt === id) {
+        if (icon) { el.textContent = label; el.insertBefore(icon, el.firstChild); }
+      }
+    });
+  });
+  // Scan button
+  const scanBtn = document.querySelector('[onclick="openScanModal()"]');
+  if (scanBtn) { const icon = scanBtn.querySelector('i'); scanBtn.textContent = en ? ' Scan Receipt / Invoice' : ' Scan Struk / Bon Belanja'; if (icon) scanBtn.insertBefore(icon, scanBtn.firstChild); }
+  // Stock tab labels
+  [['stok-tab-master', en?'Item Master':'Master Barang'],
+   ['stok-tab-opname', en?'Purchase Stock':'Pembelian Stock'],
+   ['stok-tab-beli', en?'Need to Buy':'Perlu Dibeli'],
+   ['stok-tab-laporan', en?'Stock Report':'Laporan Stok'],
+  ].forEach(([id, label]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const span = el.querySelector('.stok-tab-label');
+    if (span) span.textContent = label;
+    else { const icon = el.querySelector('i'); const badge = el.querySelector('span[id]'); el.textContent = label; if (icon) el.insertBefore(icon, el.firstChild); if (badge) el.appendChild(badge); }
+  });
+  // Laporan & Riwayat filter labels
+  [['stok-from','stok-to']].forEach(ids => {
+    ids.forEach(id => { const el = document.getElementById(id); if (el) { const lbl = el.previousElementSibling; if (lbl && lbl.tagName === 'LABEL') lbl.textContent = lbl.textContent; } });
+  });
+  // Settings/Pengaturan section
+  document.querySelectorAll('button.btn-primary, button.btn-outline').forEach(el => {
+    const txt = el.textContent.trim();
+    const btnMap = {
+      'Simpan': en?'Save':'Simpan', 'Batal': en?'Cancel':'Batal',
+      'Reset': en?'Reset':'Reset', 'Hapus': en?'Delete':'Hapus',
+      'Edit': en?'Edit':'Edit',
+    };
+    Object.entries(btnMap).forEach(([id, label]) => {
+      if (txt === id) { const icon = el.querySelector('i'); el.textContent = label; if (icon) el.insertBefore(icon, el.firstChild); }
+    });
+  });
 }
 
 function toggleLang() {
