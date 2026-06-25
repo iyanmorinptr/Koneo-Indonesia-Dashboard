@@ -1576,7 +1576,7 @@
       <div class="card-title" id="master-title"><i class="ti ti-packages"></i> Semua Barang</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Tambahkan semua item stok yang perlu dipantau setiap hari.</p>
         <div id="master-barang-list"></div>
-        <button class="btn-add" onclick="openAddItemModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Barang</button>
+        <button class="btn-add" id="btn-tambah-barang" onclick="openAddItemModal()" style="margin-top:12px;"><i class="ti ti-plus"></i> Tambah Barang</button>
       </div>
     </div>
 
@@ -4584,6 +4584,11 @@ function renderMasterBarang() {
     .sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
   if (q) items = items.filter(i => i.nama.toLowerCase().includes(q) || (i.kategori||'').toLowerCase().includes(q) || (i.satuan||'').toLowerCase().includes(q));
   const container = document.getElementById('master-barang-list');
+  const session = getSession();
+  const isKaryawan = session && session.role === 'karyawan';
+  // Sembunyikan tombol Tambah untuk karyawan
+  const btnTambah = document.getElementById('btn-tambah-barang');
+  if (btnTambah) btnTambah.style.display = isKaryawan ? 'none' : '';
   if (!items.length) {
     container.innerHTML = '<div class="empty-state"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada barang. Tambahkan item stok pertama.</div>';
     return;
@@ -4601,8 +4606,8 @@ function renderMasterBarang() {
           ${item.stokMin !== null && item.stokMin !== undefined ? `&nbsp;·&nbsp; Min: <b style="color:var(--red);">${item.stokMin} ${item.satuan}</b>` : ''}
         </div>
       </div>
-      <button onclick="openEditItemModal('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Edit"><i class="ti ti-pencil"></i></button>
-      <button onclick="deleteStokItem('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Hapus"><i class="ti ti-trash"></i></button>
+      ${!isKaryawan ? `<button onclick="openEditItemModal('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Edit"><i class="ti ti-pencil"></i></button>
+      <button onclick="deleteStokItem('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:15px;transition:all 0.15s;" title="Hapus"><i class="ti ti-trash"></i></button>` : ''}
     </div>
   `).join('');
 }
@@ -4622,6 +4627,7 @@ function pilihKategori(val) {
 
 
 function openAddItemModal() {
+  const _s = getSession(); if (_s && _s.role === 'karyawan') { showToast('Akses ditolak'); return; }
   editingItemId = null;
   document.getElementById('item-modal-title').textContent = 'Tambah Barang';
   document.getElementById('item-modal-nama').value = '';
@@ -4636,6 +4642,7 @@ function openAddItemModal() {
 }
 
 function openEditItemModal(id) {
+  const _s = getSession(); if (_s && _s.role === 'karyawan') { showToast('Akses ditolak'); return; }
   const items = getStokItems();
   const item = items.find(i => i.id === id);
   if (!item) return;
@@ -4682,6 +4689,7 @@ function saveItemModal() {
 }
 
 function deleteStokItem(id) {
+  const _s = getSession(); if (_s && _s.role === 'karyawan') { showToast('Akses ditolak'); return; }
   if (!confirm('Hapus barang ini dari daftar stok?')) return;
   let items = getStokItems().filter(i => i.id !== id);
   saveStokItems(items);
