@@ -4456,47 +4456,29 @@ function renderPerluDibeli() {
       <div class="card-title" style="color:var(--red);"><i class="ti ti-shopping-cart" style="color:var(--red);"></i> Harus Dibeli Sekarang</div>
       <p style="font-size:12px;color:var(--text3);margin-bottom:1rem;">Stok di bawah atau sama dengan batas minimum.</p>`;
 
-    const cats = ['Bar','Kitchen','Operasional'];
-    cats.forEach(cat => {
-      const catItems = perlu.filter(i => i.kategori === cat);
-      if (!catItems.length) return;
-      html += `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin:12px 0 6px;">${cat}</div>`;
-      catItems.forEach(item => {
-        const aktual = saved[item.id] ?? 0;
-        const kurang = item.stokMin - aktual;
-        const persen = Math.round((aktual / item.stokMin) * 100);
-        const isCeklis = (window._beliChecked || {})[item.id];
-        html += `<div id="beli-row-${item.id}" style="display:flex;align-items:center;gap:12px;padding:12px;background:${isCeklis ? '#E1F5EE' : 'var(--red-light)'};border-radius:12px;margin-bottom:8px;transition:background 0.3s;">
-          <div onclick="toggleBeliCheck('${item.id}')" style="width:32px;height:32px;border-radius:10px;background:#fff;border:2px solid ${isCeklis ? '#1D9E75' : 'var(--red)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.2s;">
-            ${isCeklis ? '<i class="ti ti-check" style="color:#1D9E75;font-size:16px;font-weight:900;"></i>' : ''}
+    perlu.forEach(item => {
+      const aktual = saved[item.id] ?? 0;
+      const kurang = item.stokMin - aktual;
+      const persen = Math.round((aktual / item.stokMin) * 100);
+      html += `<div id="beli-row-${item.id}" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--red-light);border-radius:12px;margin-bottom:8px;">
+        <div onclick="toggleBeliCheck('${item.id}')" style="width:32px;height:32px;border-radius:10px;background:#fff;border:2px solid var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${item.nama} <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:rgba(9,58,114,0.08);color:var(--text3);margin-left:4px;">${item.kategori||''}</span></div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">
+            Sisa: <b style="color:var(--red);">${aktual} ${item.satuan}</b> · Perlu beli: <b>${kurang} ${item.satuan}</b>${item.lokasi ? ` · <i class="ti ti-map-pin" style="font-size:11px;color:#093a72;"></i> <b style="color:#093a72;">${item.lokasi}</b>` : ''}
           </div>
-          <div style="flex:1;${isCeklis ? 'opacity:0.55;' : ''}">
-            <div style="font-size:14px;font-weight:700;color:var(--text);${isCeklis ? 'text-decoration:line-through;' : ''}">${item.nama}</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:2px;">
-              Sisa: <b style="color:${isCeklis ? '#1D9E75' : 'var(--red)'};">${aktual} ${item.satuan}</b> · Beli: <b>${kurang} ${item.satuan}</b>${item.lokasi ? ` · <i class="ti ti-map-pin" style="font-size:11px;color:#093a72;"></i> <b style="color:#093a72;">${item.lokasi}</b>` : ''}
-            </div>
-            <div style="height:5px;background:rgba(226,75,74,0.2);border-radius:3px;margin-top:6px;overflow:hidden;">
-              <div style="height:100%;width:${Math.min(persen,100)}%;background:${isCeklis ? '#1D9E75' : 'var(--red)'};border-radius:3px;transition:background 0.3s;"></div>
-            </div>
+          <div style="height:5px;background:rgba(226,75,74,0.2);border-radius:3px;margin-top:6px;overflow:hidden;">
+            <div style="height:100%;width:${Math.min(persen,100)}%;background:var(--red);border-radius:3px;"></div>
           </div>
-          <div style="text-align:right;flex-shrink:0;">
-            <div style="font-size:11px;font-weight:700;color:${isCeklis ? '#1D9E75' : 'var(--red)'};">${isCeklis ? 'SUDAH' : 'BELI'}</div>
-            <div style="font-size:18px;font-weight:900;color:${isCeklis ? '#1D9E75' : 'var(--red)'};">${kurang}</div>
-            <div style="font-size:11px;color:var(--text3);">${item.satuan}</div>
-          </div>
-        </div>`;
-      });
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:11px;font-weight:700;color:var(--red);">BELI</div>
+          <div style="font-size:18px;font-weight:900;color:var(--red);">${kurang}</div>
+          <div style="font-size:11px;color:var(--text3);">${item.satuan}</div>
+        </div>
+      </div>`;
     });
-    // Confirm purchase button
-    const totalChecked = Object.values(window._beliChecked || {}).filter(Boolean).length;
-    html += `<div style="margin-top:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:13px;color:var(--text2);">
-        <span id="beli-checked-count" style="font-weight:700;color:#1D9E75;">${totalChecked}</span> / ${perlu.length} sudah dibeli
-      </div>
-      <button onclick="konfirmasiPembelian()" style="padding:10px 24px;border-radius:50px;border:none;background:${totalChecked > 0 ? '#1D9E75' : 'rgba(9,58,114,0.15)'};color:${totalChecked > 0 ? '#fff' : 'var(--text3)'};font-size:14px;font-weight:700;cursor:${totalChecked > 0 ? 'pointer' : 'default'};font-family:inherit;transition:all 0.2s;">
-        <i class="ti ti-circle-check"></i> Konfirmasi Pembelian
-      </button>
-    </div>`;
     html += '</div>';
   }
 
@@ -4521,38 +4503,22 @@ function renderPerluDibeli() {
 }
 
 function toggleBeliCheck(itemId) {
-  if (!window._beliChecked) window._beliChecked = {};
-  window._beliChecked[itemId] = !window._beliChecked[itemId];
-  renderPerluDibeli();
-}
-
-function konfirmasiPembelian() {
-  const checked = window._beliChecked || {};
-  const checkedIds = Object.keys(checked).filter(id => checked[id]);
-  if (!checkedIds.length) { showToast('Centang dulu barang yang sudah dibeli.'); return; }
-
+  // Auto-reset stok to stokMin immediately on check
   const items = getStokItems();
+  const item = items.find(i => i.id === itemId);
+  if (!item || !item.stokMin) return;
+
   const tgl = getLocalDateStr();
   const opname = getOpname(tgl);
-
-  // Reset stok to stokMin for confirmed items
-  checkedIds.forEach(id => {
-    const item = items.find(i => i.id === id);
-    if (!item || !item.stokMin) return;
-    // Set opname to stokMin (stok sudah direstok ke minimum)
-    opname[id] = item.stokMin;
-  });
-
-  // Save updated opname
+  opname[itemId] = item.stokMin;
   DB.setItem('koneo_opname_' + tgl, JSON.stringify(opname));
 
-  // Clear checklist
-  window._beliChecked = {};
-
-  showToast('Pembelian dikonfirmasi! Stok ' + checkedIds.length + ' barang direset ke stok minimum.');
+  showToast(item.nama + ' sudah dibeli — stok direset ke ' + item.stokMin + ' ' + item.satuan);
   renderPerluDibeli();
   updateBeliBadge();
 }
+
+
 
 let activeMasterFilter = 'Semua';
 let activeOpnameFilter = 'Semua';
