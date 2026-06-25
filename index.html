@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260625-006';
+  var VER = 'v20260625-007';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -2042,6 +2042,24 @@ const I18N = {
     nav_jadwal: 'Jadwal Karyawan', nav_absensi: 'Absensi',
     submit_btn: 'Submit Data', submit_info: 'Konfirmasi Data — Pastikan semua data sudah benar sebelum submit',
     motivasi: ['Kerja keras hari ini adalah investasi untuk Koneo yang lebih besar esok hari.','Setiap detail kecil yang kamu jaga membuat Koneo makin kuat.','Tim hebat dimulai dari kamu yang hadir dan bersemangat.','Bersama kita bisa membangun Koneo menjadi yang terbaik di Bali.','Pelayanan terbaikmu hari ini adalah kebanggaan Koneo besok.','Setiap tantangan adalah batu loncatan menuju versi Koneo yang lebih baik.','Konsistensi kecilmu hari ini menciptakan dampak besar untuk Koneo.','Kamu adalah bagian penting dari perjalanan besar Koneo Indonesia.'],
+    lbl_majoo_tunai:'Majoo Tunai', lbl_majoo_nontunai:'Majoo Non-Tunai',
+    lbl_pos_tunai:'POS Tunai', lbl_pos_nontunai:'POS Non-Tunai',
+    lbl_gofood:'GoFood (Gojek)', lbl_grabfood:'GrabFood (Grab)',
+    lbl_gojek:'GoFood (Gojek)', lbl_grab:'GrabFood (Grab)',
+    lbl_pajak_majoo:'Pajak Majoo', lbl_pajak_pos:'Pajak POS',
+    card_majoo:'Majoo', card_pos:'POS', card_online:'Online Order',
+    card_bar:'Bar', card_kitchen:'Kitchen', card_pajak:'Pajak',
+    card_operasional:'Operasional', card_lainnya:'Pengeluaran Lainnya',
+    card_ringkasan_p:'Ringkasan Pemasukan', card_ringkasan_k:'Ringkasan Pengeluaran',
+    lbl_total_tunai:'Total Tunai', lbl_total_nontunai:'Total Non-Tunai',
+    lbl_total_online:'Total Online', lbl_grand_total:'Grand Total',
+    lbl_pajak_sum:'Pajak', lbl_ops_sum:'Operasional', lbl_lainnya_sum:'Lainnya', lbl_lainnya:'Lainnya',
+    hint_bar:'Tambah item pembelian Bar', hint_kitchen:'Tambah item pembelian Kitchen',
+    hint_ops:'Tambah item biaya operasional', hint_lainnya:'Tambah item pengeluaran lainnya',
+    laporan_dari:'Dari Tanggal', laporan_sampai:'Sampai Tanggal',
+    btn_tambah_barang:'+ Tambah Barang', btn_kirim_wa:'Kirim ke WhatsApp', btn_cetak_pdf:'Cetak / PDF',
+    btn_tambah_item:'+ Tambah item', btn_scan:'Scan Struk / Bon Belanja',
+    riwayat_col_tgl:'Tanggal', riwayat_col_p:'Pemasukan', riwayat_col_k:'Pengeluaran', riwayat_col_net:'Laba/Rugi',
   },
   en: {
     label_tanggal: 'Date',
