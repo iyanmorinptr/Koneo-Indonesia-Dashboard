@@ -1291,7 +1291,7 @@
     </button>
     <div id="sg-stok-items" style="display:none;padding-left:10px;padding-bottom:4px;">
       <button class="sidebar-item" id="sitem-stok-master" onclick="sidebarGoStok('master')"><i class="ti ti-list-details"></i> Master Barang</button>
-      <button class="sidebar-item" id="sitem-stok-opname" onclick="sidebarGoStok('opname')"><i class="ti ti-clipboard-check"></i> Opname Harian</button>
+      <button class="sidebar-item" id="sitem-stok-opname" onclick="sidebarGoStok('opname')"><i class="ti ti-clipboard-list"></i> Pembelian Stock</button>
       <button class="sidebar-item" id="sitem-stok-beli" onclick="sidebarGoStok('beli')"><i class="ti ti-shopping-cart"></i> Perlu Dibeli <span id="sidebar-beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span></button>
       <button class="sidebar-item" id="sitem-stok-laporan" onclick="sidebarGoStok('laporan')"><i class="ti ti-chart-bar"></i> Laporan Stok</button>
     </div>
@@ -1532,7 +1532,7 @@
         <i class="ti ti-list-details"></i> <span class="stok-tab-label">Master Barang</span>
       </button>
       <button id="stok-tab-opname" onclick="switchStokTab('opname')" style="flex:1;padding:8px 10px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;">
-        <i class="ti ti-clipboard-check"></i> <span class="stok-tab-label">Opname Harian</span>
+        <i class="ti ti-clipboard-list"></i> <span class="stok-tab-label">Pembelian Stock</span>
       </button>
       <button id="stok-tab-beli" onclick="switchStokTab('beli')" style="flex:1;padding:8px 10px;font-size:13px;font-weight:500;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;">
         <i class="ti ti-shopping-cart"></i> <span class="stok-tab-label">Perlu Dibeli</span> <span id="beli-badge" style="display:none;background:#E24B4A;color:#fff;border-radius:50px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:4px;"></span>
@@ -1565,7 +1565,7 @@
       </div>
     </div>
 
-    <!-- Opname Harian -->
+    <!-- Pembelian Stock -->
     <div id="stok-section-opname" style="display:none;">
       <!-- Filter kategori -->
       <div style="display:flex;gap:6px;margin-bottom:1rem;">
@@ -1576,48 +1576,17 @@
       </div>
       <div class="welcome-hero" style="padding:1.5rem 2rem;margin-bottom:1.25rem;">
         <div style="position:relative;z-index:1;">
-          <div class="welcome-greeting">Opname Stok</div>
+          <div class="welcome-greeting">Pilih Barang yang Perlu Dibeli</div>
           <div class="welcome-title" style="font-size:22px;" id="opname-date-label">—</div>
-          <div class="welcome-sub" style="font-size:13px;">Input jumlah stok aktual yang ada di lapangan</div>
+          <div class="welcome-sub" style="font-size:13px;">Klik tombol + untuk menambahkan ke daftar belanja</div>
         </div>
       </div>
       <div id="opname-form-container"></div>
-      <div id="opname-action-row" class="action-row" style="margin-top:0;">
-        <button class="btn-outline" onclick="resetOpnameHariIni()" style="font-size:13px;"><i class="ti ti-refresh"></i> Reset & Input Ulang</button>
-        <button class="btn-primary" onclick="saveOpname()"><i class="ti ti-device-floppy"></i> Simpan Opname</button>
-      </div>
     </div>
 
     <!-- Laporan Stok -->
     <!-- Perlu Dibeli -->
     <div id="stok-section-beli" style="display:none;">
-      <!-- Add item form -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-title"><i class="ti ti-plus"></i> Tambah Item Belanja</div>
-        <div style="display:grid;grid-template-columns:1fr 80px 90px 110px auto;gap:8px;align-items:end;">
-          <div>
-            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Nama Barang</label>
-            <input id="beli-input-nama" type="text" placeholder="Contoh: Susu UHT" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
-          </div>
-          <div>
-            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Jumlah</label>
-            <input id="beli-input-qty" type="number" min="1" placeholder="1" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
-          </div>
-          <div>
-            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Satuan</label>
-            <input id="beli-input-satuan" type="text" placeholder="liter / pcs" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;">
-          </div>
-          <div>
-            <label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">Kategori</label>
-            <select id="beli-input-kat" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);box-sizing:border-box;">
-              <option value="Bar">Bar</option>
-              <option value="Kitchen">Kitchen</option>
-              <option value="Operasional">Operasional</option>
-            </select>
-          </div>
-          <button onclick="addBeliItem()" style="padding:9px 18px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">+ Tambah</button>
-        </div>
-      </div>
       <div id="beli-container"></div>
     </div>
 
@@ -4678,39 +4647,80 @@ function deleteStokItem(id) {
 
 function renderOpname() {
   const tgl = getLocalDateStr();
-  document.getElementById('opname-date-label').textContent = formatTanggal(tgl);
+  const el = document.getElementById('opname-date-label');
+  if (el) el.textContent = formatTanggal(tgl);
   const items = getStokItems();
-  const saved = getOpname(tgl);
-  const sudahDisimpan = Object.keys(saved).length > 0;
   const container = document.getElementById('opname-form-container');
+  if (!container) return;
 
   if (!items.length) {
     container.innerHTML = '<div class="card"><div class="empty-state"><i class="ti ti-package-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Belum ada master barang. <button onclick="switchStokTab(\'master\')" style="background:none;border:none;cursor:pointer;color:#093a72;font-weight:600;font-size:14px;">Tambah barang dulu →</button></div></div>';
     return;
   }
 
+  const beliList = getBeliList();
+  const sudahDiTambah = {};
+  beliList.forEach(function(b) { sudahDiTambah[b.masterItemId] = true; });
+
   const catsToShow = activeOpnameFilter === 'Semua' ? ['Bar','Kitchen','Operasional'] : [activeOpnameFilter];
-  container.innerHTML = catsToShow.map(cat => {
-    const catItems = items.filter(i => i.kategori === cat).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
-    if (!catItems.length) return '';
-    return `<div class="card" style="margin-bottom:1rem;">
-      <div class="card-title"><i class="ti ti-${cat === 'Bar' ? 'glass-full' : cat === 'Kitchen' ? 'chef-hat' : 'settings'}"></i> ${cat}</div>
-      ${catItems.map(item => `
-        <div class="opname-item">
-          <div class="opname-item-info">
-            <div class="opname-item-nama">${item.nama}</div>
-            <div class="opname-item-meta">Stok awal: ${item.stokAwal || 0} ${item.satuan}${item.lokasi ? ` &nbsp;·&nbsp; <i class="ti ti-map-pin" style="font-size:11px;"></i> ${item.lokasi}` : ''}</div>
-          </div>
-          <div class="opname-input-wrap">
-            <button onclick="adjOpname('${item.id}',-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(9,58,114,0.2);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:#093a72;">−</button>
-            <input type="text" inputmode="numeric" class="opname-qty-input" id="opname_${item.id}" value="${saved[item.id] !== undefined ? saved[item.id] : ''}" placeholder="0" oninput="this.value=this.value.replace(/[^\d]/g,'')">
-            <button onclick="adjOpname('${item.id}',1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(9,58,114,0.2);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:#093a72;">+</button>
-            <span class="opname-satuan">${item.satuan}</span>
-          </div>
-        </div>
-      `).join('')}
-    </div>`;
-  }).join('');
+  const catIcon = {Bar:'glass-full',Kitchen:'chef-hat',Operasional:'settings'};
+
+  let html = '';
+  catsToShow.forEach(function(cat) {
+    const catItems = items.filter(function(i) { return i.kategori === cat; }).sort(function(a,b) { return a.nama.localeCompare(b.nama,'id'); });
+    if (!catItems.length) return;
+    html += '<div class="card" style="margin-bottom:1rem;">';
+    html += '<div class="card-title"><i class="ti ti-' + (catIcon[cat]||'package') + '"></i> ' + cat + '</div>';
+    catItems.forEach(function(item) {
+      const sudah = sudahDiTambah[item.id];
+      html += '<div class="opname-item" style="border-radius:10px;' + (sudah ? 'opacity:0.55;' : '') + '">';
+      html += '<div class="opname-item-info">';
+      html += '<div class="opname-item-nama">' + item.nama + (sudah ? ' <span style="font-size:10px;background:#d4edda;color:#2e7d32;padding:2px 7px;border-radius:20px;font-weight:700;margin-left:6px;">Sudah ditambah</span>' : '') + '</div>';
+      html += '<div class="opname-item-meta">' + item.satuan + (item.lokasi ? ' &nbsp;&middot;&nbsp; ' + item.lokasi : '') + '</div>';
+      html += '</div>';
+      html += '<div style="display:flex;align-items:center;gap:8px;">';
+      html += '<button onclick="adjPembelian(\'pqty_' + item.id + '\',-1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(9,58,114,0.2);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:#093a72;flex-shrink:0;">−</button>';
+      html += '<input type="text" inputmode="numeric" id="pqty_' + item.id + '" value="1" style="width:40px;text-align:center;border:1.5px solid var(--border);border-radius:8px;padding:5px 4px;font-size:13px;font-family:inherit;" oninput="this.value=this.value.replace(/[^\\d]/g,\'\');if(!this.value||this.value<1)this.value=1;">';
+      html += '<button onclick="adjPembelian(\'pqty_' + item.id + '\',1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(9,58,114,0.2);background:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:#093a72;flex-shrink:0;">+</button>';
+      html += '<span style="font-size:12px;color:var(--text2);min-width:28px;">' + item.satuan + '</span>';
+      if (sudah) {
+        html += '<button onclick="hapusBeliByMaster(\''+item.id+'\')" style="padding:7px 12px;background:rgba(226,75,74,0.1);color:#E24B4A;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;"><i class="ti ti-x"></i> Batal</button>';
+      } else {
+        html += '<button onclick="tambahPembelian(\''+item.id+'\',\''+item.nama+'\',\''+item.satuan+'\',\''+item.kategori+'\')" style="padding:7px 14px;background:#093a72;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;"><i class="ti ti-plus"></i> Tambah</button>';
+      }
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function adjPembelian(inputId, delta) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  const cur = parseInt(el.value) || 1;
+  el.value = Math.max(1, cur + delta);
+}
+
+function tambahPembelian(itemId, nama, satuan, kategori) {
+  const qtyEl = document.getElementById('pqty_' + itemId);
+  const qty = qtyEl ? (parseInt(qtyEl.value) || 1) : 1;
+  const list = getBeliList();
+  if (list.find(function(i) { return i.masterItemId === itemId; })) { showToast(nama + ' sudah ada di daftar'); return; }
+  list.push({ id: 'beli_' + Date.now(), masterItemId: itemId, nama: nama, qty: qty, satuan: satuan, kategori: kategori, addedAt: new Date().toISOString() });
+  saveBeliList(list);
+  renderOpname();
+  updateBeliBadge();
+  showToast(nama + ' ditambahkan ke daftar belanja');
+}
+
+function hapusBeliByMaster(masterItemId) {
+  let list = getBeliList();
+  list = list.filter(function(i) { return i.masterItemId !== masterItemId; });
+  saveBeliList(list);
+  renderOpname();
+  updateBeliBadge();
+  showToast('Dihapus dari daftar belanja');
 }
 
 function adjOpname(itemId, delta) {
@@ -4720,20 +4730,11 @@ function adjOpname(itemId, delta) {
   el.value = Math.max(0, cur + delta);
 }
 
-function resetOpnameHariIni() {
-  const tgl = getLocalDateStr();
-  if (!confirm('Reset opname hari ini? Semua input hari ini akan dihapus.')) return;
-  DB.removeItem('koneo_stock_opname_' + tgl);
-  renderOpname();
-  updateBeliBadge();
-  showToast('Opname hari ini direset');
-}
-
 function saveOpname() {
   const tgl = getLocalDateStr();
   const items = getStokItems();
   const data = {};
-  items.forEach(item => {
+  items.forEach(function(item) {
     const el = document.getElementById('opname_' + item.id);
     if (el && el.value !== '') data[item.id] = parseInt(el.value) || 0;
   });
@@ -4741,6 +4742,7 @@ function saveOpname() {
   showToast('Opname stok tersimpan');
   updateBeliBadge();
 }
+
 
 function initStokLaporan() {
   const tgl = getLocalDateStr();
