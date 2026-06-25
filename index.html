@@ -3038,9 +3038,8 @@ function buildDashboard() {
   const hour = now.getHours();
   const greeting = hour < 12 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
   const greetEl = document.getElementById('welcome-greeting');
-  const currentUser = DB.getItem('koneo_current_user');
-  let namaUser = 'Koneo';
-  if (currentUser) { try { namaUser = JSON.parse(currentUser).nama || 'Koneo'; } catch(e) {} }
+  const session = getSession();
+  const namaUser = (session && session.nama) ? session.nama : 'Koneo';
   if (greetEl) greetEl.textContent = greeting + ', ' + namaUser + '!';
   const motivasiList = [
     'Kerja keras hari ini adalah investasi untuk Koneo yang lebih besar esok hari.',
