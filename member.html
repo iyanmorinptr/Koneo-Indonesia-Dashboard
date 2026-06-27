@@ -233,24 +233,26 @@
     btn.textContent = 'Mencatat kunjungan...';
 
     try {
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        // Google Apps Script tidak mendukung preflight OPTIONS yang kompleks,
-        // gunakan text/plain agar tidak trigger CORS preflight
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ nama, no_hp: normalizeHP(hp) })
-      });
+      // Gunakan GET request dengan URL parameter — menghindari CORS preflight
+      const url = APPS_SCRIPT_URL
+        + '?action=catat'
+        + '&nama=' + encodeURIComponent(nama)
+        + '&no_hp=' + encodeURIComponent(normalizeHP(hp));
+      const res = await fetch(url, { redirect: 'follow' });
       const data = await res.json();
       if (data.status === 'ok') {
+        const poin = data.total_kunjungan || 1;
+        const sisa = poin % 5 === 0 ? 5 : poin % 5;
+        const klaim = data.bisa_klaim ? ' 🎉 Kamu bisa klaim reward gratis sekarang!' : ' Kumpulkan ' + (5 - sisa) + ' poin lagi untuk reward!';
         statusBox.className = 'status-box ok';
-        statusBox.textContent = '🎉 Kunjungan tercatat! Terima kasih, ' + nama + '. Total kunjunganmu: ' + (data.total_kunjungan || '—');
+        statusBox.textContent = '✅ Kunjungan tercatat! Terima kasih, ' + nama + '. Total kunjungan: ' + poin + '.' + klaim;
         document.getElementById('reg-form').reset();
       } else {
         throw new Error(data.message || 'Server error');
       }
     } catch (err) {
       statusBox.className = 'status-box err';
-      statusBox.innerHTML = '❌ <strong>Gagal mencatat kunjungan.</strong><br>Cek koneksi internet kamu, lalu coba lagi. Jika masalah berlanjut, beritahu kasir.';
+      statusBox.innerHTML = '❌ <strong>Gagal mencatat kunjungan.</strong><br>Pastikan koneksi internet aktif lalu coba lagi. Jika masalah berlanjut, beritahu kasir.';
     } finally {
       btn.disabled = false;
       btn.textContent = 'Catat Kunjungan ✨';
