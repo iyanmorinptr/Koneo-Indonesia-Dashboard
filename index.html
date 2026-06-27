@@ -3165,43 +3165,58 @@ function downloadInvoicePNG() {
 
 // ── MEMBER TAB ─────────────────────────────────────────────────────────────────
 const MEMBER_SCRIPT_KEY = 'koneo_member_script_url';
+const MEMBER_SCRIPT_HARDCODED = 'https://script.google.com/macros/s/AKfycbzcMNzCiscuGIBoU-0aP4TX0zgVBUqYF71Qf3Va72rYgm8CzEW7qMoSKWwgW8JfTytH/exec';
 
 function getMemberScriptUrl() {
-  return localStorage.getItem(MEMBER_SCRIPT_KEY) || '';
+  return localStorage.getItem(MEMBER_SCRIPT_KEY) || MEMBER_SCRIPT_HARDCODED;
 }
 
 function saveMemberScriptUrl() {
   const url = document.getElementById('member-script-url').value.trim();
   localStorage.setItem(MEMBER_SCRIPT_KEY, url);
-  // Also update member.html placeholder awareness
   showToast('URL Apps Script disimpan!');
   buildMemberTab();
+}
+
+// JSONP helper — bypass CORS sepenuhnya
+function fetchJSONP(url) {
+  return new Promise(function(resolve, reject) {
+    const cb = 'koneoCb_' + Date.now();
+    const script = document.createElement('script');
+    const timer = setTimeout(function() {
+      delete window[cb]; script.remove();
+      reject(new Error('Timeout'));
+    }, 12000);
+    window[cb] = function(data) {
+      clearTimeout(timer); delete window[cb]; script.remove();
+      resolve(data);
+    };
+    script.onerror = function() {
+      clearTimeout(timer); delete window[cb]; script.remove();
+      reject(new Error('Network error'));
+    };
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
+    document.head.appendChild(script);
+  });
 }
 
 let _memberData = [];
 
 async function buildMemberTab() {
   const url = getMemberScriptUrl();
-  // Load saved URL into input
   const inp = document.getElementById('member-script-url');
   if (inp) inp.value = url;
 
   const wrap = document.getElementById('member-table-wrap');
-  if (!url) {
-    wrap.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:32px 16px;text-align:center;"><i class="ti ti-alert-circle" style="font-size:28px;display:block;margin-bottom:8px;color:#e2a820;"></i>URL Apps Script belum diisi.<br>Isi URL di bagian Konfigurasi di bawah.</div>';
-    return;
-  }
   wrap.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:32px 16px;text-align:center;"><i class="ti ti-loader" style="font-size:28px;display:block;margin-bottom:8px;"></i>Mengambil data member...</div>';
   try {
-    const res = await fetch(url + '?action=list');
-    const data = await res.json();
+    const data = await fetchJSONP(url + '?action=list');
     if (!data || !Array.isArray(data.members)) throw new Error('Format tidak valid');
     _memberData = data.members;
     renderMemberTable(_memberData);
-    // Stats
     const total = _memberData.length;
-    const bisa = _memberData.filter(m => m.kunjungan >= 5).length;
-    const totalKunj = _memberData.reduce((a, m) => a + (m.kunjungan || 0), 0);
+    const bisa = _memberData.filter(function(m){ return m.kunjungan >= 5; }).length;
+    const totalKunj = _memberData.reduce(function(a, m){ return a + (m.kunjungan || 0); }, 0);
     document.getElementById('member-stat-total').textContent = total;
     document.getElementById('member-stat-claim').textContent = bisa;
     document.getElementById('member-stat-kunjungan').textContent = totalKunj;
