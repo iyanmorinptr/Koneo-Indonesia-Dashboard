@@ -2264,6 +2264,19 @@
     </div>
 
     <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-cloud"></i> Backup Otomatis</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Data penting (COGS, Stok, Kasir) otomatis di-backup ke Google Sheets setiap 15 menit. Backup juga bisa dilakukan manual kapan saja.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(9,58,114,0.05);border-radius:10px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#093a72;">Status Backup Terakhir</div>
+          <div id="backup-last-time" style="font-size:13px;font-weight:700;margin-top:2px;">Memuat...</div>
+        </div>
+        <button id="backup-btn" onclick="manualBackup()" style="padding:9px 16px;background:#093a72;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;">☁️ Backup Sekarang</button>
+      </div>
+      <button onclick="restoreFromBackup()" style="width:100%;padding:11px;background:none;border:1.5px solid rgba(9,58,114,0.25);border-radius:10px;font-size:13px;font-weight:600;color:#093a72;cursor:pointer;">🔄 Restore dari Backup Terakhir</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
       <div class="card-title"><i class="ti ti-cash-register"></i> Konfigurasi Kasir</div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Atur kode registrasi untuk mengaktifkan halaman kasir di perangkat kasir. Karyawan harus memasukkan kode ini sekali di device kasir.</p>
       <div class="input-group" style="margin-bottom:12px;">
@@ -3470,6 +3483,112 @@ function filterMemberTable() {
     return matchQ && matchR;
   });
   renderMemberTable(filtered);
+}
+
+// ── BACKUP OTOMATIS ────────────────────────────────────────────────────────────
+var BACKUP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcMNzCiscuGIBoU-0aP4TX0zgVBUqYF71Qf3Va72rYgm8CzEW7qMoSKWwgW8JfTytH/exec';
+var _backupTimer = null;
+
+var BACKUP_KEYS = [
+  'koneo_cogs_bahan',
+  'koneo_cogs_menu',
+  'koneo_stock_items',
+  'koneo_kasir_produk',
+  'koneo_kasir_transaksi'
+];
+
+function collectBackupData() {
+  var obj = {};
+  BACKUP_KEYS.forEach(function(k) {
+    var v = localStorage.getItem(k);
+    if (v) obj[k] = v;
+  });
+  // Also include all koneo_ finance keys
+  Object.keys(localStorage).forEach(function(k) {
+    if (k.startsWith('koneo_laporan_') || k.startsWith('koneo_pemasukan_') || k.startsWith('koneo_pengeluaran_')) {
+      obj[k] = localStorage.getItem(k);
+    }
+  });
+  return JSON.stringify(obj);
+}
+
+function runAutoBackup() {
+  var data = collectBackupData();
+  if (!data || data === '{}') return;
+  var url = BACKUP_SCRIPT_URL + '?action=backup_save&data=' + encodeURIComponent(data);
+  fetch(url, { mode: 'no-cors' }).then(function() {
+    localStorage.setItem('koneo_last_backup', new Date().toISOString());
+    updateBackupStatus();
+  }).catch(function() {});
+}
+
+function triggerBackup() {
+  // Debounce — wait 3s after last change before sending
+  if (_backupTimer) clearTimeout(_backupTimer);
+  _backupTimer = setTimeout(runAutoBackup, 3000);
+}
+
+function updateBackupStatus() {
+  var lastEl = document.getElementById('backup-last-time');
+  if (!lastEl) return;
+  var last = localStorage.getItem('koneo_last_backup');
+  if (!last) { lastEl.textContent = 'Belum pernah backup'; lastEl.style.color = 'var(--red)'; return; }
+  var diff = Math.floor((Date.now() - new Date(last).getTime()) / 60000);
+  if (diff < 1) { lastEl.textContent = 'Baru saja'; lastEl.style.color = 'var(--green)'; }
+  else if (diff < 60) { lastEl.textContent = diff + ' menit lalu'; lastEl.style.color = diff < 30 ? 'var(--green)' : 'var(--amber)'; }
+  else { lastEl.textContent = Math.floor(diff/60) + ' jam lalu'; lastEl.style.color = 'var(--amber)'; }
+}
+
+function manualBackup() {
+  var btn = document.getElementById('backup-btn');
+  if (btn) { btn.textContent = '⏳ Menyimpan...'; btn.disabled = true; }
+  var data = collectBackupData();
+  var url  = BACKUP_SCRIPT_URL + '?action=backup_save&data=' + encodeURIComponent(data);
+  fetch(url, { mode: 'no-cors' }).then(function() {
+    localStorage.setItem('koneo_last_backup', new Date().toISOString());
+    updateBackupStatus();
+    if (btn) { btn.textContent = '✅ Tersimpan!'; btn.disabled = false; }
+    setTimeout(function() { if (btn) btn.textContent = '☁️ Backup Sekarang'; }, 2000);
+    showToast('Backup berhasil disimpan ke Google Sheets!');
+  }).catch(function(err) {
+    if (btn) { btn.textContent = '❌ Gagal'; btn.disabled = false; }
+    setTimeout(function() { if (btn) btn.textContent = '☁️ Backup Sekarang'; }, 2000);
+    showToast('Backup gagal. Cek koneksi internet.');
+  });
+}
+
+function restoreFromBackup() {
+  if (!confirm('Restore data dari backup Google Sheets? Data saat ini di browser akan ditimpa.')) return;
+  var cbName = 'koneo_restore_cb_' + Date.now();
+  var script = document.createElement('script');
+  script.src  = BACKUP_SCRIPT_URL + '?action=backup_get&callback=' + cbName;
+  window[cbName] = function(res) {
+    document.head.removeChild(script);
+    delete window[cbName];
+    if (!res || res.status !== 'ok' || !res.backup) {
+      showToast('Tidak ada backup ditemukan di Google Sheets.');
+      return;
+    }
+    try {
+      var obj = JSON.parse(res.backup.data);
+      Object.keys(obj).forEach(function(k) { localStorage.setItem(k, obj[k]); });
+      localStorage.setItem('koneo_last_backup', new Date().toISOString());
+      showToast('✅ Data berhasil di-restore! Halaman akan dimuat ulang.');
+      setTimeout(function() { location.reload(); }, 1500);
+    } catch(e) {
+      showToast('Gagal parse data backup.');
+    }
+  };
+  script.onerror = function() { showToast('Gagal mengambil backup. Cek koneksi.'); };
+  document.head.appendChild(script);
+}
+
+function initAutoBackup() {
+  updateBackupStatus();
+  // Auto backup every 15 minutes
+  setInterval(runAutoBackup, 15 * 60 * 1000);
+  // Backup on page unload (best effort)
+  window.addEventListener('beforeunload', function() { runAutoBackup(); });
 }
 
 // ── KASIR / POS ────────────────────────────────────────────────────────────────
@@ -5001,6 +5120,7 @@ function buildOmsetChart() {
   loadData();
   initAuth();
   applyLang();
+  initAutoBackup();
 })();
 
 function doPrint() {
@@ -6077,10 +6197,12 @@ function saveItemModal() {
   let items = getStokItems();
   if (editingItemId) {
     items = items.map(i => i.id === editingItemId ? { ...i, nama, satuan, kategori, lokasi, hargaSatuan, stokAwal, stokMin } : i);
+    triggerBackup();
     showToast('Barang diperbarui');
   } else {
     const id = 'item_' + Date.now();
     items.push({ id, nama, satuan, kategori, lokasi, hargaSatuan, stokAwal, stokMin });
+    triggerBackup();
     showToast('Barang ditambahkan');
   }
   saveStokItems(items);
@@ -6531,6 +6653,7 @@ function saveCogsBahanModal() {
   saveCogsBahan(items);
   closeCogsBahanModal();
   renderCogsBahan();
+  triggerBackup();
   showToast(activeCogsBahanEdit ? 'Bahan diperbarui' : nama + ' berhasil ditambahkan');
   activeCogsBahanEdit = null;
 }
@@ -6757,6 +6880,7 @@ function saveCogsMenuModal() {
   saveCogsMenu(menus);
   closeCogsMenuModal();
   renderCogsMenu();
+  triggerBackup();
   showToast(activeCogsMenuEdit ? 'Resep diperbarui' : 'Resep berhasil disimpan');
   activeCogsMenuEdit = null;
 }
