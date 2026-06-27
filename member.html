@@ -184,8 +184,9 @@
 
   // ── VALIDASI ─────────────────────────────────────────────────────────────────
   function validateHP(hp) {
-    const cleaned = hp.replace(/[\s\-\.]/g, '');
-    return /^(08|628|\+628)\d{8,11}$/.test(cleaned);
+    const cleaned = hp.replace(/[\s\-\.\(\)]/g, '');
+    // Terima: 08xxxxxxxx, 628xxxxxxxx, +628xxxxxxxx — total 10–15 digit
+    return /^(\+?628|08)\d{7,12}$/.test(cleaned);
   }
 
   function normalizeHP(hp) {
@@ -221,6 +222,12 @@
       ok = false;
     }
     if (!ok) return;
+
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('GANTI_DENGAN_URL')) {
+      statusBox.className = 'status-box err';
+      statusBox.innerHTML = '⚙️ <strong>URL Apps Script belum diisi.</strong><br>Minta owner untuk mengisi URL di dashboard → tab Member → Konfigurasi Apps Script.';
+      return;
+    }
 
     btn.disabled = true;
     btn.textContent = 'Mencatat kunjungan...';
