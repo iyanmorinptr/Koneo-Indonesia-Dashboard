@@ -139,16 +139,21 @@
   <h1>Catat Kunjungan 👋</h1>
   <p class="subtitle">Isi nama & nomor HP kamu setiap kunjungan untuk kumpulkan poin dan dapat reward!</p>
 
-  <form id="reg-form" onsubmit="handleSubmit(event)" novalidate>
+  <!-- Form submit ke hidden iframe — bypass CORS 100% -->
+  <iframe name="koneo-frame" style="display:none;"></iframe>
+  <form id="reg-form" method="GET"
+        action="https://script.google.com/macros/s/AKfycbzcMNzCiscuGIBoU-0aP4TX0zgVBUqYF71Qf3Va72rYgm8CzEW7qMoSKWwgW8JfTytH/exec"
+        target="koneo-frame"
+        onsubmit="handleSubmit(event)">
+    <input type="hidden" name="action" value="catat">
+
     <label for="inp-nama">Nama Lengkap</label>
-    <input type="text" id="inp-nama" placeholder="Contoh: Budi Santoso"
+    <input type="text" id="inp-nama" name="nama" placeholder="Contoh: Budi Santoso"
            autocomplete="name" inputmode="text" required>
-    <div class="err-msg" id="err-nama">Nama tidak boleh kosong.</div>
 
     <label for="inp-hp">No. HP (WhatsApp)</label>
-    <input type="tel" id="inp-hp" placeholder="08xxxxxxxxxx"
+    <input type="tel" id="inp-hp" name="no_hp" placeholder="08xxxxxxxxxx"
            autocomplete="tel" inputmode="numeric" maxlength="15" required>
-    <div class="err-msg" id="err-hp">Format tidak valid. Gunakan: 08xxxxxxxxxx (10–13 digit).</div>
 
     <button class="btn" type="submit" id="submit-btn">Catat Kunjungan ✨</button>
   </form>
@@ -183,17 +188,13 @@
   }
 
   // ── SUBMIT ───────────────────────────────────────────────────────────────────
-  async function handleSubmit(e) {
-    e.preventDefault();
+  function handleSubmit(e) {
     const nama = document.getElementById('inp-nama').value.trim();
-    const hp   = document.getElementById('inp-hp').value.trim().replace(/[\s\-\.\(\)]/g, '');
+    const hp   = document.getElementById('inp-hp').value.trim();
     const statusBox = document.getElementById('status-box');
-    const btn = document.getElementById('submit-btn');
-
-    statusBox.style.display = 'none';
-    statusBox.className = 'status-box';
 
     if (!nama || !hp) {
+      e.preventDefault();
       statusBox.style.display = 'block';
       statusBox.className = 'status-box err';
       statusBox.textContent = '⚠️ Nama dan No. HP tidak boleh kosong.';
@@ -201,29 +202,15 @@
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Mencatat...';
-
-    try {
-      const url = APPS_SCRIPT_URL
-        + '?action=catat'
-        + '&nama=' + encodeURIComponent(nama)
-        + '&no_hp=' + encodeURIComponent(hp);
-      await fetch(url, { mode: 'no-cors' });
+    // Form submit ke hidden iframe — data terkirim ke Apps Script tanpa CORS
+    // Langsung tampilkan sukses, reset form setelah 500ms
+    setTimeout(function() {
       statusBox.style.display = 'block';
       statusBox.className = 'status-box ok';
       statusBox.textContent = '✅ Kunjungan tercatat! Terima kasih, ' + nama + '. Sampai jumpa lagi di Koneo! ☕';
       statusBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       document.getElementById('reg-form').reset();
-    } catch (err) {
-      statusBox.style.display = 'block';
-      statusBox.className = 'status-box err';
-      statusBox.textContent = '❌ Gagal. Pastikan koneksi internet aktif lalu coba lagi.';
-      statusBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Catat Kunjungan ✨';
-    }
+    }, 500);
   }
 </script>
 </body>
