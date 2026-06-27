@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260626-001';
+  var VER = 'v20260627-001';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -1322,6 +1322,7 @@
       <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
       <button class="sidebar-item" id="sitem-laporan-pajak" onclick="sidebarGo('laporan-pajak')"><i class="ti ti-receipt-tax"></i> Laporan Pajak</button>
       <button class="sidebar-item" id="sitem-invoice" onclick="sidebarGo('invoice')"><i class="ti ti-file-invoice"></i> Invoice</button>
+      <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')"><i class="ti ti-users"></i> Member</button>
     </div>
 
     <!-- Stock -->
@@ -1698,6 +1699,74 @@
           <div style="margin-top:60px;">(...................................)</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── TAB MEMBER ─────────────────────────────────────────────────────────────── -->
+  <div id="tab-member" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-users"></i> Data Member Koneo</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;">Daftar member &amp; poin kunjungan. Kasir dapat cek poin pelanggan di sini.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button onclick="buildMemberTab()" style="padding:8px 14px;background:#093a72;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"><i class="ti ti-refresh"></i> Refresh</button>
+          <a id="member-qr-link" href="member.html" target="_blank" style="padding:8px 14px;background:#0d5cad;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;"><i class="ti ti-qrcode"></i> Halaman Daftar</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <input type="search" id="member-search" placeholder="Cari nama atau No. HP..." oninput="filterMemberTable()"
+          style="flex:1;min-width:180px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--surface);">
+        <select id="member-filter-reward" onchange="filterMemberTable()"
+          style="padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);cursor:pointer;">
+          <option value="">Semua Status</option>
+          <option value="claim">Bisa Klaim</option>
+          <option value="belum">Belum Cukup</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Stats summary -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1rem;" id="member-stats-row">
+      <div class="card" style="text-align:center;padding:16px 12px;">
+        <div style="font-size:22px;font-weight:800;color:#093a72;" id="member-stat-total">-</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Total Member</div>
+      </div>
+      <div class="card" style="text-align:center;padding:16px 12px;">
+        <div style="font-size:22px;font-weight:800;color:#16a34a;" id="member-stat-claim">-</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Bisa Klaim Reward</div>
+      </div>
+      <div class="card" style="text-align:center;padding:16px 12px;">
+        <div style="font-size:22px;font-weight:800;color:#0d5cad;" id="member-stat-kunjungan">-</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Total Kunjungan</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="overflow-x:auto;padding:0;">
+      <div id="member-table-wrap" style="min-height:120px;display:flex;align-items:center;justify-content:center;">
+        <div style="color:var(--text3);font-size:14px;padding:32px 16px;text-align:center;">
+          <i class="ti ti-loader" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+          Mengambil data member...
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings: Apps Script URL -->
+    <div class="card" style="margin-top:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:10px;"><i class="ti ti-settings"></i> Konfigurasi Apps Script</div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:6px;">URL Google Apps Script Web App</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="url" id="member-script-url" placeholder="https://script.google.com/macros/s/..." 
+          style="flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);">
+        <button onclick="saveMemberScriptUrl()" style="padding:10px 16px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">Simpan</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;">Dapatkan URL setelah deploy Google Apps Script sebagai Web App. Lihat instruksi di bawah.</div>
     </div>
   </div>
 
@@ -2834,7 +2903,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -2910,7 +2979,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -2926,7 +2995,8 @@ function switchTab(tab) {
   if (tab === 'invoice') initInvoice();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
-  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak' || tab === 'invoice') ? 'none' : '';
+  if (tab === 'member') buildMemberTab();
+  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak' || tab === 'invoice' || tab === 'member') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
 }
@@ -3091,6 +3161,94 @@ function downloadInvoicePNG() {
   } else {
     showToast('html2canvas belum dimuat, coba refresh halaman');
   }
+}
+
+// ── MEMBER TAB ─────────────────────────────────────────────────────────────────
+const MEMBER_SCRIPT_KEY = 'koneo_member_script_url';
+
+function getMemberScriptUrl() {
+  return localStorage.getItem(MEMBER_SCRIPT_KEY) || '';
+}
+
+function saveMemberScriptUrl() {
+  const url = document.getElementById('member-script-url').value.trim();
+  localStorage.setItem(MEMBER_SCRIPT_KEY, url);
+  // Also update member.html placeholder awareness
+  showToast('URL Apps Script disimpan!');
+  buildMemberTab();
+}
+
+let _memberData = [];
+
+async function buildMemberTab() {
+  const url = getMemberScriptUrl();
+  // Load saved URL into input
+  const inp = document.getElementById('member-script-url');
+  if (inp) inp.value = url;
+
+  const wrap = document.getElementById('member-table-wrap');
+  if (!url) {
+    wrap.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:32px 16px;text-align:center;"><i class="ti ti-alert-circle" style="font-size:28px;display:block;margin-bottom:8px;color:#e2a820;"></i>URL Apps Script belum diisi.<br>Isi URL di bagian Konfigurasi di bawah.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:32px 16px;text-align:center;"><i class="ti ti-loader" style="font-size:28px;display:block;margin-bottom:8px;"></i>Mengambil data member...</div>';
+  try {
+    const res = await fetch(url + '?action=list');
+    const data = await res.json();
+    if (!data || !Array.isArray(data.members)) throw new Error('Format tidak valid');
+    _memberData = data.members;
+    renderMemberTable(_memberData);
+    // Stats
+    const total = _memberData.length;
+    const bisa = _memberData.filter(m => m.kunjungan >= 5).length;
+    const totalKunj = _memberData.reduce((a, m) => a + (m.kunjungan || 0), 0);
+    document.getElementById('member-stat-total').textContent = total;
+    document.getElementById('member-stat-claim').textContent = bisa;
+    document.getElementById('member-stat-kunjungan').textContent = totalKunj;
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:#dc2626;font-size:14px;padding:32px 16px;text-align:center;"><i class="ti ti-alert-circle" style="font-size:28px;display:block;margin-bottom:8px;"></i>Gagal mengambil data.<br><small style="color:var(--text3);">' + e.message + '</small></div>';
+  }
+}
+
+function renderMemberTable(data) {
+  const wrap = document.getElementById('member-table-wrap');
+  if (!data || !data.length) {
+    wrap.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:32px 16px;text-align:center;">Belum ada data member.</div>';
+    return;
+  }
+  let rows = data.map((m, i) => {
+    const status = m.kunjungan >= 5
+      ? '<span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:50px;font-size:12px;font-weight:700;">🎉 Klaim</span>'
+      : '<span style="background:#f3f4f6;color:#6b7280;padding:3px 10px;border-radius:50px;font-size:12px;font-weight:600;">' + m.kunjungan + '/5</span>';
+    return '<tr style="border-bottom:1px solid var(--border);">' +
+      '<td style="padding:10px 12px;font-size:13px;">' + (i+1) + '</td>' +
+      '<td style="padding:10px 12px;font-size:13px;font-weight:600;">' + (m.nama || '-') + '</td>' +
+      '<td style="padding:10px 12px;font-size:13px;color:var(--text2);">' + (m.no_hp || '-') + '</td>' +
+      '<td style="padding:10px 12px;font-size:13px;text-align:center;font-weight:700;color:#093a72;">' + (m.kunjungan || 0) + '</td>' +
+      '<td style="padding:10px 12px;font-size:13px;text-align:center;">' + status + '</td>' +
+      '<td style="padding:10px 12px;font-size:12px;color:var(--text3);">' + (m.terakhir || '-') + '</td>' +
+    '</tr>';
+  }).join('');
+  wrap.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+    '<thead><tr style="background:rgba(9,58,114,0.06);border-bottom:2px solid var(--border);">' +
+    '<th style="padding:10px 12px;font-size:12px;font-weight:700;color:#093a72;text-align:left;">#</th>' +
+    '<th style="padding:10px 12px;font-size:12px;font-weight:700;color:#093a72;text-align:left;">Nama</th>' +
+    '<th style="padding:10px 12px;font-size:12px;font-weight:700;color:#093a72;text-align:left;">No. HP</th>' +
+    '<th style="padding:10px 12px;font-size:12px;font-weight:700;color:#093a72;text-align:center;">Kunjungan</th>' +
+    '<th style="padding:10px 12px;font-size:12px;font-weight:700;color:#093a72;text-align:center;">Status</th>' +
+    '<th style="padding:10px 12px;font-size:12px;font-weight:700;color:#093a72;text-align:left;">Terakhir Kunjungan</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function filterMemberTable() {
+  const q = (document.getElementById('member-search').value || '').toLowerCase();
+  const rf = document.getElementById('member-filter-reward').value;
+  let filtered = _memberData.filter(m => {
+    const matchQ = !q || (m.nama||'').toLowerCase().includes(q) || (m.no_hp||'').includes(q);
+    const matchR = !rf || (rf === 'claim' ? m.kunjungan >= 5 : m.kunjungan < 5);
+    return matchQ && matchR;
+  });
+  renderMemberTable(filtered);
 }
 
 // ── LAPORAN PAJAK ──────────────────────────────────────────────────────────────
