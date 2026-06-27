@@ -1885,9 +1885,7 @@
         <input type="text" id="kp-kategori" placeholder="Contoh: Kopi, Minuman, Makanan" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;">
         <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Harga (Rp)</label>
         <input type="number" id="kp-harga" placeholder="25000" min="0" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;">
-        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Emoji / Icon</label>
-        <input type="text" id="kp-emoji" placeholder="☕" maxlength="4" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:20px;font-family:inherit;outline:none;margin-bottom:20px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
           <button onclick="closeKasirProdukForm()" style="padding:12px;background:none;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Batal</button>
           <button onclick="saveKasirProduk()" style="padding:12px;background:#093a72;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Simpan</button>
         </div>
@@ -3754,13 +3752,11 @@ function openKasirProdukForm(id) {
       document.getElementById('kp-nama').value = p.nama || '';
       document.getElementById('kp-kategori').value = p.kategori || '';
       document.getElementById('kp-harga').value = p.harga || '';
-      document.getElementById('kp-emoji').value = p.emoji || '';
     }
   } else {
     document.getElementById('kp-nama').value = '';
     document.getElementById('kp-kategori').value = '';
     document.getElementById('kp-harga').value = '';
-    document.getElementById('kp-emoji').value = '';
   }
   modal.style.display = 'flex';
 }
@@ -3771,15 +3767,14 @@ function saveKasirProduk() {
   var nama     = document.getElementById('kp-nama').value.trim();
   var kategori = document.getElementById('kp-kategori').value.trim();
   var harga    = Number(document.getElementById('kp-harga').value) || 0;
-  var emoji    = document.getElementById('kp-emoji').value.trim() || '🍽';
   var editId   = document.getElementById('kasir-produk-edit-id').value;
   if (!nama || !harga) { showToast('Nama dan harga wajib diisi!'); return; }
   var produk = kasirDB_getProduk();
   if (editId) {
     var idx = produk.findIndex(function(p) { return p.id === editId; });
-    if (idx !== -1) produk[idx] = Object.assign(produk[idx], { nama: nama, kategori: kategori, harga: harga, emoji: emoji });
+    if (idx !== -1) produk[idx] = Object.assign(produk[idx], { nama: nama, kategori: kategori, harga: harga });
   } else {
-    produk.push({ id: 'P-' + Date.now(), nama: nama, kategori: kategori, harga: harga, emoji: emoji, tersedia: true });
+    produk.push({ id: 'P-' + Date.now(), nama: nama, kategori: kategori, harga: harga, tersedia: true });
   }
   kasirDB_saveProduk(produk);
   closeKasirProdukForm();
