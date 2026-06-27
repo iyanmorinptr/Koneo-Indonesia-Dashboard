@@ -47,6 +47,21 @@ function doGet(e) {
       return respond({ status: 'ok', members: members }, cb);
     }
 
+    // ── Simpan backup ─────────────────────────────────────────────────────────
+    if (action === 'backup_save') {
+      var jsonStr = (e.parameter.data || '').toString();
+      if (!jsonStr) return respond({ status: 'error', message: 'No data.' }, cb);
+      var ts = saveBackup(jsonStr);
+      return respond({ status: 'ok', timestamp: ts }, cb);
+    }
+
+    // ── Ambil backup terbaru ──────────────────────────────────────────────────
+    if (action === 'backup_get') {
+      var backup = getLatestBackup();
+      if (!backup) return respond({ status: 'ok', backup: null }, cb);
+      return respond({ status: 'ok', backup: backup }, cb);
+    }
+
     return respond({ status: 'error', message: 'Action tidak dikenal.' }, cb);
   } catch (err) {
     return respond({ status: 'error', message: err.message }, cb);
@@ -92,4 +107,41 @@ function respond(obj, callback) {
       .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
   return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── BACKUP ────────────────────────────────────────────────────────────────────
+var BACKUP_SHEET_NAME = 'DashboardBackup';
+
+function getBackupSheet() {
+  var ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(BACKUP_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(BACKUP_SHEET_NAME);
+    sheet.appendRow(['Timestamp', 'BackupJSON']);
+  } else if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Timestamp', 'BackupJSON']);
+  }
+  return sheet;
+}
+
+function saveBackup(jsonStr) {
+  var sheet = getBackupSheet();
+  var ts    = Utilities.formatDate(new Date(), 'Asia/Makassar', 'yyyy-MM-dd HH:mm:ss');
+  // Keep only last 10 backups to avoid sheet growing too large
+  var lastRow = sheet.getLastRow();
+  if (lastRow >= 11) {
+    // Remove oldest rows (row 2 is oldest data row)
+    sheet.deleteRow(2);
+  }
+  sheet.appendRow([ts, jsonStr]);
+  SpreadsheetApp.flush();
+  return ts;
+}
+
+function getLatestBackup() {
+  var sheet   = getBackupSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return null;
+  var row = sheet.getRange(lastRow, 1, 1, 2).getValues()[0];
+  return { timestamp: row[0].toString(), data: row[1].toString() };
 }
