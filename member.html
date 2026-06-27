@@ -190,7 +190,7 @@
   // ── SUBMIT ───────────────────────────────────────────────────────────────────
   function handleSubmit(e) {
     const nama = document.getElementById('inp-nama').value.trim();
-    const hp   = document.getElementById('inp-hp').value.trim();
+    const hp   = document.getElementById('inp-hp').value.trim().replace(/[\s\-\.\(\)]/g, '');
     const statusBox = document.getElementById('status-box');
 
     if (!nama || !hp) {
