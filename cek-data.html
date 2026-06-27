@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cek Data Koneo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f3f4f6; padding: 20px; }
+  h1 { font-size: 20px; color: #093a72; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .card { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .card-title { font-size: 14px; font-weight: 700; color: #093a72; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .ok { color: #16a34a; font-weight: 700; }
+  .err { color: #dc2626; font-weight: 700; }
+  .warn { color: #d97706; font-weight: 700; }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .row:last-child { border-bottom: none; }
+  .key { color: #555; font-family: monospace; font-size: 12px; }
+  .val { font-weight: 600; }
+  .list-item { padding: 8px 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+  .list-item .name { font-weight: 600; color: #1a1a18; }
+  .list-item .detail { color: #666; font-size: 12px; margin-top: 2px; }
+  .empty { text-align: center; padding: 20px; color: #999; font-size: 13px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; }
+  .badge-ok { background: #d1fae5; color: #065f46; }
+  .badge-err { background: #fee2e2; color: #991b1b; }
+  .section-label { font-size: 11px; font-weight: 700; color: #093a72; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  pre { background: #f3f4f6; padding: 10px; border-radius: 8px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
+  .btn { display: inline-block; padding: 10px 20px; background: #093a72; color: #fff; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; margin-right: 8px; margin-top: 8px; }
+  .btn-red { background: #dc2626; }
+</style>
+</head>
+<body>
+
+<h1>🔍 Cek Data Koneo</h1>
+<p class="sub">Halaman ini menampilkan semua data yang tersimpan di browser kamu untuk aplikasi Koneo.</p>
+
+<div class="card" id="card-summary"></div>
+<div class="card" id="card-cogs-bahan"></div>
+<div class="card" id="card-cogs-menu"></div>
+<div class="card" id="card-stok"></div>
+<div class="card" id="card-kasir"></div>
+<div class="card" id="card-raw">
+  <div class="card-title">🗂 Semua Key localStorage Koneo</div>
+  <div id="raw-list"></div>
+</div>
+
+<script>
+function safe(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; }
+}
+function raw(key) {
+  return localStorage.getItem(key);
+}
+function fmt(n) {
+  return 'Rp ' + (n||0).toLocaleString('id-ID');
+}
+
+// ── SUMMARY ──────────────────────────────────────────────────────────────────
+(function() {
+  var cogsBahan  = safe('koneo_cogs_bahan') || [];
+  var cogsMenu   = safe('koneo_cogs_menu')  || [];
+  var stok       = safe('koneo_stock_items') || [];
+  var kasirProduk = safe('koneo_kasir_produk') || [];
+  var kasirTrx    = safe('koneo_kasir_transaksi') || [];
+
+  var rows = [
+    { label: 'COGS — Bahan Baku', key: 'koneo_cogs_bahan',     count: cogsBahan.length,   ok: cogsBahan.length > 0 },
+    { label: 'COGS — Resep Menu', key: 'koneo_cogs_menu',      count: cogsMenu.length,    ok: cogsMenu.length > 0 },
+    { label: 'Stok Barang',       key: 'koneo_stock_items',    count: stok.length,        ok: stok.length > 0 },
+    { label: 'Kasir — Produk',    key: 'koneo_kasir_produk',   count: kasirProduk.length, ok: kasirProduk.length > 0 },
+    { label: 'Kasir — Transaksi', key: 'koneo_kasir_transaksi',count: kasirTrx.length,    ok: kasirTrx.length >= 0 },
+  ];
+
+  var html = '<div class="card-title">📊 Ringkasan Data</div>';
+  rows.forEach(function(r) {
+    html += '<div class="row">' +
+      '<span><span class="key">' + r.key + '</span><br><span style="font-size:13px;color:#333;">' + r.label + '</span></span>' +
+      '<span class="' + (r.ok ? 'ok' : 'err') + '">' + r.count + ' item ' + (r.ok ? '✅' : '❌ KOSONG') + '</span>' +
+    '</div>';
+  });
+
+  var allOk = cogsBahan.length > 0 && cogsMenu.length > 0;
+  html += '<div style="margin-top:14px;padding:12px;border-radius:10px;background:' + (allOk ? '#d1fae5' : '#fee2e2') + ';font-size:13px;font-weight:600;color:' + (allOk ? '#065f46' : '#991b1b') + ';">' +
+    (allOk ? '✅ Data COGS ditemukan di browser ini.' : '❌ Data COGS tidak ada di browser ini. Kemungkinan kamu input data di browser/device lain, atau data terhapus.') +
+  '</div>';
+
+  document.getElementById('card-summary').innerHTML = html;
+})();
+
+// ── COGS BAHAN ────────────────────────────────────────────────────────────────
+(function() {
+  var data = safe('koneo_cogs_bahan') || [];
+  var html = '<div class="card-title">🧪 COGS — Bahan Baku (' + data.length + ' item)</div>';
+  if (!data.length) {
+    html += '<div class="empty">❌ Tidak ada data bahan baku di browser ini.</div>';
+  } else {
+    data.forEach(function(b) {
+      var hargaSat = (b.hargaKemasan && b.isiPerKemasan) ? (b.hargaKemasan / b.isiPerKemasan) : 0;
+      html += '<div class="list-item">' +
+        '<div class="name">' + (b.nama || '-') + '</div>' +
+        '<div class="detail">' +
+          'Kemasan: ' + (b.isiPerKemasan||'-') + ' ' + (b.satuanKecil||'') +
+          ' · Harga: ' + fmt(b.hargaKemasan) +
+          ' · Harga/satuan: ' + fmt(hargaSat.toFixed(0)) +
+          (b.kategori ? ' · Kategori: ' + b.kategori : '') +
+        '</div>' +
+      '</div>';
+    });
+  }
+  document.getElementById('card-cogs-bahan').innerHTML = html;
+})();
+
+// ── COGS MENU ─────────────────────────────────────────────────────────────────
+(function() {
+  var menu  = safe('koneo_cogs_menu')  || [];
+  var bahan = safe('koneo_cogs_bahan') || [];
+  var html = '<div class="card-title">📋 COGS — Resep Menu (' + menu.length + ' item)</div>';
+  if (!menu.length) {
+    html += '<div class="empty">❌ Tidak ada data resep menu di browser ini.</div>';
+  } else {
+    menu.forEach(function(m) {
+      var bahanList = (m.bahan || []).map(function(b) {
+        var found = bahan.find(function(x){ return x.id === b.bahanId; });
+        return (found ? found.nama : '?') + ' ' + b.jumlah + (found ? ' ' + found.satuanKecil : '');
+      }).join(', ');
+      html += '<div class="list-item">' +
+        '<div class="name">' + (m.nama || '-') + ' <span style="color:#093a72;font-size:12px;">(' + (m.kategori||'-') + ')</span></div>' +
+        '<div class="detail">' +
+          'Harga jual: ' + fmt(m.hargaJual) +
+          (bahanList ? '<br>Bahan: ' + bahanList : '') +
+        '</div>' +
+      '</div>';
+    });
+  }
+  document.getElementById('card-cogs-menu').innerHTML = html;
+})();
+
+// ── STOK ──────────────────────────────────────────────────────────────────────
+(function() {
+  var data = safe('koneo_stock_items') || [];
+  var html = '<div class="card-title">📦 Stok Barang (' + data.length + ' item)</div>';
+  if (!data.length) {
+    html += '<div class="empty">Belum ada data stok.</div>';
+  } else {
+    data.slice(0, 10).forEach(function(s) {
+      html += '<div class="list-item">' +
+        '<div class="name">' + (s.nama||'-') + '</div>' +
+        '<div class="detail">Stok awal: ' + (s.stokAwal||0) + ' ' + (s.satuan||'') + ' · Kategori: ' + (s.kategori||'-') + '</div>' +
+      '</div>';
+    });
+    if (data.length > 10) html += '<div style="font-size:12px;color:#999;padding:6px 12px;">...dan ' + (data.length-10) + ' item lainnya</div>';
+  }
+  document.getElementById('card-stok').innerHTML = html;
+})();
+
+// ── KASIR PRODUK ──────────────────────────────────────────────────────────────
+(function() {
+  var data = safe('koneo_kasir_produk') || [];
+  var trx  = safe('koneo_kasir_transaksi') || [];
+  var html = '<div class="card-title">🛒 Kasir — Produk (' + data.length + ') · Transaksi (' + trx.length + ')</div>';
+  if (!data.length) {
+    html += '<div class="empty">Belum ada produk kasir.</div>';
+  } else {
+    data.forEach(function(p) {
+      html += '<div class="list-item">' +
+        '<div class="name">' + (p.nama||'-') + ' <span class="badge ' + (p.tersedia !== false ? 'badge-ok' : 'badge-err') + '">' + (p.tersedia !== false ? 'Tersedia' : 'Habis') + '</span></div>' +
+        '<div class="detail">Harga: ' + fmt(p.harga) + (p.kategori ? ' · ' + p.kategori : '') + '</div>' +
+      '</div>';
+    });
+  }
+  document.getElementById('card-kasir').innerHTML = html;
+})();
+
+// ── RAW KEYS ──────────────────────────────────────────────────────────────────
+(function() {
+  var allKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith('koneo'); }).sort();
+  var html = '';
+  if (!allKeys.length) {
+    html = '<div class="empty">Tidak ada data Koneo di browser ini sama sekali.</div>';
+  } else {
+    allKeys.forEach(function(k) {
+      var val = localStorage.getItem(k);
+      var size = (val ? (val.length / 1024).toFixed(1) : 0) + ' KB';
+      html += '<div class="row"><span class="key">' + k + '</span><span style="font-size:12px;color:#999;">' + size + '</span></div>';
+    });
+  }
+  document.getElementById('raw-list').innerHTML = html || '<div class="empty">Kosong.</div>';
+})();
+</script>
+
+<div style="text-align:center;margin-top:24px;">
+  <a href="index.html" class="btn">← Kembali ke Dashboard</a>
+</div>
+
+</body>
+</html>
