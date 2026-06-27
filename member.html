@@ -233,26 +233,21 @@
     btn.textContent = 'Mencatat kunjungan...';
 
     try {
-      // Gunakan GET request dengan URL parameter — menghindari CORS preflight
       const url = APPS_SCRIPT_URL
         + '?action=catat'
         + '&nama=' + encodeURIComponent(nama)
         + '&no_hp=' + encodeURIComponent(normalizeHP(hp));
-      const res = await fetch(url, { redirect: 'follow' });
-      const data = await res.json();
-      if (data.status === 'ok') {
-        const poin = data.total_kunjungan || 1;
-        const sisa = poin % 5 === 0 ? 5 : poin % 5;
-        const klaim = data.bisa_klaim ? ' 🎉 Kamu bisa klaim reward gratis sekarang!' : ' Kumpulkan ' + (5 - sisa) + ' poin lagi untuk reward!';
-        statusBox.className = 'status-box ok';
-        statusBox.textContent = '✅ Kunjungan tercatat! Terima kasih, ' + nama + '. Total kunjungan: ' + poin + '.' + klaim;
-        document.getElementById('reg-form').reset();
-      } else {
-        throw new Error(data.message || 'Server error');
-      }
+
+      // mode: 'no-cors' — browser tidak pernah blokir, request tetap terkirim ke sheet
+      await fetch(url, { mode: 'no-cors' });
+
+      // Tampilkan sukses langsung (tidak bisa baca response dengan no-cors)
+      statusBox.className = 'status-box ok';
+      statusBox.textContent = '✅ Kunjungan tercatat! Terima kasih, ' + nama + '. Sampai jumpa lagi di Koneo! ☕';
+      document.getElementById('reg-form').reset();
     } catch (err) {
       statusBox.className = 'status-box err';
-      statusBox.innerHTML = '❌ <strong>Gagal mencatat kunjungan.</strong><br>Pastikan koneksi internet aktif lalu coba lagi. Jika masalah berlanjut, beritahu kasir.';
+      statusBox.innerHTML = '❌ <strong>Gagal mencatat kunjungan.</strong><br>Pastikan koneksi internet aktif lalu coba lagi.';
     } finally {
       btn.disabled = false;
       btn.textContent = 'Catat Kunjungan ✨';
