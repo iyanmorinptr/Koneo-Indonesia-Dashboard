@@ -182,72 +182,44 @@
     document.getElementById('logo-fallback').style.display = 'flex';
   }
 
-  // ── VALIDASI ─────────────────────────────────────────────────────────────────
-  function validateHP(hp) {
-    const cleaned = hp.replace(/[\s\-\.\(\)]/g, '');
-    // Terima: 08xxxxxxxx, 628xxxxxxxx, +628xxxxxxxx — total 10–15 digit
-    return /^(\+?628|08)\d{7,12}$/.test(cleaned);
-  }
-
-  function normalizeHP(hp) {
-    let h = hp.replace(/[\s\-\.]/g, '');
-    if (h.startsWith('+62')) h = '0' + h.slice(3);
-    else if (h.startsWith('628')) h = '0' + h.slice(2);
-    return h;
-  }
-
   // ── SUBMIT ───────────────────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
     const nama = document.getElementById('inp-nama').value.trim();
-    const hp   = document.getElementById('inp-hp').value.trim();
+    const hp   = document.getElementById('inp-hp').value.trim().replace(/[\s\-\.\(\)]/g, '');
     const statusBox = document.getElementById('status-box');
     const btn = document.getElementById('submit-btn');
 
-    // Reset UI
-    ['inp-nama','inp-hp'].forEach(id => document.getElementById(id).classList.remove('is-error'));
-    ['err-nama','err-hp'].forEach(id => document.getElementById(id).style.display = 'none');
+    statusBox.style.display = 'none';
     statusBox.className = 'status-box';
 
-    // Validasi
-    let ok = true;
-    if (!nama) {
-      document.getElementById('inp-nama').classList.add('is-error');
-      document.getElementById('err-nama').style.display = 'block';
-      ok = false;
-    }
-    if (!validateHP(hp)) {
-      document.getElementById('inp-hp').classList.add('is-error');
-      document.getElementById('err-hp').style.display = 'block';
-      ok = false;
-    }
-    if (!ok) return;
-
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('GANTI_DENGAN_URL')) {
+    if (!nama || !hp) {
+      statusBox.style.display = 'block';
       statusBox.className = 'status-box err';
-      statusBox.innerHTML = '⚙️ <strong>URL Apps Script belum diisi.</strong><br>Minta owner untuk mengisi URL di dashboard → tab Member → Konfigurasi Apps Script.';
+      statusBox.textContent = '⚠️ Nama dan No. HP tidak boleh kosong.';
+      statusBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     btn.disabled = true;
-    btn.textContent = 'Mencatat kunjungan...';
+    btn.textContent = 'Mencatat...';
 
     try {
       const url = APPS_SCRIPT_URL
         + '?action=catat'
         + '&nama=' + encodeURIComponent(nama)
-        + '&no_hp=' + encodeURIComponent(normalizeHP(hp));
-
-      // mode: 'no-cors' — browser tidak pernah blokir, request tetap terkirim ke sheet
+        + '&no_hp=' + encodeURIComponent(hp);
       await fetch(url, { mode: 'no-cors' });
-
-      // Tampilkan sukses langsung (tidak bisa baca response dengan no-cors)
+      statusBox.style.display = 'block';
       statusBox.className = 'status-box ok';
       statusBox.textContent = '✅ Kunjungan tercatat! Terima kasih, ' + nama + '. Sampai jumpa lagi di Koneo! ☕';
+      statusBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       document.getElementById('reg-form').reset();
     } catch (err) {
+      statusBox.style.display = 'block';
       statusBox.className = 'status-box err';
-      statusBox.innerHTML = '❌ <strong>Gagal mencatat kunjungan.</strong><br>Pastikan koneksi internet aktif lalu coba lagi.';
+      statusBox.textContent = '❌ Gagal. Pastikan koneksi internet aktif lalu coba lagi.';
+      statusBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } finally {
       btn.disabled = false;
       btn.textContent = 'Catat Kunjungan ✨';
