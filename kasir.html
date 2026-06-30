@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Kasir v3.0 - Koneo Indonesia</title>
+<title>Kasir v4.0 - Koneo Indonesia</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -279,6 +279,11 @@ body {
   flex-direction: column;
   gap: 6px;
   user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(9,58,114,0.15);
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
 }
 .produk-card:hover {
   border-color: var(--blue);
@@ -652,6 +657,9 @@ body {
   transition: opacity 0.2s;
 }
 .modal-btn:hover { opacity: 0.88; }
+.qty-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pay-btn { touch-action: manipulation; }
+.cart-clear-btn { touch-action: manipulation; }
 .modal-btn-cancel { background: var(--bg); color: var(--text2); }
 .modal-btn-confirm { background: var(--blue); color: #fff; }
 .modal-btn-green { background: var(--green); color: #fff; }
@@ -941,24 +949,17 @@ function initKasir() {
   renderKasirCart();
   updateKasirTotal();
 
-  // Event delegation untuk klik produk — lebih reliable di touchscreen daripada inline onclick
+  // Event delegation untuk klik produk — button + click lebih reliable di tablet
   if (!_gridListenerAttached) {
     _gridListenerAttached = true;
     var grid = document.getElementById('kasirProdukGrid');
     if (grid) {
-      // Handle both touch dan click
-      function _handleProdukTap(e) {
+      grid.addEventListener('click', function(e) {
         var card = e.target.closest('[data-produk-id]');
         if (!card) return;
         var id = card.getAttribute('data-produk-id');
         if (id) addToKasirCart(id);
-      }
-      grid.addEventListener('click', _handleProdukTap);
-      grid.addEventListener('touchend', function(e) {
-        // Cegah double-fire dengan click
-        e.preventDefault();
-        _handleProdukTap(e);
-      }, { passive: false });
+      });
     }
   }
 
@@ -1053,11 +1054,11 @@ function renderKasirProdukGrid(list) {
 
   el.innerHTML = list.map(function(p) {
     var habis = p.tersedia === false || p.tersedia === 'false';
-    return '<div class="produk-card' + (habis ? ' habis' : '') + '" data-produk-id="' + escHtml(String(p.id)) + '">' +
+    return '<button type="button" class="produk-card' + (habis ? ' habis' : '') + '" data-produk-id="' + escHtml(String(p.id)) + '">' +
       '<div class="produk-nama">' + escHtml(p.nama) + '</div>' +
       '<div class="produk-harga">' + kasirFmtRp(p.harga) + '</div>' +
       (habis ? '<div class="produk-status-badge">Habis</div>' : '') +
-      '</div>';
+      '</button>';
   }).join('');
 }
 
@@ -1132,10 +1133,6 @@ function renderKasirCart() {
 // ===== CART EVENT DELEGATION =====
 function _attachCartListeners(el) {
   el.addEventListener('click', function(e) { _handleCartAction(e); });
-  el.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    _handleCartAction(e);
-  }, { passive: false });
 }
 
 function _handleCartAction(e) {
