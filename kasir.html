@@ -928,6 +928,7 @@ function registerDevice() {
 }
 
 // ===== KASIR INIT =====
+var _gridListenerAttached = false;
 function initKasir() {
   kasirCart = [];
   kasirProdukList = loadKasirProdukLocal();
@@ -935,6 +936,28 @@ function initKasir() {
   filterKasirProduk();
   renderKasirCart();
   updateKasirTotal();
+
+  // Event delegation untuk klik produk — lebih reliable di touchscreen daripada inline onclick
+  if (!_gridListenerAttached) {
+    _gridListenerAttached = true;
+    var grid = document.getElementById('kasirProdukGrid');
+    if (grid) {
+      // Handle both touch dan click
+      function _handleProdukTap(e) {
+        var card = e.target.closest('[data-produk-id]');
+        if (!card) return;
+        var id = card.getAttribute('data-produk-id');
+        if (id) addToKasirCart(id);
+      }
+      grid.addEventListener('click', _handleProdukTap);
+      grid.addEventListener('touchend', function(e) {
+        // Cegah double-fire dengan click
+        e.preventDefault();
+        _handleProdukTap(e);
+      }, { passive: false });
+    }
+  }
+
   // Load dari Firestore (lebih fresh)
   loadKasirProdukFromCloud(function(list) {
     kasirProdukList = list;
@@ -1026,7 +1049,7 @@ function renderKasirProdukGrid(list) {
 
   el.innerHTML = list.map(function(p) {
     var habis = p.tersedia === false || p.tersedia === 'false';
-    return '<div class="produk-card' + (habis ? ' habis' : '') + '" onclick="addToKasirCart(' + JSON.stringify(p.id) + ')">' +
+    return '<div class="produk-card' + (habis ? ' habis' : '') + '" data-produk-id="' + escHtml(String(p.id)) + '">' +
       '<div class="produk-nama">' + escHtml(p.nama) + '</div>' +
       '<div class="produk-harga">' + kasirFmtRp(p.harga) + '</div>' +
       (habis ? '<div class="produk-status-badge">Habis</div>' : '') +
