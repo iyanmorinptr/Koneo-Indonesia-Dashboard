@@ -4367,33 +4367,6 @@ function confirmKasirPayment() {
   clearKasirCart();
 }
 
-function syncKasirToFinance(trx) {
-  var dateStr = trx.timestamp ? trx.timestamp.substring(0, 10) : new Date().toISOString().substring(0, 10);
-  var key = 'koneo_draft_' + dateStr;
-  var dayKey = 'koneo_day_' + dateStr;
-  // Use submitted day data as base if no draft
-  var raw = DB.getItem(key) || DB.getItem(dayKey);
-  var data;
-  try { data = raw ? JSON.parse(raw) : null; } catch(e) { data = null; }
-  if (!data) {
-    data = { simple: { tanggal: dateStr, majoo_tunai:0, majoo_nontunai:0, pos_tunai:0, pos_nontunai:0, gojek:0, grab:0, pajak_majoo:0, pajak_pos:0 }, barRows:[], kitchenRows:[], operasionalRows:[], extraRows:[], pLainnyaRows:[], rowId:0 };
-  }
-  if (!data.simple) data.simple = {};
-  var field = trx.metode === 'tunai' ? 'pos_tunai' : 'pos_nontunai';
-  data.simple[field] = (Number(data.simple[field]) || 0) + trx.total;
-  data.simple['tanggal'] = data.simple['tanggal'] || dateStr;
-  DB.setItem(key, JSON.stringify(data));
-  // If the finance tab is showing today, update the input live
-  var today = new Date().toISOString().substring(0, 10);
-  if (dateStr === today) {
-    var inputEl = document.getElementById(field);
-    if (inputEl) {
-      var current = Number(inputEl.value.replace(/\D/g,'')) || 0;
-      inputEl.value = (current + trx.total).toLocaleString('id-ID');
-    }
-  }
-}
-
 function showKasirStruk(trx) {
   var tanggal = new Date(trx.timestamp);
   var tglStr  = tanggal.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) + ' ' + tanggal.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
