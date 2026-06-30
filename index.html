@@ -1480,11 +1480,11 @@
       <div class="card-title"><i class="ti ti-device-desktop"></i> POS</div>
       <div class="grid-2">
         <div class="input-group">
-          <label data-i18n="lbl_pos_tunai">POS Tunai</label>
+          <label data-i18n="lbl_pos_tunai">Koneo Kasir Tunai</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pos_tunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
-          <label data-i18n="lbl_pos_nontunai">POS Non-Tunai</label>
+          <label data-i18n="lbl_pos_nontunai">Koneo Kasir Non-Tunai</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pos_nontunai" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
@@ -1561,7 +1561,7 @@
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pajak_majoo" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
         <div class="input-group">
-          <label data-i18n="lbl_pajak_pos"><i class="ti ti-device-desktop" style="font-size:12px;"></i> Pajak POS</label>
+          <label data-i18n="lbl_pajak_pos"><i class="ti ti-device-desktop" style="font-size:12px;"></i> Pajak Koneo Kasir</label>
           <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="pajak_pos" placeholder="0" oninput="fmtInput(this)"></div>
         </div>
       </div>
@@ -2587,11 +2587,11 @@ const I18N = {
     submit_btn: 'Submit Data', submit_info: 'Konfirmasi Data — Pastikan semua data sudah benar sebelum submit',
     motivasi: ['Kerja keras hari ini adalah investasi untuk Koneo yang lebih besar esok hari.','Setiap detail kecil yang kamu jaga membuat Koneo makin kuat.','Tim hebat dimulai dari kamu yang hadir dan bersemangat.','Bersama kita bisa membangun Koneo menjadi yang terbaik di Bali.','Pelayanan terbaikmu hari ini adalah kebanggaan Koneo besok.','Setiap tantangan adalah batu loncatan menuju versi Koneo yang lebih baik.','Konsistensi kecilmu hari ini menciptakan dampak besar untuk Koneo.','Kamu adalah bagian penting dari perjalanan besar Koneo Indonesia.'],
     lbl_majoo_tunai:'Majoo Tunai', lbl_majoo_nontunai:'Majoo Non-Tunai',
-    lbl_pos_tunai:'POS Tunai', lbl_pos_nontunai:'POS Non-Tunai',
+    lbl_pos_tunai:'Koneo Kasir Tunai', lbl_pos_nontunai:'Koneo Kasir Non-Tunai',
     lbl_gofood:'GoFood (Gojek)', lbl_grabfood:'GrabFood (Grab)',
     lbl_gojek:'GoFood (Gojek)', lbl_grab:'GrabFood (Grab)',
-    lbl_pajak_majoo:'Pajak Majoo', lbl_pajak_pos:'Pajak POS',
-    card_majoo:'Majoo', card_pos:'POS', card_online:'Online Order',
+    lbl_pajak_majoo:'Pajak Majoo', lbl_pajak_pos:'Pajak Koneo Kasir',
+    card_majoo:'Majoo', card_pos:'Koneo Kasir', card_online:'Online Order',
     card_bar:'Bar', card_kitchen:'Kitchen', card_pajak:'Pajak',
     card_operasional:'Operasional', card_lainnya:'Pengeluaran Lainnya',
     card_ringkasan_p:'Ringkasan Pemasukan', card_ringkasan_k:'Ringkasan Pengeluaran',
@@ -2624,10 +2624,10 @@ const I18N = {
     motivasi: ['Hard work today is an investment for a greater Koneo tomorrow.','Every small detail you maintain makes Koneo stronger.','A great team starts with you being present and enthusiastic.','Together we can build Koneo into the best in Bali.','Your best service today is Koneo\'s pride tomorrow.','Every challenge is a stepping stone to a better Koneo.','Your consistency today creates a big impact for Koneo.','You are an important part of Koneo Indonesia\'s great journey.'],
     // Finance
     lbl_majoo_tunai:'Majoo Cash', lbl_majoo_nontunai:'Majoo Non-Cash',
-    lbl_pos_tunai:'POS Cash', lbl_pos_nontunai:'POS Non-Cash',
+    lbl_pos_tunai:'Koneo Kasir Tunai', lbl_pos_nontunai:'Koneo Kasir Non-Tunai',
     lbl_gojek:'GoFood (Gojek)', lbl_grab:'GrabFood (Grab)',
-    lbl_pajak_majoo:'Majoo Tax', lbl_pajak_pos:'POS Tax',
-    card_majoo:'Majoo', card_pos:'POS', card_online:'Online Order',
+    lbl_pajak_majoo:'Majoo Tax', lbl_pajak_pos:'Pajak Koneo Kasir',
+    card_majoo:'Majoo', card_pos:'Koneo Kasir', card_online:'Online Order',
     card_bar:'Bar', card_kitchen:'Kitchen', card_pajak:'Tax',
     card_operasional:'Operational', card_lainnya:'Other Expenses',
     card_ringkasan_p:'Revenue Summary', card_ringkasan_k:'Expense Summary',
@@ -2722,10 +2722,10 @@ function applyLang() {
   const labelMap = {
     'majoo_tunai': en?'Majoo Cash':'Majoo Tunai',
     'majoo_nontunai': en?'Majoo Non-Cash':'Majoo Non-Tunai',
-    'pos_tunai': en?'POS Cash':'POS Tunai',
-    'pos_nontunai': en?'POS Non-Cash':'POS Non-Tunai',
+    'pos_tunai': 'Koneo Kasir Tunai',
+    'pos_nontunai': 'Koneo Kasir Non-Tunai',
     'pajak_majoo': en?'Majoo Tax':'Pajak Majoo',
-    'pajak_pos': en?'POS Tax':'Pajak POS',
+    'pajak_pos': 'Pajak Koneo Kasir',
   };
   Object.entries(labelMap).forEach(([inputId, label]) => {
     const input = document.getElementById(inputId);
@@ -4377,7 +4377,7 @@ function showKasirStruk(trx) {
   }).join('');
   var html =
     '<div style="text-align:center;margin-bottom:12px;">' +
-      '<div style="font-size:18px;font-weight:900;color:#093a72;letter-spacing:2px;">KONEO</div>' +
+      '<div style="font-size:18px;font-weight:900;color:#093a72;letter-spacing:2px;">KONEO KASIR</div>' +
       '<div style="font-size:11px;color:#666;">Jl. Nangka Utara No.189, Denpasar</div>' +
       '<div style="font-size:11px;color:#666;">0821 835 43432</div>' +
     '</div>' +
@@ -5084,7 +5084,7 @@ function buildSingleDayDetail(rec) {
   const p = rec.data.simple;
   const peRows = [
     {src:'Majoo Tunai', val:p.majoo_tunai||0},{src:'Majoo Non-Tunai', val:p.majoo_nontunai||0},
-    {src:'POS Tunai', val:p.pos_tunai||0},{src:'POS Non-Tunai', val:p.pos_nontunai||0},
+    {src:'Koneo Kasir Tunai', val:p.pos_tunai||0},{src:'Koneo Kasir Non-Tunai', val:p.pos_nontunai||0},
     {src:'GoFood', val:p.gojek||0},{src:'GrabFood', val:p.grab||0}
   ].filter(r=>r.val>0);
 
@@ -5092,7 +5092,7 @@ function buildSingleDayDetail(rec) {
     ...(rec.data.barRows||[]).filter(r=>r.val>0).map(r=>({cat:'Bar',ket:r.ket||'—',val:r.val})),
     ...(rec.data.kitchenRows||[]).filter(r=>r.val>0).map(r=>({cat:'Kitchen',ket:r.ket||'—',val:r.val})),
     ...(p.pajak_majoo>0?[{cat:'Pajak',ket:'Pajak Majoo',val:p.pajak_majoo}]:[]),
-    ...(p.pajak_pos>0?[{cat:'Pajak',ket:'Pajak POS',val:p.pajak_pos}]:[]),
+    ...(p.pajak_pos>0?[{cat:'Pajak',ket:'Pajak Koneo Kasir',val:p.pajak_pos}]:[]),
     ...(rec.data.operasionalRows||[]).filter(r=>r.val>0).map(r=>({cat:'Operasional',ket:r.ket||'—',val:r.val})),
     ...(rec.data.extraRows||[]).filter(r=>r.val>0).map(r=>({cat:'Lainnya',ket:r.ket||'—',val:r.val}))
   ];
@@ -5225,7 +5225,7 @@ function buildAggregatedTable(records) {
     });
     const p = r.data.simple;
     if ((p.pajak_majoo||0)>0) { if (!grouped['Pajak Majoo']) grouped['Pajak Majoo']=0; grouped['Pajak Majoo']+=p.pajak_majoo; }
-    if ((p.pajak_pos||0)>0) { if (!grouped['Pajak POS']) grouped['Pajak POS']=0; grouped['Pajak POS']+=p.pajak_pos; }
+    if ((p.pajak_pos||0)>0) { if (!grouped['Pajak Koneo Kasir']) grouped['Pajak Koneo Kasir']=0; grouped['Pajak Koneo Kasir']+=p.pajak_pos; }
   });
 
   const catRows = Object.entries(grouped).filter(([,v])=>v>0)
@@ -5239,7 +5239,7 @@ function buildAggregatedTable(records) {
         <div class="card-title" style="font-size:13px;margin-bottom:0.75rem;"><i class="ti ti-arrow-down-circle"></i> Rekap Pemasukan</div>
         <div class="table-scroll"><table class="report"><thead><tr><th>Sumber</th><th style="text-align:right">Total</th></tr></thead>
         <tbody>
-          ${[['Majoo Tunai','majoo_tunai'],['Majoo Non-Tunai','majoo_nontunai'],['POS Tunai','pos_tunai'],['POS Non-Tunai','pos_nontunai'],['GoFood','gojek'],['GrabFood','grab']]
+          ${[['Majoo Tunai','majoo_tunai'],['Majoo Non-Tunai','majoo_nontunai'],['Koneo Kasir Tunai','pos_tunai'],['Koneo Kasir Non-Tunai','pos_nontunai'],['GoFood','gojek'],['GrabFood','grab']]
             .map(([label,id])=>{ const v=records.reduce((s,r)=>s+(r.data.simple[id]||0),0); return v>0?`<tr><td>${label}</td><td style="text-align:right">${fmt(v)}</td></tr>`:''; }).join('')}
           <tr class="total-row"><td>Total</td><td style="text-align:right">${fmt(totP)}</td></tr>
         </tbody></table></div>
@@ -6151,7 +6151,7 @@ function lihatDetail(tgl) {
 
   const rows = [
     ['Majoo Tunai', p.majoo_tunai], ['Majoo Non-Tunai', p.majoo_nontunai],
-    ['POS Tunai', p.pos_tunai], ['POS Non-Tunai', p.pos_nontunai],
+    ['Koneo Kasir Tunai', p.pos_tunai], ['Koneo Kasir Non-Tunai', p.pos_nontunai],
     ['GoFood', p.gojek], ['GrabFood', p.grab],
   ].filter(r=>r[1]>0).map(r=>`<tr><td>${r[0]}</td><td style="text-align:right">${fmt(r[1])}</td></tr>`).join('');
 
@@ -6159,7 +6159,7 @@ function lihatDetail(tgl) {
     ...((data.barRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Bar — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
     ...((data.kitchenRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Kitchen — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
     p.pajak_majoo>0 ? `<tr><td>Pajak Majoo</td><td style="text-align:right">${fmt(p.pajak_majoo)}</td></tr>` : '',
-    p.pajak_pos>0   ? `<tr><td>Pajak POS</td><td style="text-align:right">${fmt(p.pajak_pos)}</td></tr>` : '',
+    p.pajak_pos>0   ? `<tr><td>Pajak Koneo Kasir</td><td style="text-align:right">${fmt(p.pajak_pos)}</td></tr>` : '',
     ...((data.operasionalRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Ops — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
     ...((data.extraRows||[]).filter(r=>r.val>0).map(r=>`<tr><td>Lainnya — ${r.ket||'—'}</td><td style="text-align:right">${fmt(r.val)}</td></tr>`)),
   ].join('');
