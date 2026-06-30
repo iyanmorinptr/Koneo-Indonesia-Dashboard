@@ -1342,6 +1342,7 @@
     </button>
     <div id="sg-manager-items" style="display:none;padding-left:12px;">
       <button class="sidebar-item" id="sitem-manager-todo" onclick="sidebarGo('manager-todo')"><i class="ti ti-list-check"></i> To Do List</button>
+      <button class="sidebar-item" id="sitem-manager-pengumuman" onclick="sidebarGo('manager-pengumuman')"><i class="ti ti-speakerphone"></i> Pengumuman Staff</button>
     </div>
     <button onclick="toggleSidebarGroup('stok')" id="sg-stok" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
       <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-packages" style="font-size:17px;color:#093a72;"></i> Stock</span>
@@ -1438,6 +1439,9 @@
     </div>
 
 
+
+    <!-- WIDGET PENGUMUMAN & TODO -->
+    <div id="widget-info-staff" style="margin-top:16px;display:flex;flex-direction:column;gap:12px;"></div>
 
     <!-- FOOTER BRAND -->
     <div class="beranda-footer-brand">
@@ -2000,6 +2004,34 @@
         </div>
       </div>
       <div id="todo-list-container"></div>
+    </div>
+  </div>
+
+  <div id="tab-manager-pengumuman" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:16px;font-weight:800;color:#093a72;margin-bottom:16px;"><i class="ti ti-speakerphone"></i> Buat Pengumuman / Jadwal Staff</div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Jenis</label>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button onclick="setPengType('pengumuman')" id="peng-type-pengumuman" style="padding:7px 16px;border-radius:50px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;background:#093a72;color:#fff;">📢 Pengumuman</button>
+        <button onclick="setPengType('jadwal')" id="peng-type-jadwal" style="padding:7px 16px;border-radius:50px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;background:rgba(9,58,114,0.08);color:#093a72;">📅 Jadwal</button>
+      </div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Judul</label>
+      <input type="text" id="peng-judul" placeholder="Contoh: Seragam wajib dipakai mulai Senin" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Detail / Isi</label>
+      <textarea id="peng-detail" rows="3" placeholder="Tulis isi pengumuman atau detail jadwal di sini..." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);resize:vertical;margin-bottom:14px;"></textarea>
+      <div id="peng-jadwal-fields" style="display:none;">
+        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Tanggal & Waktu</label>
+        <input type="datetime-local" id="peng-waktu" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Lokasi / Keterangan</label>
+        <input type="text" id="peng-lokasi" placeholder="Contoh: Di toko, Zoom, dll." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+      </div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Dibuat oleh</label>
+      <input type="text" id="peng-creator" placeholder="Nama owner / manager" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:16px;">
+      <button onclick="submitPengumuman()" style="width:100%;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📢 Kirim Pengumuman</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:#093a72;"><i class="ti ti-news"></i> Daftar Pengumuman</div>
+      <div id="peng-list-container"></div>
     </div>
   </div>
 
@@ -3176,7 +3208,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-kasir','tab-kasir-produk','tab-kasir-riwayat'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-manager-pengumuman','tab-kasir','tab-kasir-produk','tab-kasir-riwayat'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -3252,7 +3284,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'kasir', 'kasir-produk', 'kasir-riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -3274,6 +3306,7 @@ function switchTab(tab) {
   if (tab === 'member' || tab === 'kasir' || tab === 'kasir-produk' || tab === 'kasir-riwayat') buildMemberTab();
   if (tab === 'manager-report') buildManagerReportTab();
   if (tab === 'manager-todo') buildManagerTodoTab();
+  if (tab === 'manager-pengumuman') buildPengumumanTab();
   if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak' || tab === 'invoice' || tab === 'member') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
@@ -3823,6 +3856,168 @@ function renderTodoList() {
       '<button onclick="deleteTodo(\'' + t.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;flex-shrink:0;">🗑</button>' +
     '</div>';
   }).join('');
+}
+
+// ── PENGUMUMAN STAFF ───────────────────────────────────────────────────────────
+var _pengType = 'pengumuman';
+
+function getPengumuman() {
+  try { return JSON.parse(localStorage.getItem('koneo_pengumuman') || '[]'); } catch(e) { return []; }
+}
+function savePengumuman(arr) { localStorage.setItem('koneo_pengumuman', JSON.stringify(arr)); }
+
+function buildPengumumanTab() {
+  var saved = localStorage.getItem('koneo_report_manager') || '';
+  var el = document.getElementById('peng-creator');
+  if (el && !el.value) el.value = saved;
+  _pengType = 'pengumuman';
+  setPengType('pengumuman');
+  renderPengumumanList();
+}
+
+function setPengType(type) {
+  _pengType = type;
+  var isJadwal = type === 'jadwal';
+  var jf = document.getElementById('peng-jadwal-fields');
+  if (jf) jf.style.display = isJadwal ? '' : 'none';
+  var btnP = document.getElementById('peng-type-pengumuman');
+  var btnJ = document.getElementById('peng-type-jadwal');
+  if (btnP) { btnP.style.background = isJadwal ? 'rgba(9,58,114,0.08)' : '#093a72'; btnP.style.color = isJadwal ? '#093a72' : '#fff'; }
+  if (btnJ) { btnJ.style.background = isJadwal ? '#093a72' : 'rgba(9,58,114,0.08)'; btnJ.style.color = isJadwal ? '#fff' : '#093a72'; }
+}
+
+function submitPengumuman() {
+  var judul   = (document.getElementById('peng-judul').value || '').trim();
+  var detail  = (document.getElementById('peng-detail').value || '').trim();
+  var creator = (document.getElementById('peng-creator').value || '').trim();
+  if (!judul) { showToast('Isi judul pengumuman!'); return; }
+  var item = {
+    id: 'PG-' + Date.now(),
+    type: _pengType,
+    judul: judul,
+    detail: detail,
+    creator: creator || 'Owner',
+    createdAt: new Date().toISOString(),
+    aktif: true
+  };
+  if (_pengType === 'jadwal') {
+    item.waktu  = document.getElementById('peng-waktu').value || '';
+    item.lokasi = (document.getElementById('peng-lokasi').value || '').trim();
+  }
+  var all = getPengumuman();
+  all.unshift(item);
+  savePengumuman(all);
+  if (creator) localStorage.setItem('koneo_report_manager', creator);
+  document.getElementById('peng-judul').value  = '';
+  document.getElementById('peng-detail').value = '';
+  if (document.getElementById('peng-waktu'))  document.getElementById('peng-waktu').value  = '';
+  if (document.getElementById('peng-lokasi')) document.getElementById('peng-lokasi').value = '';
+  showToast('📢 Pengumuman dikirim!');
+  notifyPengumuman(item);
+  renderPengumumanList();
+  renderBerandaWidgets();
+}
+
+function notifyPengumuman(item) {
+  if (!('Notification' in window)) return;
+  var msg = item.type === 'jadwal'
+    ? '📅 Jadwal baru: ' + item.judul + (item.waktu ? ' — ' + new Date(item.waktu).toLocaleString('id-ID') : '')
+    : '📢 Pengumuman: ' + item.judul;
+  if (Notification.permission === 'granted') {
+    new Notification('Koneo — Info dari ' + (item.creator || 'Owner'), { body: msg, icon: '/favicon.ico' });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(function(p) {
+      if (p === 'granted') new Notification('Koneo — Info dari ' + (item.creator || 'Owner'), { body: msg, icon: '/favicon.ico' });
+    });
+  }
+}
+
+function deletePengumuman(id) {
+  if (!confirm('Hapus pengumuman ini?')) return;
+  savePengumuman(getPengumuman().filter(function(p){ return p.id !== id; }));
+  renderPengumumanList();
+  renderBerandaWidgets();
+}
+
+function renderPengumumanList() {
+  var el = document.getElementById('peng-list-container');
+  if (!el) return;
+  var all = getPengumuman();
+  if (!all.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Belum ada pengumuman.</div>';
+    return;
+  }
+  el.innerHTML = all.map(function(p) {
+    var isJadwal = p.type === 'jadwal';
+    var waktuStr = '';
+    if (isJadwal && p.waktu) {
+      waktuStr = '<div style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:3px;">📅 ' + new Date(p.waktu).toLocaleString('id-ID', {weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) + '</div>';
+    }
+    var lokasiStr = isJadwal && p.lokasi ? '<div style="font-size:11px;color:var(--text3);margin-top:2px;">📍 ' + p.lokasi + '</div>' : '';
+    var detailStr = p.detail ? '<div style="font-size:12px;color:var(--text2);margin-top:4px;white-space:pre-wrap;">' + p.detail + '</div>' : '';
+    return '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;">' +
+      '<div style="flex:1;">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' +
+          '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px;' + (isJadwal ? 'background:#ede9fe;color:#7c3aed;' : 'background:rgba(9,58,114,0.08);color:#093a72;') + '">' + (isJadwal ? '📅 Jadwal' : '📢 Pengumuman') + '</span>' +
+        '</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#1a1a18;">' + p.judul + '</div>' +
+        waktuStr + lokasiStr + detailStr +
+        '<div style="font-size:11px;color:var(--text3);margin-top:4px;">Oleh ' + (p.creator || 'Owner') + ' · ' + new Date(p.createdAt).toLocaleDateString('id-ID') + '</div>' +
+      '</div>' +
+      '<button onclick="deletePengumuman(\'' + p.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;flex-shrink:0;">🗑</button>' +
+    '</div>';
+  }).join('');
+}
+
+function renderBerandaWidgets() {
+  var el = document.getElementById('widget-info-staff');
+  if (!el) return;
+  var pengs = getPengumuman().slice(0, 3);
+  var todos = getTodos().filter(function(t){ return !t.done; }).slice(0, 3);
+  var html = '';
+
+  if (pengs.length) {
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
+      '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
+        '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-speakerphone"></i> Pengumuman Staff</div>' +
+        '<button onclick="sidebarGo(\'manager-pengumuman\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Lihat Semua →</button>' +
+      '</div>';
+    pengs.forEach(function(p) {
+      var isJadwal = p.type === 'jadwal';
+      var waktuStr = (isJadwal && p.waktu) ? ' <span style="color:#7c3aed;font-size:11px;">📅 ' + new Date(p.waktu).toLocaleDateString('id-ID',{day:'2-digit',month:'short'}) + '</span>' : '';
+      html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);">' +
+        '<div style="font-size:13px;font-weight:700;color:#1a1a18;">' + p.judul + waktuStr + '</div>' +
+        (p.detail ? '<div style="font-size:12px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.detail + '</div>' : '') +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">Oleh ' + (p.creator||'Owner') + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (todos.length) {
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
+      '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
+        '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-list-check"></i> To Do Pending</div>' +
+        '<button onclick="sidebarGo(\'manager-todo\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Lihat Semua →</button>' +
+      '</div>';
+    todos.forEach(function(t) {
+      var isMeeting = t.type === 'meeting';
+      html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">' +
+        '<span style="font-size:15px;">' + (isMeeting ? '📅' : '📋') + '</span>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:13px;font-weight:600;color:#1a1a18;">' + t.deskripsi + '</div>' +
+          (isMeeting && t.jadwal ? '<div style="font-size:11px;color:#7c3aed;font-weight:600;">' + new Date(t.jadwal).toLocaleDateString('id-ID',{weekday:'short',day:'2-digit',month:'short'}) + '</div>' : '') +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (!pengs.length && !todos.length) {
+    html = '<div style="background:#fff;border-radius:16px;padding:20px;text-align:center;color:var(--text3);font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,0.07);">Belum ada pengumuman atau to do aktif.</div>';
+  }
+
+  el.innerHTML = html;
 }
 
 // ── BACKUP OTOMATIS ────────────────────────────────────────────────────────────
@@ -5462,6 +5657,7 @@ function buildOmsetChart() {
   applyLang();
   initAutoBackup();
   updateTodoBadge();
+  renderBerandaWidgets();
 })();
 
 function doPrint() {
