@@ -1334,6 +1334,7 @@
       <button class="sidebar-item" id="sitem-kasir" onclick="sidebarGo('kasir')"><i class="ti ti-cash-register"></i> Transaksi</button>
       <button class="sidebar-item" id="sitem-kasir-produk" onclick="sidebarGo('kasir-produk')"><i class="ti ti-package"></i> Produk</button>
       <button class="sidebar-item" id="sitem-kasir-riwayat" onclick="sidebarGo('kasir-riwayat')"><i class="ti ti-receipt"></i> Riwayat</button>
+      <button class="sidebar-item" id="sitem-kasir-manual" onclick="sidebarGo('kasir-manual')"><i class="ti ti-pencil-plus"></i> Tambah Transaksi</button>
       <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')"><i class="ti ti-users"></i> Member</button>
     </div>
     <button onclick="toggleSidebarGroup('manager')" id="sg-manager" class="sidebar-group-btn" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--text1);border-radius:10px;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.06)'" onmouseout="this.style.background='none'">
@@ -1885,7 +1886,7 @@
           <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-package"></i> Produk Kasir</div>
           <div style="font-size:12px;color:var(--text3);">Kelola menu dan harga produk</div>
         </div>
-        <button onclick="openKasirProdukForm()" style="padding:9px 16px;background:#093a72;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"><i class="ti ti-plus"></i> Tambah Produk</button>
+        <button id="kasir-produk-add-btn" onclick="openKasirProdukForm()" style="padding:9px 16px;background:#093a72;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;"><i class="ti ti-plus"></i> Tambah Produk</button>
       </div>
     </div>
     <div id="kasir-produk-list" class="card" style="padding:0;overflow:hidden;"></div>
@@ -1942,6 +1943,33 @@
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div id="kasir-riwayat-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-kasir-manual" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:16px;font-weight:800;color:#093a72;margin-bottom:16px;"><i class="ti ti-pencil-plus"></i> Tambah Transaksi Manual</div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Tanggal</label>
+      <input type="date" id="manual-trx-date" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Keterangan / Nama Item</label>
+      <input type="text" id="manual-trx-ket" placeholder="Contoh: Kopi Susu x2, Teh Tarik x1" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Total Harga</label>
+      <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;background:var(--bg);">
+        <span style="padding:10px 12px;color:#555;font-weight:600;font-size:13px;background:rgba(9,58,114,0.05);">Rp</span>
+        <input type="number" id="manual-trx-total" placeholder="0" min="0" style="flex:1;padding:10px 14px;border:none;font-size:14px;font-family:inherit;outline:none;background:transparent;">
+      </div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Metode Pembayaran</label>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button onclick="setManualMetode('tunai')" id="manual-metode-tunai" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:#093a72;color:#fff;">💵 Tunai</button>
+        <button onclick="setManualMetode('non-tunai')" id="manual-metode-nontunai" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:rgba(9,58,114,0.08);color:#093a72;">💳 Non-Tunai</button>
+      </div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Dicatat oleh</label>
+      <input type="text" id="manual-trx-staff" placeholder="Nama staff" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:16px;">
+      <button onclick="submitManualTrx()" style="width:100%;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✅ Simpan Transaksi</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:#093a72;"><i class="ti ti-list"></i> Riwayat Transaksi Manual</div>
+      <div id="manual-trx-list"></div>
     </div>
   </div>
 
@@ -3209,7 +3237,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-manager-pengumuman','tab-kasir','tab-kasir-produk','tab-kasir-riwayat'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-manager-pengumuman','tab-kasir','tab-kasir-produk','tab-kasir-riwayat','tab-kasir-manual'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -3285,7 +3313,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-riwayat', 'kasir-manual', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -3302,6 +3330,7 @@ function switchTab(tab) {
   if (tab === 'kasir') initKasir();
   if (tab === 'kasir-produk') buildKasirProdukTab();
   if (tab === 'kasir-riwayat') buildKasirRiwayatTab();
+  if (tab === 'kasir-manual') buildKasirManualTab();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
   if (tab === 'member' || tab === 'kasir' || tab === 'kasir-produk' || tab === 'kasir-riwayat') buildMemberTab();
@@ -4332,9 +4361,37 @@ function confirmKasirPayment() {
   var all = kasirDB_getTransaksi();
   all.unshift(transaksi);
   kasirDB_saveTransaksi(all);
+  syncKasirToFinance(transaksi);
   closeKasirPayment();
   showKasirStruk(transaksi);
   clearKasirCart();
+}
+
+function syncKasirToFinance(trx) {
+  var dateStr = trx.timestamp ? trx.timestamp.substring(0, 10) : new Date().toISOString().substring(0, 10);
+  var key = 'koneo_draft_' + dateStr;
+  var dayKey = 'koneo_day_' + dateStr;
+  // Use submitted day data as base if no draft
+  var raw = DB.getItem(key) || DB.getItem(dayKey);
+  var data;
+  try { data = raw ? JSON.parse(raw) : null; } catch(e) { data = null; }
+  if (!data) {
+    data = { simple: { tanggal: dateStr, majoo_tunai:0, majoo_nontunai:0, pos_tunai:0, pos_nontunai:0, gojek:0, grab:0, pajak_majoo:0, pajak_pos:0 }, barRows:[], kitchenRows:[], operasionalRows:[], extraRows:[], pLainnyaRows:[], rowId:0 };
+  }
+  if (!data.simple) data.simple = {};
+  var field = trx.metode === 'tunai' ? 'pos_tunai' : 'pos_nontunai';
+  data.simple[field] = (Number(data.simple[field]) || 0) + trx.total;
+  data.simple['tanggal'] = data.simple['tanggal'] || dateStr;
+  DB.setItem(key, JSON.stringify(data));
+  // If the finance tab is showing today, update the input live
+  var today = new Date().toISOString().substring(0, 10);
+  if (dateStr === today) {
+    var inputEl = document.getElementById(field);
+    if (inputEl) {
+      var current = Number(inputEl.value.replace(/\D/g,'')) || 0;
+      inputEl.value = (current + trx.total).toLocaleString('id-ID');
+    }
+  }
 }
 
 function showKasirStruk(trx) {
@@ -4382,11 +4439,186 @@ function printKasirStruk() {
   w.document.close();
 }
 
+// ── KASIR SYNC TO FINANCE ─────────────────────────────────────────────────────
+function syncKasirToFinance(trx) {
+  var dateStr = trx.timestamp ? trx.timestamp.substring(0, 10) : new Date().toISOString().substring(0, 10);
+  var key = 'koneo_draft_' + dateStr;
+  var dayKey = 'koneo_day_' + dateStr;
+  var raw = DB.getItem(key) || DB.getItem(dayKey);
+  var data;
+  try { data = raw ? JSON.parse(raw) : null; } catch(e) { data = null; }
+  if (!data) {
+    data = { simple: { tanggal: dateStr, majoo_tunai:0, majoo_nontunai:0, pos_tunai:0, pos_nontunai:0, gojek:0, grab:0, pajak_majoo:0, pajak_pos:0 }, barRows:[], kitchenRows:[], operasionalRows:[], extraRows:[], pLainnyaRows:[], rowId:0 };
+  }
+  if (!data.simple) data.simple = {};
+  var field = trx.metode === 'tunai' ? 'pos_tunai' : 'pos_nontunai';
+  data.simple[field] = (Number(data.simple[field]) || 0) + trx.total;
+  data.simple['tanggal'] = data.simple['tanggal'] || dateStr;
+  DB.setItem(key, JSON.stringify(data));
+  var today = new Date().toISOString().substring(0, 10);
+  if (dateStr === today) {
+    var inputEl = document.getElementById(field);
+    if (inputEl) {
+      var current = Number((inputEl.value || '').replace(/\D/g,'')) || 0;
+      inputEl.value = (current + trx.total).toLocaleString('id-ID');
+    }
+  }
+}
+
+function refundKasirTrx(id) {
+  if (!confirm('Refund transaksi ini? Total akan dibalik dari laporan keuangan.')) return;
+  var all = kasirDB_getTransaksi();
+  var idx = -1;
+  for (var i=0;i<all.length;i++) { if (all[i].id === id) { idx=i; break; } }
+  if (idx === -1) return;
+  var trx = all[idx];
+  if (trx.refunded) { showToast('Transaksi sudah di-refund!'); return; }
+  trx.refunded = true;
+  trx.refundedAt = new Date().toISOString();
+  kasirDB_saveTransaksi(all);
+  var dateStr = trx.timestamp ? trx.timestamp.substring(0, 10) : '';
+  if (dateStr) {
+    var key = 'koneo_draft_' + dateStr;
+    var dayKey = 'koneo_day_' + dateStr;
+    var raw = DB.getItem(key) || DB.getItem(dayKey);
+    if (raw) {
+      try {
+        var data = JSON.parse(raw);
+        if (data.simple) {
+          var field = trx.metode === 'tunai' ? 'pos_tunai' : 'pos_nontunai';
+          data.simple[field] = Math.max(0, (Number(data.simple[field]) || 0) - trx.total);
+          DB.setItem(key, JSON.stringify(data));
+        }
+      } catch(e) {}
+    }
+  }
+  showToast('✅ Transaksi berhasil di-refund!');
+  buildKasirRiwayatTab();
+}
+
+// ── KASIR MANUAL TRANSAKSI ─────────────────────────────────────────────────────
+var _manualMetode = 'tunai';
+
+function buildKasirManualTab() {
+  var today = new Date().toISOString().substring(0, 10);
+  var dateEl = document.getElementById('manual-trx-date');
+  if (dateEl && !dateEl.value) dateEl.value = today;
+  var sess = getSession();
+  var staffEl = document.getElementById('manual-trx-staff');
+  if (staffEl && !staffEl.value && sess) staffEl.value = sess.nama || '';
+  setManualMetode('tunai');
+  renderManualTrxList();
+}
+
+function setManualMetode(m) {
+  _manualMetode = m;
+  var btnT = document.getElementById('manual-metode-tunai');
+  var btnN = document.getElementById('manual-metode-nontunai');
+  if (btnT) { btnT.style.background = m === 'tunai' ? '#093a72' : 'rgba(9,58,114,0.08)'; btnT.style.color = m === 'tunai' ? '#fff' : '#093a72'; }
+  if (btnN) { btnN.style.background = m === 'non-tunai' ? '#093a72' : 'rgba(9,58,114,0.08)'; btnN.style.color = m === 'non-tunai' ? '#fff' : '#093a72'; }
+}
+
+function getManualTrx() {
+  try { return JSON.parse(localStorage.getItem('koneo_kasir_manual') || '[]'); } catch(e) { return []; }
+}
+function saveManualTrx(arr) { localStorage.setItem('koneo_kasir_manual', JSON.stringify(arr)); }
+
+function submitManualTrx() {
+  var ket     = (document.getElementById('manual-trx-ket').value || '').trim();
+  var total   = Number(document.getElementById('manual-trx-total').value) || 0;
+  var dateEl  = document.getElementById('manual-trx-date');
+  var dateStr = dateEl ? dateEl.value : new Date().toISOString().substring(0, 10);
+  var staff   = (document.getElementById('manual-trx-staff').value || '').trim();
+  if (!ket)   { showToast('Isi keterangan transaksi!'); return; }
+  if (!total) { showToast('Isi total harga!'); return; }
+  var trx = {
+    id: 'MNL-' + Date.now(),
+    timestamp: dateStr + 'T' + new Date().toTimeString().substring(0,8),
+    ket: ket,
+    total: total,
+    metode: _manualMetode,
+    staff: staff || 'Staff',
+    refunded: false
+  };
+  var all = getManualTrx();
+  all.unshift(trx);
+  saveManualTrx(all);
+  syncKasirToFinance({ timestamp: trx.timestamp, total: trx.total, metode: trx.metode });
+  document.getElementById('manual-trx-ket').value   = '';
+  document.getElementById('manual-trx-total').value = '';
+  showToast('✅ Transaksi manual disimpan dan masuk ke laporan keuangan!');
+  renderManualTrxList();
+}
+
+function renderManualTrxList() {
+  var el = document.getElementById('manual-trx-list');
+  if (!el) return;
+  var all = getManualTrx().slice(0, 50);
+  if (!all.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Belum ada transaksi manual.</div>';
+    return;
+  }
+  el.innerHTML = all.map(function(t) {
+    var tgl = t.timestamp ? t.timestamp.substring(0, 10) : '-';
+    var jam = t.timestamp && t.timestamp.length > 11 ? t.timestamp.substring(11, 16) : '';
+    return '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">' +
+      '<div style="text-align:center;min-width:44px;">' +
+        '<div style="font-size:11px;font-weight:700;color:#093a72;">' + tgl + '</div>' +
+        '<div style="font-size:10px;color:var(--text3);">' + jam + '</div>' +
+        '<div style="font-size:12px;">' + (t.metode === 'tunai' ? '💵' : '💳') + '</div>' +
+      '</div>' +
+      '<div style="flex:1;">' +
+        '<div style="font-size:13px;font-weight:600;color:#1a1a18;">' + t.ket + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);">Dicatat oleh ' + (t.staff || 'Staff') + '</div>' +
+        (t.refunded ? '<div style="font-size:10px;color:#dc2626;font-weight:700;margin-top:2px;">REFUND</div>' : '') +
+      '</div>' +
+      '<div style="text-align:right;">' +
+        '<div style="font-size:14px;font-weight:800;color:' + (t.refunded ? '#dc2626' : '#093a72') + ';">' + kasirFmtRp(t.total) + '</div>' +
+        (!t.refunded ? '<button onclick="refundManualTrx(\'' + t.id + '\')" style="margin-top:4px;padding:3px 10px;font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;border:none;border-radius:50px;cursor:pointer;">Refund</button>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function refundManualTrx(id) {
+  if (!confirm('Refund transaksi manual ini?')) return;
+  var all = getManualTrx();
+  var idx = -1;
+  for (var i=0;i<all.length;i++) { if (all[i].id === id) { idx=i; break; } }
+  if (idx === -1) return;
+  var trx = all[idx];
+  if (trx.refunded) { showToast('Sudah di-refund!'); return; }
+  trx.refunded = true;
+  saveManualTrx(all);
+  var dateStr = trx.timestamp ? trx.timestamp.substring(0, 10) : '';
+  if (dateStr) {
+    var key = 'koneo_draft_' + dateStr;
+    var dayKey = 'koneo_day_' + dateStr;
+    var raw = DB.getItem(key) || DB.getItem(dayKey);
+    if (raw) {
+      try {
+        var data = JSON.parse(raw);
+        if (data.simple) {
+          var field = trx.metode === 'tunai' ? 'pos_tunai' : 'pos_nontunai';
+          data.simple[field] = Math.max(0, (Number(data.simple[field]) || 0) - trx.total);
+          DB.setItem(key, JSON.stringify(data));
+        }
+      } catch(e) {}
+    }
+  }
+  showToast('✅ Transaksi manual di-refund!');
+  renderManualTrxList();
+}
+
 // ── KASIR PRODUK MANAGEMENT ────────────────────────────────────────────────────
 function buildKasirProdukTab() {
   var produk = kasirDB_getProduk();
   var el = document.getElementById('kasir-produk-list');
   if (!el) return;
+  var sess = getSession();
+  var canManage = sess && (sess.role === 'owner' || sess.role === 'manager');
+  var addBtn = document.getElementById('kasir-produk-add-btn');
+  if (addBtn) addBtn.style.display = canManage ? '' : 'none';
   if (!produk.length) {
     el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Belum ada produk. Klik \"+ Tambah Produk\" untuk mulai.</div>';
     return;
@@ -4410,8 +4642,8 @@ function buildKasirProdukTab() {
           (p.tersedia !== false ? '✅ Tersedia' : '❌ Habis') + '</button>' +
         '</td>' +
         '<td style="padding:10px 14px;text-align:right;">' +
-          '<button onclick="openKasirProdukForm(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;">✏️</button>' +
-          '<button onclick="deleteKasirProduk(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;">🗑</button>' +
+          (canManage ? '<button onclick="openKasirProdukForm(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;">✏️</button>' +
+          '<button onclick="deleteKasirProduk(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;">🗑</button>' : '') +
         '</td>' +
       '</tr>';
     }).join('') +
@@ -4506,8 +4738,9 @@ function buildKasirRiwayatTab() {
         '<div style="font-size:11px;color:var(--text3);">' + itemStr + '</div>' +
       '</div>' +
       '<div style="text-align:right;">' +
-        '<div style="font-size:14px;font-weight:800;color:#093a72;">' + kasirFmtRp(t.total) + '</div>' +
+        '<div style="font-size:14px;font-weight:800;color:' + (t.refunded ? '#dc2626' : '#093a72') + ';">' + (t.refunded ? '<span style="font-size:10px;color:#dc2626;font-weight:700;display:block;">REFUND</span>' : '') + kasirFmtRp(t.total) + '</div>' +
         '<div style="font-size:10px;color:var(--text3);">' + t.id + '</div>' +
+        (!t.refunded ? '<button onclick="refundKasirTrx(\'' + t.id + '\')" style="margin-top:4px;padding:3px 10px;font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;border:none;border-radius:50px;cursor:pointer;">Refund</button>' : '') +
       '</div>' +
     '</div>';
   }).join('');
