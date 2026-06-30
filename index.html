@@ -1336,6 +1336,14 @@
       <button class="sidebar-item" id="sitem-kasir-riwayat" onclick="sidebarGo('kasir-riwayat')"><i class="ti ti-receipt"></i> Riwayat</button>
       <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')"><i class="ti ti-users"></i> Member</button>
     </div>
+    <button onclick="toggleSidebarGroup('manager')" id="sg-manager" class="sidebar-group-btn" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--text1);border-radius:10px;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.06)'" onmouseout="this.style.background='none'">
+      <span><i class="ti ti-clipboard-list"></i> Manager <span id="todo-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:50px;margin-left:4px;">0</span></span>
+      <i class="ti ti-chevron-down" id="sg-manager-arrow" style="font-size:12px;transition:transform 0.2s;"></i>
+    </button>
+    <div id="sg-manager-items" style="display:none;padding-left:12px;">
+      <button class="sidebar-item" id="sitem-manager-report" onclick="sidebarGo('manager-report')"><i class="ti ti-file-text"></i> Report</button>
+      <button class="sidebar-item" id="sitem-manager-todo" onclick="sidebarGo('manager-todo')"><i class="ti ti-list-check"></i> To Do List</button>
+    </div>
     <button class="sidebar-item" id="sitem-report" onclick="sidebarGo('report')" style="font-weight:700;"><i class="ti ti-clipboard-text"></i> Report</button>
     <button onclick="toggleSidebarGroup('stok')" id="sg-stok" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
       <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-packages" style="font-size:17px;color:#093a72;"></i> Stock</span>
@@ -1934,43 +1942,66 @@
     </div>
   </div>
 
-  <!-- ── TAB REPORT ───────────────────────────────────────────────────────── -->
-  <div id="tab-report" class="section">
-    <!-- Form closing report -->
+  <!-- ── TAB MANAGER REPORT ────────────────────────────────────────────────── -->
+  <div id="tab-manager-report" class="section">
     <div class="card" style="margin-bottom:1rem;">
-      <div style="font-size:16px;font-weight:800;color:#093a72;margin-bottom:4px;"><i class="ti ti-clipboard-text"></i> Closing Report</div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:18px;">Laporan wajib diisi manager setiap penutupan toko.</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-        <div>
-          <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Hari</label>
-          <input type="text" id="report-hari" readonly style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text2);">
-        </div>
-        <div>
-          <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Tanggal</label>
-          <input type="text" id="report-tanggal" readonly style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text2);">
-        </div>
+      <div style="font-size:16px;font-weight:800;color:#093a72;margin-bottom:4px;"><i class="ti ti-file-text"></i> Laporan Harian</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:18px;">Isi laporan harian dan kirim ke owner via WhatsApp.</div>
+      <div style="background:rgba(9,58,114,0.05);border:1.5px solid rgba(9,58,114,0.15);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:800;color:#093a72;letter-spacing:0.5px;margin-bottom:2px;">LAPORAN HARIAN KONEO INDONESIA</div>
+        <div id="report-header-date" style="font-size:12px;color:var(--text3);"></div>
       </div>
-
-      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Laporan</label>
-      <textarea id="report-isi" rows="7" placeholder="Tulis laporan closing hari ini di sini...&#10;&#10;Contoh:&#10;- Penjualan berjalan lancar&#10;- Stok kopi hampir habis, perlu restock&#10;- Ada komplain pelanggan soal waktu tunggu"
-        style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:vertical;background:var(--bg);line-height:1.6;"></textarea>
-
-      <div style="margin-top:6px;margin-bottom:14px;">
-        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Nama Manager</label>
-        <input type="text" id="report-manager" placeholder="Nama kamu" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);">
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Kendala</label>
+      <textarea id="report-kendala" rows="4" placeholder="Tulis kendala yang dihadapi hari ini..." style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:vertical;background:var(--bg);line-height:1.6;margin-bottom:14px;"></textarea>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Solusi</label>
+      <textarea id="report-solusi" rows="4" placeholder="Tulis solusi yang sudah atau akan dilakukan..." style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:vertical;background:var(--bg);line-height:1.6;margin-bottom:14px;"></textarea>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Nama Manager</label>
+      <input type="text" id="report-manager" placeholder="Nama kamu" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button onclick="saveManagerReport()" style="padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Simpan</button>
+        <button onclick="sendReportWA()" style="padding:13px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📲 Kirim via WA</button>
       </div>
-
-      <button onclick="submitClosingReport()" style="width:100%;padding:14px;background:#093a72;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Simpan Closing Report</button>
     </div>
-
-    <!-- Riwayat report -->
     <div class="card" style="padding:0;overflow:hidden;">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
         <div style="font-size:14px;font-weight:700;color:#093a72;"><i class="ti ti-history"></i> Riwayat Report</div>
-        <input type="month" id="report-filter-month" onchange="buildReportTab()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:var(--surface);">
+        <input type="month" id="report-filter-month" onchange="renderManagerReportHistory()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:var(--surface);">
       </div>
-      <div id="report-history-list"></div>
+      <div id="manager-report-history"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB MANAGER TO DO LIST ─────────────────────────────────────────────── -->
+  <div id="tab-manager-todo" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:16px;font-weight:800;color:#093a72;margin-bottom:16px;"><i class="ti ti-list-check"></i> Tambah To Do / Jadwal</div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Jenis</label>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button onclick="setTodoType('todo')" id="todo-type-todo" style="padding:7px 16px;border-radius:50px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;background:#093a72;color:#fff;">📋 To Do</button>
+        <button onclick="setTodoType('meeting')" id="todo-type-meeting" style="padding:7px 16px;border-radius:50px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;background:rgba(9,58,114,0.08);color:#093a72;">📅 Meeting</button>
+      </div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Deskripsi / Tugas</label>
+      <input type="text" id="todo-deskripsi" placeholder="Contoh: Restock kopi arabika..." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+      <div id="todo-meeting-fields" style="display:none;">
+        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Jadwal Meeting</label>
+        <input type="datetime-local" id="todo-jadwal" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Tema Meeting</label>
+        <input type="text" id="todo-tema" placeholder="Contoh: Evaluasi penjualan bulan Juni" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+      </div>
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Dibuat oleh</label>
+      <input type="text" id="todo-creator" placeholder="Nama owner / manager" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:16px;">
+      <button onclick="submitTodo()" style="width:100%;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">➕ Tambah To Do</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:14px;font-weight:700;color:#093a72;"><i class="ti ti-checklist"></i> Daftar To Do</div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="filterTodo('semua')" id="tf-semua" style="padding:5px 12px;border-radius:50px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:#093a72;color:#fff;font-family:inherit;">Semua</button>
+          <button onclick="filterTodo('pending')" id="tf-pending" style="padding:5px 12px;border-radius:50px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:rgba(9,58,114,0.08);color:#093a72;font-family:inherit;">Belum</button>
+          <button onclick="filterTodo('done')" id="tf-done" style="padding:5px 12px;border-radius:50px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:rgba(9,58,114,0.08);color:#093a72;font-family:inherit;">Selesai</button>
+        </div>
+      </div>
+      <div id="todo-list-container"></div>
     </div>
   </div>
 
@@ -2315,6 +2346,16 @@
         <button id="backup-btn" onclick="manualBackup()" style="padding:9px 16px;background:#093a72;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;">☁️ Backup Sekarang</button>
       </div>
       <button onclick="restoreFromBackup()" style="width:100%;padding:11px;background:none;border:1.5px solid rgba(9,58,114,0.25);border-radius:10px;font-size:13px;font-weight:600;color:#093a72;cursor:pointer;">🔄 Restore dari Backup Terakhir</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title"><i class="ti ti-brand-whatsapp"></i> Nomor WA Owner</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Nomor WhatsApp owner untuk menerima laporan harian dari manager.</p>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="owner-wa-input" placeholder="Contoh: 6281234567890" style="flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);">
+        <button onclick="saveOwnerWA()" style="padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Simpan</button>
+      </div>
+      <div id="owner-wa-status" style="font-size:12px;color:var(--text3);margin-top:6px;"></div>
     </div>
 
     <div class="card" style="margin-bottom:1rem;">
@@ -3137,7 +3178,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-report','tab-kasir','tab-kasir-produk','tab-kasir-riwayat'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-kasir','tab-kasir-produk','tab-kasir-riwayat'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -3213,7 +3254,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'report', 'kasir', 'kasir-produk', 'kasir-riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'kasir', 'kasir-produk', 'kasir-riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -3223,7 +3264,7 @@ function switchTab(tab) {
   if (tab === 'stok') buildStokTab();
   if (tab === 'jadwal') buildJadwalTab();
   if (tab === 'absensi') buildAbsensiTab();
-  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); loadKasirRegCode(); }
+  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); loadKasirRegCode(); loadOwnerWA(); }
   if (tab === 'cogs') buildCogsTab();
   if (tab === 'laporan-pajak') renderLaporanPajak();
   if (tab === 'invoice') initInvoice();
@@ -3233,7 +3274,8 @@ function switchTab(tab) {
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
   if (tab === 'member' || tab === 'kasir' || tab === 'kasir-produk' || tab === 'kasir-riwayat') buildMemberTab();
-  if (tab === 'report') buildReportTab();
+  if (tab === 'manager-report') buildManagerReportTab();
+  if (tab === 'manager-todo') buildManagerTodoTab();
   if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak' || tab === 'invoice' || tab === 'member') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
@@ -3527,41 +3569,48 @@ function filterMemberTable() {
   renderMemberTable(filtered);
 }
 
-// ── CLOSING REPORT ────────────────────────────────────────────────────────────
-function getClosingReports() {
-  try { return JSON.parse(localStorage.getItem('koneo_closing_reports') || '[]'); } catch(e) { return []; }
+// ── MANAGER — REPORT ──────────────────────────────────────────────────────────
+function getManagerReports() {
+  try { return JSON.parse(localStorage.getItem('koneo_manager_reports') || '[]'); } catch(e) { return []; }
 }
-function saveClosingReports(arr) { localStorage.setItem('koneo_closing_reports', JSON.stringify(arr)); }
+function saveManagerReports(arr) { localStorage.setItem('koneo_manager_reports', JSON.stringify(arr)); }
 
-function buildReportTab() {
-  // Fill today's date
-  var now   = new Date();
-  var days  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-  var hariEl = document.getElementById('report-hari');
-  var tglEl  = document.getElementById('report-tanggal');
-  if (hariEl) hariEl.value = days[now.getDay()];
-  if (tglEl)  tglEl.value  = now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+function buildManagerReportTab() {
+  var now  = new Date();
+  var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var hdr  = document.getElementById('report-header-date');
+  if (hdr) hdr.textContent = days[now.getDay()] + ', ' + now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
 
-  // Load saved manager name
-  var savedManager = localStorage.getItem('koneo_report_manager') || '';
+  var saved = localStorage.getItem('koneo_report_manager') || '';
   var mgrEl = document.getElementById('report-manager');
-  if (mgrEl && !mgrEl.value) mgrEl.value = savedManager;
+  if (mgrEl && !mgrEl.value) mgrEl.value = saved;
 
-  // Set default month filter
   var filterEl = document.getElementById('report-filter-month');
-  if (filterEl && !filterEl.value) {
-    filterEl.value = now.toISOString().substring(0, 7);
-  }
+  if (filterEl && !filterEl.value) filterEl.value = now.toISOString().substring(0, 7);
 
-  renderReportHistory();
+  renderManagerReportHistory();
 }
 
-function submitClosingReport() {
-  var isi     = (document.getElementById('report-isi').value || '').trim();
-  var manager = (document.getElementById('report-manager').value || '').trim();
-  if (!isi) { showToast('Isi laporan tidak boleh kosong!'); return; }
+function buildReportWAText() {
+  var now    = new Date();
+  var days   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var tgl    = days[now.getDay()] + ', ' + now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+  var kendala = (document.getElementById('report-kendala').value || '-').trim();
+  var solusi  = (document.getElementById('report-solusi').value || '-').trim();
+  var manager = (document.getElementById('report-manager').value || 'Manager').trim();
+  return 'LAPORAN HARIAN KONEO INDONESIA\n' +
+    tgl + '\n\n' +
+    'KENDALA :\n' + kendala + '\n\n' +
+    'SOLUSI :\n' + solusi + '\n\n' +
+    'Manager: ' + manager;
+}
 
-  var now = new Date();
+function saveManagerReport() {
+  var kendala = (document.getElementById('report-kendala').value || '').trim();
+  var solusi  = (document.getElementById('report-solusi').value || '').trim();
+  var manager = (document.getElementById('report-manager').value || '').trim();
+  if (!kendala && !solusi) { showToast('Isi kendala atau solusi dulu!'); return; }
+  var now  = new Date();
   var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
   var report = {
     id: 'RPT-' + Date.now(),
@@ -3569,54 +3618,213 @@ function submitClosingReport() {
     hari: days[now.getDay()],
     tanggal: now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }),
     tanggalISO: now.toISOString().substring(0, 10),
-    laporan: isi,
+    kendala: kendala,
+    solusi: solusi,
     manager: manager || 'Manager'
   };
-
-  var all = getClosingReports();
+  var all = getManagerReports();
   all.unshift(report);
-  saveClosingReports(all);
+  saveManagerReports(all);
   if (manager) localStorage.setItem('koneo_report_manager', manager);
-
-  document.getElementById('report-isi').value = '';
-  showToast('✅ Closing report berhasil disimpan!');
+  document.getElementById('report-kendala').value = '';
+  document.getElementById('report-solusi').value  = '';
+  showToast('✅ Laporan disimpan!');
   triggerBackup();
-  renderReportHistory();
+  renderManagerReportHistory();
 }
 
-function renderReportHistory() {
-  var el = document.getElementById('report-history-list');
-  if (!el) return;
+function sendReportWA() {
+  var kendala = (document.getElementById('report-kendala').value || '').trim();
+  var solusi  = (document.getElementById('report-solusi').value || '').trim();
+  if (!kendala && !solusi) { showToast('Isi laporan dulu sebelum kirim!'); return; }
+  var ownerWA = localStorage.getItem('koneo_owner_wa') || '';
+  var text    = buildReportWAText();
+  var encoded = encodeURIComponent(text);
+  var url     = ownerWA ? 'https://wa.me/' + ownerWA.replace(/[^0-9]/g,'') + '?text=' + encoded : 'https://wa.me/?text=' + encoded;
+  window.open(url, '_blank');
+}
 
+function renderManagerReportHistory() {
+  var el = document.getElementById('manager-report-history');
+  if (!el) return;
   var filterEl = document.getElementById('report-filter-month');
   var month    = filterEl ? filterEl.value : new Date().toISOString().substring(0, 7);
-  var all      = getClosingReports().filter(function(r) { return r.tanggalISO && r.tanggalISO.startsWith(month); });
-
+  var all      = getManagerReports().filter(function(r) { return r.tanggalISO && r.tanggalISO.startsWith(month); });
   if (!all.length) {
-    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Belum ada report untuk bulan ini.</div>';
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Belum ada laporan bulan ini.</div>';
     return;
   }
-
   el.innerHTML = all.map(function(r) {
-    var isiLines = (r.laporan || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
     return '<div style="padding:16px;border-bottom:1px solid var(--border);">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
-        '<div>' +
-          '<span style="font-size:13px;font-weight:800;color:#093a72;">' + r.hari + ', ' + r.tanggal + '</span>' +
-          '<span style="margin-left:8px;font-size:11px;color:var(--text3);">oleh ' + (r.manager||'Manager') + '</span>' +
-        '</div>' +
-        '<button onclick="deleteClosingReport(\'' + r.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:18px;line-height:1;" title="Hapus">🗑</button>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+        '<div><span style="font-size:13px;font-weight:800;color:#093a72;">' + r.hari + ', ' + r.tanggal + '</span>' +
+        '<span style="margin-left:8px;font-size:11px;color:var(--text3);">oleh ' + (r.manager||'Manager') + '</span></div>' +
+        '<button onclick="deleteManagerReport(\'' + r.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;">🗑</button>' +
       '</div>' +
-      '<div style="font-size:13px;color:var(--text2);line-height:1.7;background:var(--surface2);padding:12px 14px;border-radius:10px;">' + isiLines + '</div>' +
+      '<div style="font-size:12px;font-weight:700;color:#093a72;margin-bottom:4px;">KENDALA</div>' +
+      '<div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:8px;white-space:pre-wrap;">' + (r.kendala||'-') + '</div>' +
+      '<div style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:4px;">SOLUSI</div>' +
+      '<div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px 12px;border-radius:8px;white-space:pre-wrap;">' + (r.solusi||'-') + '</div>' +
     '</div>';
   }).join('');
 }
 
-function deleteClosingReport(id) {
-  if (!confirm('Hapus report ini?')) return;
-  var all = getClosingReports().filter(function(r) { return r.id !== id; });
-  saveClosingReports(all);
-  renderReportHistory();
+function deleteManagerReport(id) {
+  if (!confirm('Hapus laporan ini?')) return;
+  saveManagerReports(getManagerReports().filter(function(r){ return r.id !== id; }));
+  renderManagerReportHistory();
+}
+
+// ── MANAGER — TO DO LIST ───────────────────────────────────────────────────────
+var _todoType   = 'todo';
+var _todoFilter = 'semua';
+
+function getTodos() {
+  try { return JSON.parse(localStorage.getItem('koneo_manager_todos') || '[]'); } catch(e) { return []; }
+}
+function saveTodos(arr) { localStorage.setItem('koneo_manager_todos', JSON.stringify(arr)); }
+
+function buildManagerTodoTab() {
+  var saved = localStorage.getItem('koneo_report_manager') || '';
+  var el = document.getElementById('todo-creator');
+  if (el && !el.value) el.value = saved;
+  renderTodoList();
+  updateTodoBadge();
+}
+
+function setTodoType(type) {
+  _todoType = type;
+  var isMeeting = type === 'meeting';
+  var mf = document.getElementById('todo-meeting-fields');
+  if (mf) mf.style.display = isMeeting ? '' : 'none';
+  var btnTodo    = document.getElementById('todo-type-todo');
+  var btnMeeting = document.getElementById('todo-type-meeting');
+  if (btnTodo)    { btnTodo.style.background    = isMeeting ? 'rgba(9,58,114,0.08)' : '#093a72'; btnTodo.style.color    = isMeeting ? '#093a72' : '#fff'; }
+  if (btnMeeting) { btnMeeting.style.background = isMeeting ? '#093a72' : 'rgba(9,58,114,0.08)'; btnMeeting.style.color = isMeeting ? '#fff' : '#093a72'; }
+}
+
+function submitTodo() {
+  var deskripsi = (document.getElementById('todo-deskripsi').value || '').trim();
+  var creator   = (document.getElementById('todo-creator').value || '').trim();
+  if (!deskripsi) { showToast('Isi deskripsi tugas!'); return; }
+  var todo = {
+    id: 'TD-' + Date.now(),
+    type: _todoType,
+    deskripsi: deskripsi,
+    creator: creator || 'Owner',
+    done: false,
+    isNew: true,
+    createdAt: new Date().toISOString()
+  };
+  if (_todoType === 'meeting') {
+    todo.jadwal = document.getElementById('todo-jadwal').value || '';
+    todo.tema   = (document.getElementById('todo-tema').value || '').trim();
+  }
+  var all = getTodos();
+  all.unshift(todo);
+  saveTodos(all);
+  if (creator) localStorage.setItem('koneo_report_manager', creator);
+  document.getElementById('todo-deskripsi').value = '';
+  if (document.getElementById('todo-tema')) document.getElementById('todo-tema').value = '';
+  if (document.getElementById('todo-jadwal')) document.getElementById('todo-jadwal').value = '';
+  showToast('✅ To do ditambahkan!');
+  notifyNewTodo(todo);
+  renderTodoList();
+  updateTodoBadge();
+}
+
+function notifyNewTodo(todo) {
+  if (!('Notification' in window)) return;
+  var msg = todo.type === 'meeting'
+    ? '📅 Meeting baru: ' + (todo.tema || todo.deskripsi) + (todo.jadwal ? ' — ' + new Date(todo.jadwal).toLocaleString('id-ID') : '')
+    : '📋 To Do baru: ' + todo.deskripsi;
+  if (Notification.permission === 'granted') {
+    new Notification('Koneo — Tugas Baru dari ' + (todo.creator||'Owner'), { body: msg, icon: '/favicon.ico' });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(function(p) {
+      if (p === 'granted') new Notification('Koneo — Tugas Baru dari ' + (todo.creator||'Owner'), { body: msg, icon: '/favicon.ico' });
+    });
+  }
+}
+
+function filterTodo(f) {
+  _todoFilter = f;
+  ['semua','pending','done'].forEach(function(x) {
+    var btn = document.getElementById('tf-' + x);
+    if (btn) { btn.style.background = x === f ? '#093a72' : 'rgba(9,58,114,0.08)'; btn.style.color = x === f ? '#fff' : '#093a72'; }
+  });
+  renderTodoList();
+}
+
+function toggleTodoDone(id) {
+  var all = getTodos();
+  var idx = -1;
+  for (var i=0;i<all.length;i++) if (all[i].id===id) { idx=i; break; }
+  if (idx === -1) return;
+  all[idx].done    = !all[idx].done;
+  all[idx].isNew   = false;
+  all[idx].doneAt  = all[idx].done ? new Date().toISOString() : null;
+  saveTodos(all);
+  renderTodoList();
+  updateTodoBadge();
+}
+
+function deleteTodo(id) {
+  if (!confirm('Hapus to do ini?')) return;
+  saveTodos(getTodos().filter(function(t){ return t.id !== id; }));
+  renderTodoList();
+  updateTodoBadge();
+}
+
+function updateTodoBadge() {
+  var pending = getTodos().filter(function(t){ return !t.done; }).length;
+  var badge   = document.getElementById('todo-badge');
+  if (!badge) return;
+  if (pending > 0) { badge.style.display = 'inline'; badge.textContent = pending; }
+  else { badge.style.display = 'none'; }
+}
+
+function renderTodoList() {
+  var el  = document.getElementById('todo-list-container');
+  if (!el) return;
+  var all = getTodos();
+  var filtered = all.filter(function(t) {
+    if (_todoFilter === 'pending') return !t.done;
+    if (_todoFilter === 'done')    return t.done;
+    return true;
+  });
+  // Mark all as not-new on view
+  var changed = false;
+  getTodos().forEach(function(t) { if (t.isNew) { t.isNew = false; changed = true; } });
+  if (changed) saveTodos(getTodos().map(function(t){ t.isNew=false; return t; }));
+
+  if (!filtered.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Tidak ada to do di kategori ini.</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(function(t) {
+    var isMeeting = t.type === 'meeting';
+    var jadwalStr = '';
+    if (isMeeting && t.jadwal) {
+      jadwalStr = '<div style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:3px;">📅 ' + new Date(t.jadwal).toLocaleString('id-ID', {weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) + '</div>';
+    }
+    var temaStr = isMeeting && t.tema ? '<div style="font-size:11px;color:var(--text3);margin-top:2px;">Tema: ' + t.tema + '</div>' : '';
+    return '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;' + (t.done ? 'opacity:0.6;' : '') + '">' +
+      '<div style="padding-top:2px;">' +
+        '<input type="checkbox" ' + (t.done?'checked':'') + ' onchange="toggleTodoDone(\'' + t.id + '\')" style="width:18px;height:18px;cursor:pointer;accent-color:#093a72;">' +
+      '</div>' +
+      '<div style="flex:1;">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">' +
+          '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px;' + (isMeeting ? 'background:#ede9fe;color:#7c3aed;' : 'background:rgba(9,58,114,0.08);color:#093a72;') + '">' + (isMeeting ? '📅 Meeting' : '📋 To Do') + '</span>' +
+        '</div>' +
+        '<div style="font-size:13px;font-weight:600;color:#1a1a18;' + (t.done?'text-decoration:line-through;':'') + '">' + t.deskripsi + '</div>' +
+        jadwalStr + temaStr +
+        '<div style="font-size:11px;color:var(--text3);margin-top:4px;">Dibuat oleh ' + (t.creator||'Owner') + ' · ' + new Date(t.createdAt).toLocaleDateString('id-ID') + '</div>' +
+        (t.done && t.doneAt ? '<div style="font-size:11px;color:#16a34a;margin-top:2px;">✅ Selesai ' + new Date(t.doneAt).toLocaleDateString('id-ID') + '</div>' : '') +
+      '</div>' +
+      '<button onclick="deleteTodo(\'' + t.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;flex-shrink:0;">🗑</button>' +
+    '</div>';
+  }).join('');
 }
 
 // ── BACKUP OTOMATIS ────────────────────────────────────────────────────────────
@@ -5255,6 +5463,7 @@ function buildOmsetChart() {
   initAuth();
   applyLang();
   initAutoBackup();
+  updateTodoBadge();
 })();
 
 function doPrint() {
@@ -5820,6 +6029,21 @@ function resetSemuaData() {
 }
 // ── SCAN STRUK ──
 let scanItems = [];
+
+function saveOwnerWA() {
+  var wa = (document.getElementById('owner-wa-input').value || '').trim().replace(/[^0-9]/g,'');
+  if (!wa) { document.getElementById('owner-wa-status').textContent = '⚠️ Masukkan nomor WA.'; return; }
+  localStorage.setItem('koneo_owner_wa', wa);
+  document.getElementById('owner-wa-status').textContent = '✅ Tersimpan: ' + wa;
+  document.getElementById('owner-wa-status').style.color = 'var(--green)';
+}
+function loadOwnerWA() {
+  var wa  = localStorage.getItem('koneo_owner_wa') || '';
+  var inp = document.getElementById('owner-wa-input');
+  var el  = document.getElementById('owner-wa-status');
+  if (inp) inp.value = wa;
+  if (el)  el.textContent = wa ? 'Nomor aktif: +' + wa : 'Belum diset.';
+}
 
 function saveKasirRegCode() {
   var code = (document.getElementById('kasir-reg-code-input').value || '').trim().toUpperCase();
