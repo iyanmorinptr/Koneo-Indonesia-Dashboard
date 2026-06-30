@@ -2604,6 +2604,21 @@ function _syncRefreshUI() {
   try { const s = getSession(); if (s) buildUserManagementCard(); } catch(e) {}
   try { renderSubmitBar(); } catch(e) {}
   try { updateBeliCount(); } catch(e) {}
+  // Refresh tab yang sedang aktif
+  try {
+    const active = document.querySelector('.section.active');
+    if (active) {
+      const id = active.id;
+      if (id === 'tab-jadwal') buildJadwalTab();
+      else if (id === 'tab-manager-report') buildManagerReportTab();
+      else if (id === 'tab-manager-todo') buildManagerTodoTab();
+      else if (id === 'tab-manager-pengumuman') buildPengumumanTab();
+      else if (id === 'tab-kasir-riwayat') buildKasirRiwayatTab();
+      else if (id === 'tab-beranda') renderBerandaWidgets();
+    }
+  } catch(e) {}
+  // Update todo badge di sidebar
+  try { updateTodoBadge(); } catch(e) {}
 }
 
 // ── LANGUAGE / i18n ──────────────────────────────────────────────────────────
@@ -3671,9 +3686,9 @@ function filterMemberTable() {
 
 // ── MANAGER — REPORT ──────────────────────────────────────────────────────────
 function getManagerReports() {
-  try { return JSON.parse(localStorage.getItem('koneo_manager_reports') || '[]'); } catch(e) { return []; }
+  try { var _v = (typeof DB !== 'undefined' && DB.getItem('koneo_manager_reports')) || localStorage.getItem('koneo_manager_reports'); return JSON.parse(_v || '[]'); } catch(e) { return []; }
 }
-function saveManagerReports(arr) { localStorage.setItem('koneo_manager_reports', JSON.stringify(arr)); }
+function saveManagerReports(arr) { var v = JSON.stringify(arr); localStorage.setItem('koneo_manager_reports', v); if (typeof DB !== 'undefined') DB.setItem('koneo_manager_reports', v); }
 
 function buildManagerReportTab() {
   var now  = new Date();
@@ -3780,9 +3795,9 @@ var _todoType   = 'todo';
 var _todoFilter = 'semua';
 
 function getTodos() {
-  try { return JSON.parse(localStorage.getItem('koneo_manager_todos') || '[]'); } catch(e) { return []; }
+  try { var _v = (typeof DB !== 'undefined' && DB.getItem('koneo_manager_todos')) || localStorage.getItem('koneo_manager_todos'); return JSON.parse(_v || '[]'); } catch(e) { return []; }
 }
-function saveTodos(arr) { localStorage.setItem('koneo_manager_todos', JSON.stringify(arr)); }
+function saveTodos(arr) { var v = JSON.stringify(arr); localStorage.setItem('koneo_manager_todos', v); if (typeof DB !== 'undefined') DB.setItem('koneo_manager_todos', v); }
 
 function buildManagerTodoTab() {
   var saved = localStorage.getItem('koneo_report_manager') || '';
@@ -3931,9 +3946,9 @@ function renderTodoList() {
 var _pengType = 'pengumuman';
 
 function getPengumuman() {
-  try { return JSON.parse(localStorage.getItem('koneo_pengumuman') || '[]'); } catch(e) { return []; }
+  try { var _v = (typeof DB !== 'undefined' && DB.getItem('koneo_pengumuman')) || localStorage.getItem('koneo_pengumuman'); return JSON.parse(_v || '[]'); } catch(e) { return []; }
 }
-function savePengumuman(arr) { localStorage.setItem('koneo_pengumuman', JSON.stringify(arr)); }
+function savePengumuman(arr) { var v = JSON.stringify(arr); localStorage.setItem('koneo_pengumuman', v); if (typeof DB !== 'undefined') DB.setItem('koneo_pengumuman', v); }
 
 function buildPengumumanTab() {
   var saved = localStorage.getItem('koneo_report_manager') || '';
@@ -4213,9 +4228,9 @@ function kasirDB_saveProduk(arr) {
   if (typeof DB !== 'undefined') DB.setItem('koneo_kasir_produk', v);
 }
 function kasirDB_getTransaksi() {
-  try { return JSON.parse(localStorage.getItem('koneo_kasir_transaksi') || '[]'); } catch(e) { return []; }
+  try { var _v = (typeof DB !== 'undefined' && DB.getItem('koneo_kasir_transaksi')) || localStorage.getItem('koneo_kasir_transaksi'); return JSON.parse(_v || '[]'); } catch(e) { return []; }
 }
-function kasirDB_saveTransaksi(arr) { localStorage.setItem('koneo_kasir_transaksi', JSON.stringify(arr)); }
+function kasirDB_saveTransaksi(arr) { var v = JSON.stringify(arr); localStorage.setItem('koneo_kasir_transaksi', v); if (typeof DB !== 'undefined') DB.setItem('koneo_kasir_transaksi', v); }
 
 function kasirFmtRp(n) {
   return 'Rp ' + Math.round(n || 0).toLocaleString('id-ID');
@@ -4580,9 +4595,9 @@ function setManualMetode(m) {
 }
 
 function getManualTrx() {
-  try { return JSON.parse(localStorage.getItem('koneo_kasir_manual') || '[]'); } catch(e) { return []; }
+  try { var _v = (typeof DB !== 'undefined' && DB.getItem('koneo_kasir_manual')) || localStorage.getItem('koneo_kasir_manual'); return JSON.parse(_v || '[]'); } catch(e) { return []; }
 }
-function saveManualTrx(arr) { localStorage.setItem('koneo_kasir_manual', JSON.stringify(arr)); }
+function saveManualTrx(arr) { var v = JSON.stringify(arr); localStorage.setItem('koneo_kasir_manual', v); if (typeof DB !== 'undefined') DB.setItem('koneo_kasir_manual', v); }
 
 function submitManualTrx() {
   var ket     = (document.getElementById('manual-trx-ket').value || '').trim();
@@ -6525,12 +6540,12 @@ let scanItems = [];
 function saveOwnerWA() {
   var wa = (document.getElementById('owner-wa-input').value || '').trim().replace(/[^0-9]/g,'');
   if (!wa) { document.getElementById('owner-wa-status').textContent = '⚠️ Masukkan nomor WA.'; return; }
-  localStorage.setItem('koneo_owner_wa', wa);
+  localStorage.setItem('koneo_owner_wa', wa); if (typeof DB !== 'undefined') DB.setItem('koneo_owner_wa', wa);
   document.getElementById('owner-wa-status').textContent = '✅ Tersimpan: ' + wa;
   document.getElementById('owner-wa-status').style.color = 'var(--green)';
 }
 function loadOwnerWA() {
-  var wa  = localStorage.getItem('koneo_owner_wa') || '';
+  var wa  = (typeof DB !== 'undefined' && DB.getItem('koneo_owner_wa')) || localStorage.getItem('koneo_owner_wa') || '';
   var inp = document.getElementById('owner-wa-input');
   var el  = document.getElementById('owner-wa-status');
   if (inp) inp.value = wa;
@@ -6540,7 +6555,7 @@ function loadOwnerWA() {
 
 function saveKasirPajak() {
   var pct = Number(document.getElementById('kasir-pajak-persen').value) || 0;
-  localStorage.setItem('koneo_kasir_pajak_persen', String(pct));
+  localStorage.setItem('koneo_kasir_pajak_persen', String(pct)); if (typeof DB !== 'undefined') DB.setItem('koneo_kasir_pajak_persen', String(pct));
   showToast('✅ Pajak ' + pct + '% disimpan!');
 }
 
