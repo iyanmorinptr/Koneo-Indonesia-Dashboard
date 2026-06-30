@@ -894,44 +894,16 @@ var kasirLastTrx = null;
 
 // ===== INIT =====
 function checkDevice() {
-  var token = localStorage.getItem('koneo_kasir_device_token');
-  if (token === 'registered') {
-    document.getElementById('posScreen').classList.add('active');
-    initKasir();
-  } else {
-    document.getElementById('gateScreen').classList.add('active');
-  }
+  // Langsung buka kasir tanpa gate
+  document.getElementById('posScreen').classList.add('active');
+  initKasir();
 }
 
 function registerDevice() {
-  var input = document.getElementById('gateCodeInput').value.trim();
-  var savedCode = localStorage.getItem('koneo_kasir_reg_code');
-  var errEl = document.getElementById('gateError');
-
-  if (!input) {
-    errEl.textContent = 'Masukkan kode registrasi terlebih dahulu.';
-    errEl.classList.add('show');
-    return;
-  }
-
-  if (!savedCode) {
-    errEl.textContent = 'Kode belum diatur oleh owner. Buka Dashboard Koneo → Pengaturan.';
-    errEl.classList.add('show');
-    return;
-  }
-
-  if (input === savedCode) {
-    localStorage.setItem('koneo_kasir_device_token', 'registered');
-    document.getElementById('gateScreen').classList.remove('active');
-    document.getElementById('posScreen').classList.add('active');
-    errEl.classList.remove('show');
-    initKasir();
-  } else {
-    errEl.textContent = 'Kode salah. Hubungi owner.';
-    errEl.classList.add('show');
-    document.getElementById('gateCodeInput').value = '';
-    document.getElementById('gateCodeInput').focus();
-  }
+  // Tidak digunakan lagi
+  document.getElementById('gateScreen').classList.remove('active');
+  document.getElementById('posScreen').classList.add('active');
+  initKasir();
 }
 
 // ===== KASIR INIT =====
