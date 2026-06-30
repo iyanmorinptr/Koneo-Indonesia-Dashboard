@@ -4195,9 +4195,16 @@ var _kasirKategoriAktif = 'Semua';
 var _kasirPayMetode = 'tunai';
 
 function kasirDB_getProduk() {
-  try { return JSON.parse(localStorage.getItem('koneo_kasir_produk') || '[]'); } catch(e) { return []; }
+  try {
+    var v = (typeof DB !== 'undefined' && DB.getItem('koneo_kasir_produk')) || localStorage.getItem('koneo_kasir_produk');
+    return JSON.parse(v || '[]');
+  } catch(e) { return []; }
 }
-function kasirDB_saveProduk(arr) { localStorage.setItem('koneo_kasir_produk', JSON.stringify(arr)); }
+function kasirDB_saveProduk(arr) {
+  var v = JSON.stringify(arr);
+  localStorage.setItem('koneo_kasir_produk', v);
+  if (typeof DB !== 'undefined') DB.setItem('koneo_kasir_produk', v);
+}
 function kasirDB_getTransaksi() {
   try { return JSON.parse(localStorage.getItem('koneo_kasir_transaksi') || '[]'); } catch(e) { return []; }
 }
