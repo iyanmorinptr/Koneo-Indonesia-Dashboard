@@ -771,6 +771,7 @@ body {
     <div class="pos-header-logo">KONEO <span>Indonesia</span></div>
     <div class="pos-header-right">
       <span id="headerKasirLabel">Kasir</span>
+      <button onclick="refreshKasirProduk()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Refresh</button>
       <a href="index.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
     </div>
   </div>
@@ -1014,7 +1015,7 @@ function renderKasirProdukGrid(list) {
 
   el.innerHTML = list.map(function(p) {
     var habis = p.tersedia === false || p.tersedia === 'false';
-    return '<div class="produk-card' + (habis ? ' habis' : '') + '" onclick="' + (habis ? '' : 'addToKasirCart(' + JSON.stringify(p.id) + ')') + '">' +
+    return '<div class="produk-card' + (habis ? ' habis' : '') + '" onclick="addToKasirCart(' + JSON.stringify(p.id) + ')">' +
       '<div class="produk-nama">' + escHtml(p.nama) + '</div>' +
       '<div class="produk-harga">' + kasirFmtRp(p.harga) + '</div>' +
       (habis ? '<div class="produk-status-badge">Habis</div>' : '') +
@@ -1025,7 +1026,9 @@ function renderKasirProdukGrid(list) {
 // ===== CART =====
 function addToKasirCart(id) {
   var prod = kasirProdukList.find(function(p) { return p.id == id; });
-  if (!prod) return;
+  if (!prod) { showKasirToast('Produk tidak ditemukan, coba refresh'); return; }
+  var habis = prod.tersedia === false || prod.tersedia === 'false';
+  if (habis) { showKasirToast('⚠️ ' + prod.nama + ' sedang habis'); return; }
   var item = kasirCart.find(function(i) { return i.id == id; });
   if (item) {
     item.qty++;
@@ -1298,6 +1301,17 @@ function printKasirStruk() {
   popup.document.write('</body></html>');
   popup.document.close();
   popup.print();
+}
+
+// ===== REFRESH =====
+function refreshKasirProduk() {
+  showKasirToast('Memuat produk dari cloud...');
+  loadKasirProdukFromCloud(function(list) {
+    kasirProdukList = list;
+    renderKasirKategori();
+    filterKasirProduk();
+    showKasirToast('✅ ' + list.length + ' produk dimuat');
+  });
 }
 
 // ===== TOAST =====
