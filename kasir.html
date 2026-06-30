@@ -823,6 +823,10 @@ body {
             <span>Diskon</span>
             <span id="kasirDiskonDisplay">- Rp 0</span>
           </div>
+          <div class="cart-total-row" id="kasirPajakRow" style="display:none;color:#d97706;">
+            <span id="kasirPajakLabel">Pajak</span>
+            <span id="kasirPajakDisplay">Rp 0</span>
+          </div>
           <div class="cart-total-row big">
             <span>Total</span>
             <span id="kasirTotalDisplay">Rp 0</span>
@@ -1107,18 +1111,48 @@ function renderKasirCart() {
     return;
   }
   el.innerHTML = kasirCart.map(function(item) {
-    return '<div class="cart-item">' +
+    var sid = escHtml(String(item.id));
+    return '<div class="cart-item" data-item-id="' + sid + '">' +
       '<div class="cart-item-info">' +
         '<div class="cart-item-nama">' + escHtml(item.nama) + '</div>' +
         '<div class="cart-item-subtotal">' + kasirFmtRp(item.harga * item.qty) + '</div>' +
       '</div>' +
       '<div class="qty-controls">' +
-        '<button class="qty-btn" onclick="changeKasirQty(' + JSON.stringify(item.id) + ', -1)">-</button>' +
+        '<button class="qty-btn" data-action="minus" data-item-id="' + sid + '" style="background:#fee2e2;color:#dc2626;">−</button>' +
         '<span class="qty-value">' + item.qty + '</span>' +
-        '<button class="qty-btn" onclick="changeKasirQty(' + JSON.stringify(item.id) + ', 1)">+</button>' +
+        '<button class="qty-btn" data-action="plus" data-item-id="' + sid + '" style="background:#dcfce7;color:#16a34a;">+</button>' +
+        '<button class="qty-btn" data-action="remove" data-item-id="' + sid + '" style="background:#f3f4f6;color:#6b7280;font-size:11px;">✕</button>' +
       '</div>' +
     '</div>';
   }).join('');
+  // Pasang event delegation di cart items (dipasang setiap render karena innerHTML diganti)
+  _attachCartListeners(el);
+}
+
+// ===== CART EVENT DELEGATION =====
+function _attachCartListeners(el) {
+  el.addEventListener('click', function(e) { _handleCartAction(e); });
+  el.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    _handleCartAction(e);
+  }, { passive: false });
+}
+
+function _handleCartAction(e) {
+  var btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  var id = btn.getAttribute('data-item-id');
+  var action = btn.getAttribute('data-action');
+  if (action === 'plus') changeKasirQty(id, 1);
+  else if (action === 'minus') changeKasirQty(id, -1);
+  else if (action === 'remove') removeKasirItem(id);
+}
+
+function removeKasirItem(id) {
+  kasirCart = kasirCart.filter(function(i) { return i.id != id; });
+  renderKasirCart();
+  updateKasirTotal();
+  updateCartFab();
 }
 
 // ===== TOTAL =====
@@ -1131,19 +1165,37 @@ function getKasirDiskon() {
   return Math.max(0, d);
 }
 
+function getKasirPajakPersen() {
+  return parseFloat(localStorage.getItem('koneo_kasir_pajak_persen') || '0') || 0;
+}
+
+function getKasirPajak() {
+  var pct = getKasirPajakPersen();
+  return pct > 0 ? Math.round(getKasirSubtotal() * pct / 100) : 0;
+}
+
 function getKasirTotal() {
-  return Math.max(0, getKasirSubtotal() - getKasirDiskon());
+  return Math.max(0, getKasirSubtotal() - getKasirDiskon() + getKasirPajak());
 }
 
 function updateKasirTotal() {
   var subtotal = getKasirSubtotal();
   var diskon = getKasirDiskon();
-  var total = getKasirTotal();
+  var pajak = getKasirPajak();
+  var pajakPct = getKasirPajakPersen();
+  var total = Math.max(0, subtotal - diskon + pajak);
   var hasItems = kasirCart.length > 0;
 
   document.getElementById('kasirSubtotalDisplay').textContent = kasirFmtRp(subtotal);
   document.getElementById('kasirDiskonDisplay').textContent = '- ' + kasirFmtRp(diskon);
   document.getElementById('kasirTotalDisplay').textContent = kasirFmtRp(total);
+
+  var pajakRow = document.getElementById('kasirPajakRow');
+  var pajakLabel = document.getElementById('kasirPajakLabel');
+  var pajakDisplay = document.getElementById('kasirPajakDisplay');
+  if (pajakRow) pajakRow.style.display = pajak > 0 ? '' : 'none';
+  if (pajakLabel) pajakLabel.textContent = 'Pajak (' + pajakPct + '%)';
+  if (pajakDisplay) pajakDisplay.textContent = kasirFmtRp(pajak);
 
   document.getElementById('payTunaiBtn').disabled = !hasItems;
   document.getElementById('payQrisBtn').disabled = !hasItems;
@@ -1241,6 +1293,8 @@ function confirmKasirPayment() {
     items: kasirCart.map(function(i) { return { id: i.id, nama: i.nama, harga: i.harga, qty: i.qty }; }),
     subtotal: getKasirSubtotal(),
     diskon: getKasirDiskon(),
+    pajak: getKasirPajak(),
+    pajakPct: getKasirPajakPersen(),
     total: total,
     metode: kasirMetodePembayaran,
     bayar: kasirMetodePembayaran === 'tunai' ? (parseInt(document.getElementById('tunaiInput').value) || total) : total,
