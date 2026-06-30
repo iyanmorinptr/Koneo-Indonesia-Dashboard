@@ -1322,7 +1322,6 @@
       <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
       <button class="sidebar-item" id="sitem-laporan-pajak" onclick="sidebarGo('laporan-pajak')"><i class="ti ti-receipt-tax"></i> Laporan Pajak</button>
       <button class="sidebar-item" id="sitem-invoice" onclick="sidebarGo('invoice')"><i class="ti ti-file-invoice"></i> Invoice</button>
-      <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')"><i class="ti ti-users"></i> Member</button>
     </div>
 
     <!-- Stock -->
@@ -1335,7 +1334,9 @@
       <button class="sidebar-item" id="sitem-kasir" onclick="sidebarGo('kasir')"><i class="ti ti-cash-register"></i> Transaksi</button>
       <button class="sidebar-item" id="sitem-kasir-produk" onclick="sidebarGo('kasir-produk')"><i class="ti ti-package"></i> Produk</button>
       <button class="sidebar-item" id="sitem-kasir-riwayat" onclick="sidebarGo('kasir-riwayat')"><i class="ti ti-receipt"></i> Riwayat</button>
+      <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')"><i class="ti ti-users"></i> Member</button>
     </div>
+    <button class="sidebar-item" id="sitem-report" onclick="sidebarGo('report')" style="font-weight:700;"><i class="ti ti-clipboard-text"></i> Report</button>
     <button onclick="toggleSidebarGroup('stok')" id="sg-stok" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
       <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-packages" style="font-size:17px;color:#093a72;"></i> Stock</span>
       <i class="ti ti-chevron-right" id="sg-stok-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
@@ -1930,6 +1931,46 @@
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div id="kasir-riwayat-list"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB REPORT ───────────────────────────────────────────────────────── -->
+  <div id="tab-report" class="section">
+    <!-- Form closing report -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:16px;font-weight:800;color:#093a72;margin-bottom:4px;"><i class="ti ti-clipboard-text"></i> Closing Report</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:18px;">Laporan wajib diisi manager setiap penutupan toko.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Hari</label>
+          <input type="text" id="report-hari" readonly style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text2);">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Tanggal</label>
+          <input type="text" id="report-tanggal" readonly style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text2);">
+        </div>
+      </div>
+
+      <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Laporan</label>
+      <textarea id="report-isi" rows="7" placeholder="Tulis laporan closing hari ini di sini...&#10;&#10;Contoh:&#10;- Penjualan berjalan lancar&#10;- Stok kopi hampir habis, perlu restock&#10;- Ada komplain pelanggan soal waktu tunggu"
+        style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:vertical;background:var(--bg);line-height:1.6;"></textarea>
+
+      <div style="margin-top:6px;margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Nama Manager</label>
+        <input type="text" id="report-manager" placeholder="Nama kamu" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);">
+      </div>
+
+      <button onclick="submitClosingReport()" style="width:100%;padding:14px;background:#093a72;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Simpan Closing Report</button>
+    </div>
+
+    <!-- Riwayat report -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:14px;font-weight:700;color:#093a72;"><i class="ti ti-history"></i> Riwayat Report</div>
+        <input type="month" id="report-filter-month" onchange="buildReportTab()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:var(--surface);">
+      </div>
+      <div id="report-history-list"></div>
     </div>
   </div>
 
@@ -3096,7 +3137,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-kasir','tab-kasir-produk','tab-kasir-riwayat'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-report','tab-kasir','tab-kasir-produk','tab-kasir-riwayat'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -3172,7 +3213,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'kasir', 'kasir-produk', 'kasir-riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'report', 'kasir', 'kasir-produk', 'kasir-riwayat', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -3192,6 +3233,7 @@ function switchTab(tab) {
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
   if (tab === 'member' || tab === 'kasir' || tab === 'kasir-produk' || tab === 'kasir-riwayat') buildMemberTab();
+  if (tab === 'report') buildReportTab();
   if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak' || tab === 'invoice' || tab === 'member') ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
@@ -3483,6 +3525,98 @@ function filterMemberTable() {
     return matchQ && matchR;
   });
   renderMemberTable(filtered);
+}
+
+// ── CLOSING REPORT ────────────────────────────────────────────────────────────
+function getClosingReports() {
+  try { return JSON.parse(localStorage.getItem('koneo_closing_reports') || '[]'); } catch(e) { return []; }
+}
+function saveClosingReports(arr) { localStorage.setItem('koneo_closing_reports', JSON.stringify(arr)); }
+
+function buildReportTab() {
+  // Fill today's date
+  var now   = new Date();
+  var days  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var hariEl = document.getElementById('report-hari');
+  var tglEl  = document.getElementById('report-tanggal');
+  if (hariEl) hariEl.value = days[now.getDay()];
+  if (tglEl)  tglEl.value  = now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+
+  // Load saved manager name
+  var savedManager = localStorage.getItem('koneo_report_manager') || '';
+  var mgrEl = document.getElementById('report-manager');
+  if (mgrEl && !mgrEl.value) mgrEl.value = savedManager;
+
+  // Set default month filter
+  var filterEl = document.getElementById('report-filter-month');
+  if (filterEl && !filterEl.value) {
+    filterEl.value = now.toISOString().substring(0, 7);
+  }
+
+  renderReportHistory();
+}
+
+function submitClosingReport() {
+  var isi     = (document.getElementById('report-isi').value || '').trim();
+  var manager = (document.getElementById('report-manager').value || '').trim();
+  if (!isi) { showToast('Isi laporan tidak boleh kosong!'); return; }
+
+  var now = new Date();
+  var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var report = {
+    id: 'RPT-' + Date.now(),
+    timestamp: now.toISOString(),
+    hari: days[now.getDay()],
+    tanggal: now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }),
+    tanggalISO: now.toISOString().substring(0, 10),
+    laporan: isi,
+    manager: manager || 'Manager'
+  };
+
+  var all = getClosingReports();
+  all.unshift(report);
+  saveClosingReports(all);
+  if (manager) localStorage.setItem('koneo_report_manager', manager);
+
+  document.getElementById('report-isi').value = '';
+  showToast('✅ Closing report berhasil disimpan!');
+  triggerBackup();
+  renderReportHistory();
+}
+
+function renderReportHistory() {
+  var el = document.getElementById('report-history-list');
+  if (!el) return;
+
+  var filterEl = document.getElementById('report-filter-month');
+  var month    = filterEl ? filterEl.value : new Date().toISOString().substring(0, 7);
+  var all      = getClosingReports().filter(function(r) { return r.tanggalISO && r.tanggalISO.startsWith(month); });
+
+  if (!all.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Belum ada report untuk bulan ini.</div>';
+    return;
+  }
+
+  el.innerHTML = all.map(function(r) {
+    var isiLines = (r.laporan || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+    return '<div style="padding:16px;border-bottom:1px solid var(--border);">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+        '<div>' +
+          '<span style="font-size:13px;font-weight:800;color:#093a72;">' + r.hari + ', ' + r.tanggal + '</span>' +
+          '<span style="margin-left:8px;font-size:11px;color:var(--text3);">oleh ' + (r.manager||'Manager') + '</span>' +
+        '</div>' +
+        '<button onclick="deleteClosingReport(\'' + r.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:18px;line-height:1;" title="Hapus">🗑</button>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--text2);line-height:1.7;background:var(--surface2);padding:12px 14px;border-radius:10px;">' + isiLines + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function deleteClosingReport(id) {
+  if (!confirm('Hapus report ini?')) return;
+  var all = getClosingReports().filter(function(r) { return r.id !== id; });
+  saveClosingReports(all);
+  renderReportHistory();
 }
 
 // ── BACKUP OTOMATIS ────────────────────────────────────────────────────────────
