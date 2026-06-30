@@ -1834,6 +1834,9 @@
             <input type="number" id="kasir-diskon" value="0" min="0" oninput="updateKasirTotal()"
               style="width:100px;padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;outline:none;text-align:right;">
           </div>
+          <div id="kasir-pajak-row" style="display:none;justify-content:space-between;font-size:13px;color:#d97706;margin-bottom:6px;">
+            <span id="kasir-pajak-label">Pajak</span><span>Rp 0</span>
+          </div>
           <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#093a72;margin-bottom:12px;padding-top:8px;border-top:2px solid #093a72;">
             <span>TOTAL</span><span id="kasir-total">Rp 0</span>
           </div>
@@ -1871,8 +1874,10 @@
       <div style="background:#fff;border-radius:16px;padding:0;width:100%;max-width:320px;box-shadow:0 24px 64px rgba(0,0,0,0.4);overflow:hidden;">
         <div id="kasir-struk-content" style="padding:24px;font-family:monospace;font-size:13px;"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid #eee;">
-          <button onclick="closeKasirStruk()" style="padding:14px;background:#f3f4f6;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Tutup</button>
-          <button onclick="printKasirStruk()" style="padding:14px;background:#093a72;color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🖨 Print</button>
+          <button onclick="closeKasirStruk()" style="padding:10px 14px;background:#f3f4f6;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border-radius:8px;">Tutup</button>
+          <button onclick="printKasirChecker('bar')" style="padding:10px 14px;background:#0d7a3e;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border-radius:8px;">☕ Bar</button>
+          <button onclick="printKasirChecker('kitchen')" style="padding:10px 14px;background:#d97706;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border-radius:8px;">🍳 Kitchen</button>
+          <button onclick="printKasirStruk()" style="padding:10px 14px;background:#093a72;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border-radius:8px;">🖨 Struk</button>
         </div>
       </div>
     </div>
@@ -1900,6 +1905,13 @@
         <input type="text" id="kp-nama" placeholder="Contoh: Americano" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;">
         <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Kategori</label>
         <input type="text" id="kp-kategori" placeholder="Contoh: Kopi, Minuman, Makanan" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Stasiun</label>
+        <select id="kp-stasiun" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:14px;">
+          <option value="bar">☕ Bar</option>
+          <option value="kitchen">🍳 Kitchen</option>
+          <option value="keduanya">✅ Keduanya</option>
+          <option value="-">- Tidak ada</option>
+        </select>
         <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Harga (Rp)</label>
         <input type="number" id="kp-harga" placeholder="25000" min="0" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
@@ -2428,6 +2440,26 @@
         </div>
       </div>
       <div id="kasir-reg-status" style="font-size:12px;color:var(--text3);margin-bottom:12px;"></div>
+      <div class="input-group" style="margin-bottom:12px;">
+        <label>Pajak Koneo Kasir (%)</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="number" id="kasir-pajak-persen" placeholder="0" min="0" max="100" step="0.1" style="flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);">
+          <span style="font-size:14px;font-weight:700;color:#093a72;">%</span>
+          <button onclick="saveKasirPajak()" style="padding:10px 18px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Simpan</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;">Isi 0 jika tidak ada pajak. Pajak dihitung dari subtotal sebelum diskon.</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(9,58,114,0.04);border-radius:10px;margin-bottom:12px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#093a72;">Auto Print Struk</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Struk langsung tercetak otomatis setelah transaksi selesai</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+          <input type="checkbox" id="kasir-autoprint-toggle" onchange="saveKasirAutoPrint(this.checked)" style="opacity:0;width:0;height:0;">
+          <span onclick="var cb=document.getElementById('kasir-autoprint-toggle');cb.checked=!cb.checked;saveKasirAutoPrint(cb.checked);" style="position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:24px;transition:.3s;" id="kasir-autoprint-track"></span>
+          <span id="kasir-autoprint-thumb" style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;"></span>
+        </label>
+      </div>
       <a href="kasir.html" target="_blank" style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:rgba(9,58,114,0.07);border:1.5px solid rgba(9,58,114,0.2);border-radius:10px;text-decoration:none;color:#093a72;">
         <i class="ti ti-external-link" style="font-size:18px;"></i>
         <div><div style="font-weight:700;font-size:13px;">Buka Halaman Kasir</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Halaman terpisah untuk perangkat kasir di toko</div></div>
@@ -3323,7 +3355,7 @@ function switchTab(tab) {
   if (tab === 'stok') buildStokTab();
   if (tab === 'jadwal') buildJadwalTab();
   if (tab === 'absensi') buildAbsensiTab();
-  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); loadKasirRegCode(); loadOwnerWA(); }
+  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); loadKasirRegCode(); loadKasirPajak(); loadKasirAutoPrint(); loadOwnerWA(); }
   if (tab === 'cogs') buildCogsTab();
   if (tab === 'laporan-pajak') renderLaporanPajak();
   if (tab === 'invoice') initInvoice();
@@ -4285,19 +4317,26 @@ function clearKasirCart() {
 }
 
 function updateKasirTotal() {
-  var subtotal = _kasirCart.reduce(function(a, c) { return a + c.harga * c.qty; }, 0);
-  var diskon   = Number(document.getElementById('kasir-diskon') ? document.getElementById('kasir-diskon').value : 0) || 0;
-  var total    = Math.max(0, subtotal - diskon);
+  var subtotal  = _kasirCart.reduce(function(a, c) { return a + c.harga * c.qty; }, 0);
+  var diskon    = Number(document.getElementById('kasir-diskon') ? document.getElementById('kasir-diskon').value : 0) || 0;
+  var pajakPct  = Number(localStorage.getItem('koneo_kasir_pajak_persen') || '0');
+  var pajak     = pajakPct > 0 ? Math.round(subtotal * pajakPct / 100) : 0;
+  var total     = Math.max(0, subtotal - diskon + pajak);
   var elSub = document.getElementById('kasir-subtotal');
   var elTot = document.getElementById('kasir-total');
   if (elSub) elSub.textContent = kasirFmtRp(subtotal);
   if (elTot) elTot.textContent = kasirFmtRp(total);
+  // Show pajak row if applicable
+  var elPajak = document.getElementById('kasir-pajak-row');
+  if (elPajak) { elPajak.style.display = pajak > 0 ? '' : 'none'; elPajak.querySelector('span:last-child').textContent = kasirFmtRp(pajak); }
 }
 
 function getKasirTotal() {
   var subtotal = _kasirCart.reduce(function(a, c) { return a + c.harga * c.qty; }, 0);
   var diskon   = Number(document.getElementById('kasir-diskon') ? document.getElementById('kasir-diskon').value : 0) || 0;
-  return { subtotal: subtotal, diskon: diskon, total: Math.max(0, subtotal - diskon) };
+  var pajakPct = Number(localStorage.getItem('koneo_kasir_pajak_persen') || '0');
+  var pajak    = pajakPct > 0 ? Math.round(subtotal * pajakPct / 100) : 0;
+  return { subtotal: subtotal, diskon: diskon, pajak: pajak, total: Math.max(0, subtotal - diskon + pajak) };
 }
 
 function openKasirPayment(metode) {
@@ -4352,6 +4391,7 @@ function confirmKasirPayment() {
     items: JSON.parse(JSON.stringify(_kasirCart)),
     subtotal: totals.subtotal,
     diskon: totals.diskon,
+    pajak: totals.pajak || 0,
     total: totals.total,
     bayar: bayar,
     kembalian: kembalian,
@@ -4361,10 +4401,14 @@ function confirmKasirPayment() {
   var all = kasirDB_getTransaksi();
   all.unshift(transaksi);
   kasirDB_saveTransaksi(all);
+  syncKasirPajakToFinance(transaksi);
   syncKasirToFinance(transaksi);
   closeKasirPayment();
   showKasirStruk(transaksi);
   clearKasirCart();
+  if (localStorage.getItem('koneo_kasir_autoprint') === 'true') {
+    setTimeout(function(){ printKasirStruk(); }, 400);
+  }
 }
 
 function showKasirStruk(trx) {
@@ -4393,6 +4437,7 @@ function showKasirStruk(trx) {
     '<div style="border-top:1px dashed #ccc;margin:8px 0;"></div>' +
     '<div style="font-size:12px;">' +
       (trx.diskon ? '<div style="display:flex;justify-content:space-between;"><span>Diskon</span><span>- ' + kasirFmtRp(trx.diskon) + '</span></div>' : '') +
+      (trx.pajak ? '<div style="display:flex;justify-content:space-between;color:#d97706;"><span>Pajak (' + (Number(localStorage.getItem("koneo_kasir_pajak_persen")||0)) + '%)</span><span>+ ' + kasirFmtRp(trx.pajak) + '</span></div>' : '') +
       '<div style="display:flex;justify-content:space-between;font-weight:900;font-size:14px;margin-top:4px;"><span>TOTAL</span><span>' + kasirFmtRp(trx.total) + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;color:#555;margin-top:4px;"><span>Bayar (' + (trx.metode === 'tunai' ? 'Tunai' : 'Non-Tunai') + ')</span><span>' + kasirFmtRp(trx.bayar) + '</span></div>' +
       (trx.metode === 'tunai' ? '<div style="display:flex;justify-content:space-between;color:#16a34a;"><span>Kembalian</span><span>' + kasirFmtRp(trx.kembalian) + '</span></div>' : '') +
@@ -4401,6 +4446,35 @@ function showKasirStruk(trx) {
     '<div style="text-align:center;font-size:11px;color:#666;">Terima kasih sudah berkunjung!<br>☕ Sampai jumpa di Koneo</div>';
   document.getElementById('kasir-struk-content').innerHTML = html;
   document.getElementById('kasir-struk-modal').style.display = 'flex';
+  _lastKasirTrx = trx;
+}
+
+var _lastKasirTrx = null;
+
+function printKasirChecker(stasiun) {
+  if (!_lastKasirTrx) return;
+  var trx = _lastKasirTrx;
+  var produkAll = kasirDB_getProduk();
+  var items = trx.items.filter(function(it) {
+    var p = produkAll.find(function(x){ return x.id === it.id; });
+    var st = p ? (p.stasiun || 'bar') : 'bar';
+    return st === stasiun || st === 'keduanya';
+  });
+  if (!items.length) { showToast('Tidak ada item untuk ' + (stasiun === 'bar' ? 'Bar' : 'Kitchen')); return; }
+  var tanggal = new Date(trx.timestamp);
+  var tglStr  = tanggal.toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) + ' ' + tanggal.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  var label   = stasiun === 'bar' ? '☕ ORDER BAR' : '🍳 ORDER KITCHEN';
+  var itemsHtml = items.map(function(it) {
+    return '<div style="font-size:18px;font-weight:900;margin:8px 0;display:flex;justify-content:space-between;">' +
+      '<span>' + it.nama + '</span><span>x' + it.qty + '</span></div>';
+  }).join('');
+  var html = '<div style="text-align:center;margin-bottom:10px;font-size:20px;font-weight:900;border-bottom:3px solid #000;padding-bottom:8px;">' + label + '</div>' +
+    '<div style="font-size:11px;color:#555;margin-bottom:8px;"><div>' + tglStr + '</div><div>No: ' + trx.id + '</div><div>Pelanggan: ' + trx.pelanggan + '</div></div>' +
+    '<div style="border-top:2px dashed #000;border-bottom:2px dashed #000;padding:10px 0;margin:8px 0;">' + itemsHtml + '</div>' +
+    '<div style="text-align:center;font-size:11px;margin-top:8px;">Kasir: ' + trx.kasir + '</div>';
+  var w = window.open('', '_blank', 'width=300,height=500');
+  w.document.write('<html><head><title>Checker ' + (stasiun==='bar'?'Bar':'Kitchen') + '</title><style>body{font-family:monospace;padding:12px;font-size:13px;}*{box-sizing:border-box;}</style></head><body>' + html + '<script>window.onload=function(){window.print();window.close();}<\/script></body></html>');
+  w.document.close();
 }
 
 function closeKasirStruk() { document.getElementById('kasir-struk-modal').style.display = 'none'; }
@@ -4633,11 +4707,13 @@ function openKasirProdukForm(id) {
       document.getElementById('kp-nama').value = p.nama || '';
       document.getElementById('kp-kategori').value = p.kategori || '';
       document.getElementById('kp-harga').value = p.harga || '';
+      document.getElementById('kp-stasiun').value = p.stasiun || 'bar';
     }
   } else {
     document.getElementById('kp-nama').value = '';
     document.getElementById('kp-kategori').value = '';
     document.getElementById('kp-harga').value = '';
+    document.getElementById('kp-stasiun').value = 'bar';
   }
   modal.style.display = 'flex';
 }
@@ -4651,11 +4727,12 @@ function saveKasirProduk() {
   var editId   = document.getElementById('kasir-produk-edit-id').value;
   if (!nama || !harga) { showToast('Nama dan harga wajib diisi!'); return; }
   var produk = kasirDB_getProduk();
+  var stasiun = document.getElementById('kp-stasiun').value || 'bar';
   if (editId) {
     var idx = produk.findIndex(function(p) { return p.id === editId; });
-    if (idx !== -1) produk[idx] = Object.assign(produk[idx], { nama: nama, kategori: kategori, harga: harga });
+    if (idx !== -1) produk[idx] = Object.assign(produk[idx], { nama: nama, kategori: kategori, harga: harga, stasiun: stasiun });
   } else {
-    produk.push({ id: 'P-' + Date.now(), nama: nama, kategori: kategori, harga: harga, tersedia: true });
+    produk.push({ id: 'P-' + Date.now(), nama: nama, kategori: kategori, harga: harga, stasiun: stasiun, tersedia: true });
   }
   kasirDB_saveProduk(produk);
   closeKasirProdukForm();
@@ -6444,6 +6521,54 @@ function loadOwnerWA() {
   var el  = document.getElementById('owner-wa-status');
   if (inp) inp.value = wa;
   if (el)  el.textContent = wa ? 'Nomor aktif: +' + wa : 'Belum diset.';
+}
+
+
+function saveKasirPajak() {
+  var pct = Number(document.getElementById('kasir-pajak-persen').value) || 0;
+  localStorage.setItem('koneo_kasir_pajak_persen', String(pct));
+  showToast('✅ Pajak ' + pct + '% disimpan!');
+}
+
+function loadKasirPajak() {
+  var pct = localStorage.getItem('koneo_kasir_pajak_persen') || '0';
+  var inp = document.getElementById('kasir-pajak-persen');
+  if (inp) inp.value = pct;
+}
+
+function saveKasirAutoPrint(val) {
+  localStorage.setItem('koneo_kasir_autoprint', val ? 'true' : 'false');
+  var track = document.getElementById('kasir-autoprint-track');
+  var thumb = document.getElementById('kasir-autoprint-thumb');
+  if (track) track.style.background = val ? '#093a72' : '#ccc';
+  if (thumb) thumb.style.left = val ? '23px' : '3px';
+  showToast(val ? '✅ Auto print aktif' : 'Auto print dimatikan');
+}
+
+function loadKasirAutoPrint() {
+  var val = localStorage.getItem('koneo_kasir_autoprint') === 'true';
+  var cb = document.getElementById('kasir-autoprint-toggle');
+  if (cb) cb.checked = val;
+  var track = document.getElementById('kasir-autoprint-track');
+  var thumb = document.getElementById('kasir-autoprint-thumb');
+  if (track) track.style.background = val ? '#093a72' : '#ccc';
+  if (thumb) thumb.style.left = val ? '23px' : '3px';
+}
+
+function syncKasirPajakToFinance(trx) {
+  if (!trx.pajak || trx.pajak <= 0) return;
+  var dateStr = trx.timestamp ? trx.timestamp.substring(0, 10) : new Date().toISOString().substring(0, 10);
+  var key = 'koneo_draft_' + dateStr;
+  var dayKey = 'koneo_day_' + dateStr;
+  var raw = DB.getItem(key) || DB.getItem(dayKey);
+  var data;
+  try { data = raw ? JSON.parse(raw) : null; } catch(e) { data = null; }
+  if (!data) {
+    data = { simple: { tanggal: dateStr, majoo_tunai:0, majoo_nontunai:0, pos_tunai:0, pos_nontunai:0, gojek:0, grab:0, pajak_majoo:0, pajak_pos:0 }, barRows:[], kitchenRows:[], operasionalRows:[], extraRows:[], pLainnyaRows:[], rowId:0 };
+  }
+  if (!data.simple) data.simple = {};
+  data.simple['pajak_pos'] = (Number(data.simple['pajak_pos']) || 0) + trx.pajak;
+  DB.setItem(key, JSON.stringify(data));
 }
 
 function saveKasirRegCode() {
