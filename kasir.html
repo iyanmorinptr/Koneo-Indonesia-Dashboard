@@ -5,6 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kasir - Koneo Indonesia</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  var cfg = {
+    apiKey: "AIzaSyBlSuD4ApMwqn1afp1Buu6O3FxHrUUlB-I",
+    authDomain: "koneo-dashboard.firebaseapp.com",
+    projectId: "koneo-dashboard",
+    storageBucket: "koneo-dashboard.firebasestorage.app",
+    messagingSenderId: "428716590635",
+    appId: "1:428716590635:web:adc70f44fcf5fa5d1e0c6e"
+  };
+  firebase.initializeApp(cfg);
+  window._kasirFS = firebase.firestore();
+})();
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -909,18 +925,41 @@ function registerDevice() {
 // ===== KASIR INIT =====
 function initKasir() {
   kasirCart = [];
-  kasirProdukList = loadKasirProduk();
+  kasirProdukList = loadKasirProdukLocal();
   renderKasirKategori();
   filterKasirProduk();
   renderKasirCart();
   updateKasirTotal();
+  // Load dari Firestore (lebih fresh)
+  loadKasirProdukFromCloud(function(list) {
+    kasirProdukList = list;
+    renderKasirKategori();
+    filterKasirProduk();
+  });
 }
 
-function loadKasirProduk() {
+function loadKasirProdukLocal() {
   try {
     var raw = localStorage.getItem('koneo_kasir_produk');
     return raw ? JSON.parse(raw) : [];
   } catch(e) { return []; }
+}
+
+function loadKasirProdukFromCloud(cb) {
+  if (!window._kasirFS) { cb(loadKasirProdukLocal()); return; }
+  window._kasirFS.collection('store').doc('koneo_kasir_produk').get()
+    .then(function(doc) {
+      if (doc.exists) {
+        try {
+          var list = JSON.parse(doc.data().v || '[]');
+          localStorage.setItem('koneo_kasir_produk', doc.data().v);
+          cb(list);
+        } catch(e) { cb(loadKasirProdukLocal()); }
+      } else {
+        cb(loadKasirProdukLocal());
+      }
+    })
+    .catch(function() { cb(loadKasirProdukLocal()); });
 }
 
 // ===== KATEGORI =====
