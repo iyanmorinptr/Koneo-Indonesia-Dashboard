@@ -651,8 +651,52 @@ body {
   overflow-y: auto;
 }
 
+/* ===== TOAST ===== */
+#kasir-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a1a18;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+#kasir-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== FLOATING CART BUTTON (mobile) ===== */
+#kasir-cart-fab {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 500;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(9,58,114,0.4);
+  align-items: center;
+  gap: 8px;
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
+  #kasir-cart-fab { display: flex; }
   .pos-body {
     flex-direction: column;
     overflow: visible;
@@ -815,6 +859,14 @@ body {
   </div>
 </div>
 
+<!-- ===== TOAST ===== -->
+<div id="kasir-toast"></div>
+
+<!-- ===== FLOATING CART FAB (mobile) ===== -->
+<button id="kasir-cart-fab" onclick="document.querySelector('.pos-cart').scrollIntoView({behavior:'smooth'})">
+  🛒 <span id="kasir-cart-fab-count">0</span> item
+</button>
+
 <!-- ===== RECEIPT MODAL ===== -->
 <div class="modal-overlay" id="struktModal">
   <div class="modal-box">
@@ -966,11 +1018,14 @@ function addToKasirCart(id) {
   var item = kasirCart.find(function(i) { return i.id == id; });
   if (item) {
     item.qty++;
+    showKasirToast(prod.nama + ' ×' + item.qty);
   } else {
     kasirCart.push({ id: prod.id, nama: prod.nama, harga: prod.harga, qty: 1 });
+    showKasirToast('+ ' + prod.nama);
   }
   renderKasirCart();
   updateKasirTotal();
+  updateCartFab();
 }
 
 function changeKasirQty(id, delta) {
@@ -990,6 +1045,7 @@ function clearKasirCart() {
   document.getElementById('kasirDiskon').value = '';
   renderKasirCart();
   updateKasirTotal();
+  updateCartFab();
 }
 
 function renderKasirCart() {
@@ -1231,6 +1287,25 @@ function printKasirStruk() {
   popup.document.write('</body></html>');
   popup.document.close();
   popup.print();
+}
+
+// ===== TOAST =====
+var _toastTimer = null;
+function showKasirToast(msg) {
+  var el = document.getElementById('kasir-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2000);
+}
+
+function updateCartFab() {
+  var total = kasirCart.reduce(function(s, i) { return s + i.qty; }, 0);
+  var fab = document.getElementById('kasir-cart-fab');
+  var cnt = document.getElementById('kasir-cart-fab-count');
+  if (fab) fab.style.display = total > 0 ? 'flex' : 'none';
+  if (cnt) cnt.textContent = total;
 }
 
 // ===== HELPERS =====
