@@ -4328,7 +4328,7 @@ function updateKasirTotal() {
   if (elTot) elTot.textContent = kasirFmtRp(total);
   // Show pajak row if applicable
   var elPajak = document.getElementById('kasir-pajak-row');
-  if (elPajak) { elPajak.style.display = pajak > 0 ? '' : 'none'; elPajak.querySelector('span:last-child').textContent = kasirFmtRp(pajak); }
+  if (elPajak) { elPajak.style.display = pajak > 0 ? '' : 'none'; var pajakSpan = elPajak.querySelector('span:last-child'); if (pajakSpan) pajakSpan.textContent = kasirFmtRp(pajak); }
 }
 
 function getKasirTotal() {
