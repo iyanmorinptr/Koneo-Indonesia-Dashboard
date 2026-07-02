@@ -2208,11 +2208,11 @@
         <div id="laporan-date-inputs" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
           <div class="input-group" style="min-width:min(140px,100%);">
             <label id="laporan-from-label" style="font-size:11px;font-weight:600;color:var(--text2);">Tanggal</label>
-            <input type="date" id="laporan-from" style="font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);outline:none;">
+            <input type="date" id="laporan-from" style="font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);outline:none;" onchange="buildLaporanView()">
           </div>
           <div id="laporan-to-wrap" class="input-group" style="min-width:140px;display:none;">
             <label style="font-size:11px;font-weight:600;color:var(--text2);">Sampai Tanggal</label>
-            <input type="date" id="laporan-to" style="font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);outline:none;">
+            <input type="date" id="laporan-to" style="font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);outline:none;" onchange="buildLaporanView()">
           </div>
         </div>
         <button onclick="buildLaporanView()" style="padding:8px 18px;background:#093a72;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;"><i class="ti ti-search"></i> Lihat Laporan</button>
@@ -2649,6 +2649,7 @@ function _syncRefreshUI() {
     if (active) {
       const id = active.id;
       if (id === 'tab-jadwal') buildJadwalTab();
+      else if (id === 'tab-laporan') { try { buildLaporanView(); } catch(e) {} }
       else if (id === 'tab-manager-report') buildManagerReportTab();
       else if (id === 'tab-manager-todo') buildManagerTodoTab();
       else if (id === 'tab-manager-pengumuman') buildPengumumanTab();
@@ -6196,6 +6197,11 @@ function confirmSubmit() {
   buildRiwayat();
   renderSubmitBar();
   buildDashboard();
+  // Refresh laporan otomatis jika tab laporan sedang aktif
+  try {
+    const active = document.querySelector('.section.active');
+    if (active && active.id === 'tab-laporan') buildLaporanView();
+  } catch(e) {}
 }
 
 // Kumpulkan semua nilai form jadi objek snapshot
