@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-011">
+<meta name="app-version" content="v20260702-012">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-011';
+  var VER = 'v20260702-012';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -5347,11 +5347,6 @@ function buildLaporanView() {
   const margin = totP > 0 ? ((totNet/totP)*100).toFixed(1) : '0.0';
   const days = records.length;
 
-  // Hitung Modal Awal untuk periode ini (ambil semua bulan unik dalam range)
-  const uniqueMonths = [...new Set(records.map(r => r.tgl.substring(0,7)))];
-  const modalAwal = uniqueMonths.reduce((s, m) => s + (parseFloat(DB.getItem('koneo_modal_awal_' + m) || '0') || 0), 0);
-  const saldoAkhir = modalAwal + totNet;
-
   let html = `
     <!-- Summary hero -->
     <div class="net-box ${totNet>=0?'profit':'loss'}" style="margin-bottom:1rem;">
@@ -5365,29 +5360,6 @@ function buildLaporanView() {
       <div class="metric green"><div class="mlabel">Total Pemasukan</div><div class="mval">${fmt(totP)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Rata-rata ${fmt(Math.round(totP/days))}/hari</div></div>
       <div class="metric red"><div class="mlabel">Total Pengeluaran</div><div class="mval">${fmt(totK)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Rata-rata ${fmt(Math.round(totK/days))}/hari</div></div>
       <div class="metric blue"><div class="mlabel">Margin Keuntungan</div><div class="mval">${margin}%</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${days} hari tercatat</div></div>
-    </div>
-
-    <!-- Saldo Kas (Modal Awal + Laba/Rugi) -->
-    <div class="card" style="margin-bottom:1.25rem;padding:1rem 1.25rem;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);margin-bottom:10px;"><i class="ti ti-cash" style="margin-right:4px;"></i>Rekonsiliasi Kas</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
-          <span style="color:var(--text2);">Modal Awal</span>
-          <span style="font-weight:600;color:var(--text);">${modalAwal > 0 ? fmt(modalAwal) : '<span style="color:var(--text3);font-size:12px;">Belum diisi — <a onclick="switchTab(\'modal-awal\')" style="color:#093a72;cursor:pointer;text-decoration:underline;">Isi Modal Awal</a></span>'}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
-          <span style="color:var(--text2);">+ Pemasukan</span>
-          <span style="font-weight:600;color:var(--green);">+ ${fmt(totP)}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
-          <span style="color:var(--text2);">− Pengeluaran</span>
-          <span style="font-weight:600;color:var(--red);">− ${fmt(totK)}</span>
-        </div>
-        <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:13px;font-weight:700;color:var(--text);">Estimasi Saldo Kas</span>
-          <span style="font-size:16px;font-weight:800;color:${saldoAkhir>=0?'#093a72':'var(--red)'};">${saldoAkhir<0?'− ':''}${fmt(Math.abs(saldoAkhir))}</span>
-        </div>
-      </div>
     </div>`;
 
   // Chart: show trend if more than 1 day, or breakdown if single day
