@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260702-001';
+  var VER = 'v20260702-002';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -3308,16 +3308,10 @@ function loadFromData(data) {
 function loadData() {
   let tgl = getLocalDateStr();
 
-  // Kalau hari ini sudah disubmit, langsung siapkan untuk hari besok
-  if (DB.getItem('koneo_day_' + tgl)) {
-    const next = new Date(tgl + 'T12:00:00');
-    next.setDate(next.getDate() + 1);
-    tgl = getLocalDateStr(next);
-  }
-
+  // Stay on today — user clicks "Maju ke Besok" explicitly to advance
   document.getElementById('tanggal').value = tgl;
 
-  // Muat draft kalau ada (dan belum disubmit)
+  // Load draft if today not yet submitted
   const draft = DB.getItem('koneo_draft_' + tgl);
   if (draft && !DB.getItem('koneo_day_' + tgl)) {
     loadFromData(JSON.parse(draft));
