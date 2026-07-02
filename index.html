@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-014">
+<meta name="app-version" content="v20260702-015">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-014';
+  var VER = 'v20260702-015';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -6335,12 +6335,14 @@ function buildRiwayat() {
 }
 
 function buildRiwayatHarian(keys, container) {
+  const _rSess = getSession();
+  const _rOwner = _rSess && _rSess.role === 'owner';
   const totalAllNet = keys.reduce((sum, k) => {
     return sum + calcSnapshot(JSON.parse(DB.getItem(k))).net;
   }, 0);
 
   container.innerHTML = `
-    <div class="card" style="margin-bottom:1rem;">
+    ${_rOwner ? `<div class="card" style="margin-bottom:1rem;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <div>
           <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);">Total Laba/Rugi Keseluruhan</div>
@@ -6348,7 +6350,7 @@ function buildRiwayatHarian(keys, container) {
         </div>
         <div style="font-size:12px;color:var(--text2);">${keys.length} hari tercatat</div>
       </div>
-    </div>
+    </div>` : ''}
     <div class="card" style="padding:0.5rem 0;">
       <div style="padding:0.75rem 1.5rem;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">Laporan Harian</div>
       <div id="riwayat-list">
@@ -6362,10 +6364,10 @@ function buildRiwayatHarian(keys, container) {
           return `<div class="riwayat-row" onclick="lihatDetail('${tgl}')">
             <div>
               <div class="rdate">${tglFmt}</div>
-              <div class="rstats">Pemasukan ${fmt(totalP)} &nbsp;·&nbsp; Pengeluaran ${fmt(totalK)}</div>
+              ${_rOwner ? `<div class="rstats">Pemasukan ${fmt(totalP)} &nbsp;·&nbsp; Pengeluaran ${fmt(totalK)}</div>` : ''}
             </div>
             <div style="display:flex;align-items:center;gap:6px;">
-              <div class="rnet ${netClass}">${netLabel}</div>
+              ${_rOwner ? `<div class="rnet ${netClass}">${netLabel}</div>` : ''}
               <button onclick="event.stopPropagation();muatHari('${tgl}')" title="Edit" style="background:none;border:1px solid var(--border2);cursor:pointer;color:#093a72;padding:5px 8px;border-radius:6px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px;white-space:nowrap;"><i class="ti ti-edit"></i> Edit</button>
               <button class="rdel" onclick="event.stopPropagation();hapusRiwayat('${tgl}')" title="Hapus"><i class="ti ti-trash"></i></button>
             </div>
@@ -6391,6 +6393,8 @@ function getWeekLabel(weekKey) {
 }
 
 function buildRiwayatPeriod(keys, container, period) {
+  const _rpSess = getSession();
+  const _rpOwner = _rpSess && _rpSess.role === 'owner';
   // Group keys by period
   const groups = {};
   keys.forEach(k => {
@@ -6410,7 +6414,7 @@ function buildRiwayatPeriod(keys, container, period) {
   const totalAllP = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(DB.getItem(k))).totalP, 0);
   const totalAllK = keys.reduce((sum, k) => sum + calcSnapshot(JSON.parse(DB.getItem(k))).totalK, 0);
 
-  let html = `
+  let html = _rpOwner ? `
     <div class="card" style="margin-bottom:1rem;">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);margin-bottom:10px;">Ringkasan Keseluruhan</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
@@ -6418,7 +6422,7 @@ function buildRiwayatPeriod(keys, container, period) {
         <div style="background:var(--red-light);border-radius:10px;padding:12px;"><div style="font-size:10px;color:#A32D2D;font-weight:700;margin-bottom:4px;">TOTAL PENGELUARAN</div><div style="font-size:15px;font-weight:700;color:var(--red);">${fmt(totalAllK)}</div></div>
         <div style="background:${totalAllNet>=0?'var(--blue-light)':'var(--red-light)'};border-radius:10px;padding:12px;"><div style="font-size:10px;color:#093a72;font-weight:700;margin-bottom:4px;">TOTAL LABA/RUGI</div><div style="font-size:15px;font-weight:700;color:${totalAllNet>=0?'var(--blue)':'var(--red)'};">${totalAllNet<0?'− ':''}${fmt(Math.abs(totalAllNet))}</div></div>
       </div>
-    </div>`;
+    </div>` : '';
 
   sortedGroups.forEach(groupKey => {
     const groupKeys = groups[groupKey].sort().reverse();
@@ -6443,10 +6447,10 @@ function buildRiwayatPeriod(keys, container, period) {
       return `<div class="riwayat-row" style="padding:8px 16px;" onclick="lihatDetail('${tgl}')">
         <div>
           <div style="font-size:13px;font-weight:500;color:var(--text);">${tglFmt}</div>
-          <div style="font-size:11px;color:var(--text2);">${fmt(totalP)} · Keluar ${fmt(totalK)}</div>
+          ${_rpOwner ? `<div style="font-size:11px;color:var(--text2);">${fmt(totalP)} · Keluar ${fmt(totalK)}</div>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <div style="font-size:13px;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'};">${net>=0?'+':'−'} ${fmt(Math.abs(net))}</div>
+          ${_rpOwner ? `<div style="font-size:13px;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'};">${net>=0?'+':'−'} ${fmt(Math.abs(net))}</div>` : ''}
           <button class="rdel" onclick="event.stopPropagation();hapusRiwayat('${tgl}')" title="Hapus"><i class="ti ti-trash"></i></button>
         </div>
       </div>`;
@@ -6456,9 +6460,9 @@ function buildRiwayatPeriod(keys, container, period) {
       <div style="padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--text);">${label}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:2px;">${groupKeys.length} hari &nbsp;·&nbsp; Masuk ${fmt(gP)} &nbsp;·&nbsp; Keluar ${fmt(gK)}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px;">${groupKeys.length} hari${_rpOwner ? ` &nbsp;·&nbsp; Masuk ${fmt(gP)} &nbsp;·&nbsp; Keluar ${fmt(gK)}` : ''}</div>
         </div>
-        <div style="font-size:15px;font-weight:800;color:${gNet>=0?'var(--green)':'var(--red)'};">${gNet>=0?'+':'−'} ${fmt(Math.abs(gNet))}</div>
+        ${_rpOwner ? `<div style="font-size:15px;font-weight:800;color:${gNet>=0?'var(--green)':'var(--red)'};">${gNet>=0?'+':'−'} ${fmt(Math.abs(gNet))}</div>` : ''}
       </div>
       <div>${rowsHtml}</div>
     </div>`;
