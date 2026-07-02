@@ -3351,10 +3351,14 @@ function renderSubmitBar() {
     bar.style.borderColor = 'rgba(217,119,6,0.3)';
   } else if (submitted) {
     const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
-    bar.innerHTML = `<div class="submitted-badge"><i class="ti ti-circle-check"></i> Laporan ${tglFmt} sudah disubmit</div>
-      <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="resetHariIni()"><i class="ti ti-edit"></i> Edit ulang</button>`;
-    bar.style.background = '';
-    bar.style.borderColor = '';
+    bar.innerHTML = `<div class="submit-info"><i class="ti ti-circle-check" style="color:#1D9E75;margin-right:4px;"></i><strong>${tglFmt}</strong> — Ada data sebelumnya. Tambah data baru atau edit.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="majuKeBesok()"><i class="ti ti-arrow-right"></i> Maju ke Besok</button>
+        <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="muatHari('${tgl}')"><i class="ti ti-edit"></i> Edit</button>
+        <button class="btn-submit" onclick="openSubmitModal()"><i class="ti ti-plus"></i> Tambah Data</button>
+      </div>`;
+    bar.style.background = 'rgba(29,158,117,0.06)';
+    bar.style.borderColor = 'rgba(29,158,117,0.25)';
   } else {
     bar.innerHTML = `<div class="submit-info"><strong>Konfirmasi Data</strong> — Pastikan semua data sudah benar sebelum submit</div>
       <button class="btn-submit" onclick="openSubmitModal()"><i class="ti ti-check"></i> Submit Data</button>`;
@@ -6155,10 +6159,13 @@ function openSubmitModal() {
     showToast('Belum ada data yang diisi.');
     return;
   }
+  // Cek apakah ini mode tambah data (merge)
+  const _existingForModal = DB.getItem('koneo_day_' + tgl);
+  const _isMergeModal = !!_existingForModal && !_editingTgl;
 
   const tgl = document.getElementById('tanggal').value;
   const tglFmt = tgl ? new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
-  document.getElementById('modal-date-label').textContent = tglFmt;
+  document.getElementById('modal-date-label').textContent = tglFmt + (_isMergeModal ? ' (Tambah Data)' : '');
   document.getElementById('m-pemasukan').textContent = fmt(totalP);
   document.getElementById('m-pengeluaran').textContent = fmt(totalK);
   const netEl = document.getElementById('m-net');
@@ -6177,22 +6184,37 @@ function confirmSubmit() {
   const tgl = document.getElementById('tanggal').value;
   if (!tgl) { showToast('Pilih tanggal terlebih dahulu.'); return; }
 
-  const snapshot = buildSnapshot();
-  snapshot.submitted = true;
-  snapshot.submittedAt = new Date().toISOString();
-  DB.setItem('koneo_day_' + tgl, JSON.stringify(snapshot));
+  const newSnap = buildSnapshot();
+  newSnap.submitted = true;
+  newSnap.submittedAt = new Date().toISOString();
+
+  const existingRaw = _editingTgl ? null : DB.getItem('koneo_day_' + tgl);
+  let isMerge = false;
+  let finalSnap;
+  if (existingRaw) {
+    // Ada data hari ini tapi bukan mode edit → merge (tambahkan)
+    finalSnap = mergeSnapshot(JSON.parse(existingRaw), newSnap);
+    isMerge = true;
+  } else {
+    finalSnap = newSnap;
+  }
+
+  DB.setItem('koneo_day_' + tgl, JSON.stringify(finalSnap));
   DB.removeItem('koneo_draft_' + tgl);
 
   const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
-  showToast('Laporan ' + tglFmt + ' berhasil disimpan!');
+  showToast(isMerge ? 'Data tambahan ' + tglFmt + ' berhasil ditambahkan!' : 'Laporan ' + tglFmt + ' berhasil disimpan!');
 
-  // Bersihkan form & maju ke hari berikutnya
   _editingTgl = null;
   clearForm();
-  const nextDate = new Date(tgl + 'T12:00:00'); // tengah hari supaya tidak kena masalah timezone
-  nextDate.setDate(nextDate.getDate() + 1);
-  document.getElementById('tanggal').value = getLocalDateStr(nextDate);
-  calc(); // update summary jadi Rp 0
+  if (!isMerge) {
+    // Mode normal: maju ke hari berikutnya
+    const nextDate = new Date(tgl + 'T12:00:00');
+    nextDate.setDate(nextDate.getDate() + 1);
+    document.getElementById('tanggal').value = getLocalDateStr(nextDate);
+  }
+  // Kalau merge: tetap di tanggal yang sama, form kosong, siap tambah lagi
+  calc();
 
   buildRiwayat();
   renderSubmitBar();
@@ -6218,6 +6240,22 @@ function buildSnapshot() {
     operasionalRows: operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('item_val_' + r.id)) })),
     extraRows: extraRows.map(r => ({ ket: document.getElementById('extra_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('extra_val_' + r.id)) })),
   };
+}
+
+// Gabungkan snapshot baru ke snapshot yang sudah ada (untuk multi-submit sehari)
+function mergeSnapshot(existing, newSnap) {
+  const merged = JSON.parse(JSON.stringify(existing)); // deep clone
+  const numFields = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'];
+  numFields.forEach(f => {
+    merged.simple[f] = (existing.simple[f]||0) + (newSnap.simple[f]||0);
+  });
+  merged.barRows = [...(existing.barRows||[]), ...(newSnap.barRows||[])];
+  merged.kitchenRows = [...(existing.kitchenRows||[]), ...(newSnap.kitchenRows||[])];
+  merged.operasionalRows = [...(existing.operasionalRows||[]), ...(newSnap.operasionalRows||[])];
+  merged.extraRows = [...(existing.extraRows||[]), ...(newSnap.extraRows||[])];
+  merged.pLainnyaRows = [...(existing.pLainnyaRows||[]), ...(newSnap.pLainnyaRows||[])];
+  merged.submittedAt = new Date().toISOString();
+  return merged;
 }
 
 // Hitung total dari snapshot
@@ -6482,6 +6520,16 @@ function muatHari(tgl) {
   switchTab('pemasukan');
   renderSubmitBar();
   showToast('Mode Edit: ' + new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}));
+}
+
+function majuKeBesok() {
+  const tgl = document.getElementById('tanggal').value || getLocalDateStr();
+  const next = new Date(tgl + 'T12:00:00');
+  next.setDate(next.getDate() + 1);
+  clearForm();
+  document.getElementById('tanggal').value = getLocalDateStr(next);
+  calc();
+  renderSubmitBar();
 }
 
 function batalEdit() {
