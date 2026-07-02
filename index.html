@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-001">
+<meta name="app-version" content="v20260702-004">
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260702-003';
+  var VER = 'v20260702-004';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -3315,12 +3315,10 @@ function loadDataForDate(tgl) {
   clearForm();
   _editingTgl = null;
 
+  // If date already has submitted data: leave form empty
+  // User clicks "Edit" to edit existing, or "Tambah Data" to add new
   const existing = DB.getItem('koneo_day_' + tgl);
-  if (existing) {
-    // Date has submitted data — load it into form so user can see it
-    loadFromData(JSON.parse(existing));
-  } else {
-    // Load draft if available
+  if (!existing) {
     const draft = DB.getItem('koneo_draft_' + tgl);
     if (draft) loadFromData(JSON.parse(draft));
   }
