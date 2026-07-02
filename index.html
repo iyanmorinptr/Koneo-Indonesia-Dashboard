@@ -1320,6 +1320,7 @@
       <button class="sidebar-item" id="sitem-pengeluaran" onclick="sidebarGo('pengeluaran')"><i class="ti ti-arrow-up-circle"></i> Pengeluaran</button>
       <button class="sidebar-item" id="sitem-laporan" onclick="sidebarGo('laporan')"><i class="ti ti-chart-line"></i> Laporan</button>
       <button class="sidebar-item" id="sitem-riwayat" onclick="sidebarGo('riwayat')"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
+      <button class="sidebar-item" id="sitem-modal-awal" onclick="sidebarGo('modal-awal')"><i class="ti ti-cash"></i> Modal Awal</button>
       <button class="sidebar-item" id="sitem-laporan-pajak" onclick="sidebarGo('laporan-pajak')"><i class="ti ti-receipt-tax"></i> Laporan Pajak</button>
       <button class="sidebar-item" id="sitem-invoice" onclick="sidebarGo('invoice')"><i class="ti ti-file-invoice"></i> Invoice</button>
     </div>
@@ -1461,6 +1462,7 @@
       <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
       <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
       <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
+      <button onclick="switchTab('modal-awal')" id="fin-tab-modal-awal" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-cash"></i> Modal</button>
     </div>
     <div class="card">
       <div class="card-title"><i class="ti ti-building-store"></i> Majoo</div>
@@ -1531,6 +1533,7 @@
       <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
       <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
       <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
+      <button onclick="switchTab('modal-awal')" id="fin-tab-modal-awal" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-cash"></i> Modal</button>
     </div>
 
     <div style="margin-bottom:1.25rem;">
@@ -2174,6 +2177,7 @@
       <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
       <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
       <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
+      <button onclick="switchTab('modal-awal')" id="fin-tab-modal-awal" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-cash"></i> Modal</button>
     </div>
 
     <!-- Print header: hanya tampil saat cetak -->
@@ -2240,6 +2244,7 @@
       <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
       <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
       <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
+      <button onclick="switchTab('modal-awal')" id="fin-tab-modal-awal" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-cash"></i> Modal</button>
     </div>
     <!-- Period sub-tabs -->
     <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
@@ -2250,6 +2255,38 @@
     </div>
 
     <div id="riwayat-content"></div>
+  </div>
+
+  <!-- MODAL AWAL -->
+  <div id="tab-modal-awal" class="section">
+    <!-- Finance sub-tab bar -->
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);border:1px solid rgba(9,58,114,0.10);border-radius:50px;padding:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <button onclick="switchTab('pemasukan')" id="fin-tab-pemasukan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-up"></i> <span class="stok-tab-label" data-i18n="tab_pemasukan">Pemasukan</span></button>
+      <button onclick="switchTab('pengeluaran')" id="fin-tab-pengeluaran" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-trending-down"></i> <span class="stok-tab-label" data-i18n="tab_pengeluaran">Pengeluaran</span></button>
+      <button onclick="switchTab('laporan')" id="fin-tab-laporan" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-chart-bar"></i> <span class="stok-tab-label" data-i18n="tab_laporan">Laporan</span></button>
+      <button onclick="switchTab('riwayat')" id="fin-tab-riwayat" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:none;color:#6b6b68;"><i class="ti ti-history"></i> <span class="stok-tab-label" data-i18n="tab_riwayat">Riwayat</span></button>
+      <button onclick="switchTab('modal-awal')" id="fin-tab-modal-awal" style="flex:1;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;border-radius:50px;transition:all 0.2s;font-family:inherit;text-align:center;background:#093a72;color:#fff;box-shadow:0 2px 8px rgba(9,58,114,0.25);"><i class="ti ti-cash"></i> Modal</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-cash"></i> Modal Awal Bulanan</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.5;">Isi modal awal setiap tanggal 1. Nilai ini digunakan dalam <b>Laporan Laba Rugi</b> untuk menampilkan modal yang dikeluarkan per bulan.</p>
+      <div class="input-group" style="margin-bottom:12px;">
+        <label>Bulan</label>
+        <input type="month" id="modal-awal-bulan" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);">
+      </div>
+      <div class="input-group" style="margin-bottom:16px;">
+        <label>Nominal Modal Awal (Rp)</label>
+        <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="modal-awal-nilai" placeholder="0" oninput="fmtInput(this)"></div>
+      </div>
+      <button onclick="saveModalAwal()" class="btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;border-radius:12px;"><i class="ti ti-device-floppy"></i> Simpan Modal Awal</button>
+      <div id="modal-awal-status" style="font-size:12px;color:#1D9E75;margin-top:10px;text-align:center;"></div>
+    </div>
+
+    <div class="card" id="modal-awal-history-card">
+      <div class="card-title"><i class="ti ti-history"></i> Riwayat Modal Awal</div>
+      <div id="modal-awal-history"></div>
+    </div>
   </div>
 
   <!-- JADWAL KARYAWAN -->
@@ -2450,16 +2487,7 @@
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:4px;">Isi 0 jika tidak ada pajak. Pajak dihitung dari subtotal sebelum diskon.</div>
       </div>
-      <div class="input-group" style="margin-bottom:12px;">
-        <label style="font-weight:700;color:#093a72;">Modal Awal Bulanan (Rp)</label>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">Diisi sekali tiap tanggal 1. Digunakan dalam Laporan Laba Rugi per bulan.</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="month" id="modal-awal-bulan" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);">
-          <div class="currency-wrap" style="flex:1;min-width:120px;"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="modal-awal-nilai" placeholder="0" oninput="fmtInput(this)" style="padding-left:30px;"></div>
-          <button onclick="saveModalAwal()" style="padding:10px 18px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Simpan</button>
-        </div>
-        <div id="modal-awal-status" style="font-size:12px;color:var(--text3);margin-top:4px;"></div>
-      </div>
+
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(9,58,114,0.04);border-radius:10px;margin-bottom:12px;">
         <div>
           <div style="font-size:13px;font-weight:700;color:#093a72;">Auto Print Struk</div>
@@ -3022,7 +3050,7 @@ function doLogout() {
   location.reload();
 }
 
-const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat'];
+const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'modal-awal'];
 const OWNER_ONLY_TABS = ['pengaturan', 'cogs']; // Finance sekarang bisa diakses manager juga
 
 function applyRole(role) {
@@ -3382,7 +3410,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-riwayat', 'kasir-manual', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-riwayat', 'kasir-manual', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -3392,10 +3420,11 @@ function switchTab(tab) {
   if (tab === 'stok') buildStokTab();
   if (tab === 'jadwal') buildJadwalTab();
   if (tab === 'absensi') buildAbsensiTab();
-  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); loadKasirRegCode(); loadKasirPajak(); loadKasirAutoPrint(); loadOwnerWA(); loadModalAwal(); }
+  if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); loadKasirRegCode(); loadKasirPajak(); loadKasirAutoPrint(); loadOwnerWA(); }
   if (tab === 'cogs') buildCogsTab();
   if (tab === 'laporan-pajak') renderLaporanPajak();
   if (tab === 'invoice') initInvoice();
+  if (tab === 'modal-awal') loadModalAwal();
   if (tab === 'kasir') initKasir();
   if (tab === 'kasir-produk') buildKasirProdukTab();
   if (tab === 'kasir-riwayat') buildKasirRiwayatTab();
@@ -6675,19 +6704,46 @@ function saveModalAwal() {
   var statusEl = document.getElementById('modal-awal-status');
   if (statusEl) statusEl.textContent = 'Tersimpan: Rp ' + val.toLocaleString('id-ID') + ' untuk ' + new Date(bulan + '-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
   showToast('Modal awal berhasil disimpan!');
+  loadModalAwal();
 }
 
 function loadModalAwal() {
   var now = new Date();
   var bulan = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
   var inp = document.getElementById('modal-awal-bulan');
-  if (inp) inp.value = bulan;
+  if (inp) {
+    inp.value = bulan;
+    inp.onchange = function() {
+      var b = inp.value; if (!b) return;
+      var k = 'koneo_modal_awal_' + b;
+      var v = (typeof DB !== 'undefined' ? DB.getItem(k) : null) || localStorage.getItem(k) || '0';
+      var nilaiEl = document.getElementById('modal-awal-nilai');
+      if (nilaiEl) nilaiEl.value = parseInt(v||'0') > 0 ? parseInt(v).toLocaleString('id-ID') : '';
+      var statusEl = document.getElementById('modal-awal-status');
+      if (statusEl) statusEl.textContent = '';
+    };
+  }
   var key = 'koneo_modal_awal_' + bulan;
   var val = (typeof DB !== 'undefined' ? DB.getItem(key) : null) || localStorage.getItem(key) || '0';
   var nilaiEl = document.getElementById('modal-awal-nilai');
   if (nilaiEl) { nilaiEl.value = parseInt(val||'0') > 0 ? parseInt(val).toLocaleString('id-ID') : ''; }
   var statusEl = document.getElementById('modal-awal-status');
   if (statusEl && parseInt(val||'0') > 0) statusEl.textContent = 'Tersimpan: Rp ' + parseInt(val).toLocaleString('id-ID') + ' untuk ' + new Date(bulan+'-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+  // Tampilkan riwayat
+  var hist = document.getElementById('modal-awal-history');
+  if (!hist) return;
+  var allKeys = (typeof DB !== 'undefined' ? DB.keys() : Object.keys(localStorage))
+    .filter(function(k){ return k.startsWith('koneo_modal_awal_'); })
+    .sort().reverse();
+  if (!allKeys.length) { hist.innerHTML = '<div class="empty-state" style="padding:20px;">Belum ada data modal awal.</div>'; return; }
+  hist.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+    '<thead><tr style="background:rgba(9,58,114,0.05);"><th style="padding:8px 10px;text-align:left;font-size:12px;">Bulan</th><th style="padding:8px 10px;text-align:right;font-size:12px;">Modal Awal</th></tr></thead><tbody>' +
+    allKeys.map(function(k) {
+      var b = k.replace('koneo_modal_awal_', '');
+      var v = (typeof DB !== 'undefined' ? DB.getItem(k) : null) || localStorage.getItem(k) || '0';
+      var bFmt = new Date(b+'-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+      return '<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-size:13px;">' + bFmt + '</td><td style="padding:8px 10px;text-align:right;font-size:13px;font-weight:600;color:#093a72;">Rp ' + parseInt(v).toLocaleString('id-ID') + '</td></tr>';
+    }).join('') + '</tbody></table>';
 }
 
 function loadKasirPajak() {
