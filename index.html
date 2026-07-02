@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-012">
+<meta name="app-version" content="v20260702-013">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-012';
+  var VER = 'v20260702-013';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -3065,8 +3065,8 @@ function doLogout() {
   location.reload();
 }
 
-const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'modal-awal'];
-const OWNER_ONLY_TABS = ['pengaturan', 'cogs']; // Finance sekarang bisa diakses manager juga
+const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'riwayat', 'modal-awal'];
+const OWNER_ONLY_TABS = ['pengaturan', 'cogs', 'laporan']; // Laporan hanya owner
 
 function applyRole(role) {
   const isOwner = role === 'owner';
@@ -3078,13 +3078,17 @@ function applyRole(role) {
   const financeGroup = document.getElementById('sg-finance');
   if (financeGroup) financeGroup.style.display = canFinance ? '' : 'none';
 
-  // Pengaturan & COGS: owner only
+  // Pengaturan, COGS, Laporan: owner only
   const sdmGroup = document.getElementById('sg-sdm');
   const pengBtn = document.getElementById('sitem-pengaturan');
   if (pengBtn) pengBtn.style.display = canAdmin ? '' : 'none';
   if (sdmGroup) sdmGroup.style.display = '';
   const cogsGroup = document.getElementById('sg-cogs');
   if (cogsGroup) cogsGroup.style.display = canAdmin ? '' : 'none';
+  const laporanBtn = document.getElementById('sitem-laporan');
+  if (laporanBtn) laporanBtn.style.display = canAdmin ? '' : 'none';
+  // Sembunyikan tab Laporan di finance tab bar untuk non-owner
+  document.querySelectorAll('#fin-tab-laporan').forEach(el => { el.style.display = canAdmin ? '' : 'none'; });
 
   // Badge label & color per role
   const badgeMap = { owner: { label: 'Owner', bg: '#093a72', color: '#fff' }, manager: { label: 'Manager', bg: '#0d7a3e', color: '#fff' }, karyawan: { label: 'Karyawan', bg: 'var(--blue-light)', color: 'var(--blue-dark)' } };
