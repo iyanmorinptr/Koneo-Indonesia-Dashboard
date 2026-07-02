@@ -6,11 +6,24 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-004">
+<meta name="app-version" content="v20260702-005">
 <script>
-// Force cache clear on version mismatch
+// Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-004';
+  var VER = 'v20260702-005';
+  var base = window.location.pathname.replace(/\/[^/]*$/, '/');
+  // Fetch version.json with no-store to always get latest
+  fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.ver && d.ver !== VER) {
+        // Server has newer version — force reload with cache-busting URL
+        if (window.location.search.indexOf('_rv=') === -1) {
+          window.location.replace(window.location.pathname + '?_rv=' + d.ver);
+        }
+      }
+    }).catch(function(){});
+  // Fallback: localStorage-based check
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
