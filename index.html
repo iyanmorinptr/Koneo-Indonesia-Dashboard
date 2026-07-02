@@ -1511,6 +1511,15 @@
       <button class="btn-add" onclick="addPLainnyaRow()"><i class="ti ti-plus"></i> Tambah item</button>
     </div>
 
+    <div class="card">
+      <div class="card-title"><i class="ti ti-cash"></i> Modal Awal</div>
+      <p style="font-size:12px;color:var(--text3);margin:0 0 10px;">Modal atau uang kas awal yang disiapkan untuk operasional hari ini</p>
+      <div class="input-group">
+        <label>Modal Awal (Rp)</label>
+        <div class="currency-wrap"><span class="prefix">Rp</span><input type="text" inputmode="numeric" id="modal_awal" placeholder="0" oninput="fmtInput(this)"></div>
+      </div>
+    </div>
+
     <div class="summary-card">
       <div class="card-title" style="margin-bottom:0.75rem;font-size:13px;" data-i18n="card_ringkasan_p">Ringkasan Pemasukan</div>
       <div class="summary-grid">
@@ -1518,6 +1527,7 @@
         <div class="metric blue"><div class="mlabel" data-i18n="lbl_total_nontunai">Total Non-Tunai</div><div class="mval" id="s_nontunai">Rp 0</div></div>
         <div class="metric amber"><div class="mlabel" data-i18n="lbl_total_online">Total Online</div><div class="mval" id="s_online">Rp 0</div></div>
         <div class="metric purple"><div class="mlabel">Lainnya</div><div class="mval" id="s_p_lainnya">Rp 0</div></div>
+        <div class="metric blue"><div class="mlabel">Modal Awal</div><div class="mval" id="s_modal_awal">Rp 0</div></div>
         <div class="metric green"><div class="mlabel">Grand Total</div><div class="mval" id="s_pemasukan">Rp 0</div></div>
       </div>
     </div>
@@ -2195,6 +2205,7 @@
       <button class="lp-tab" id="lpt-bulanan" onclick="switchLaporan('bulanan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar-month"></i> Bulanan</button>
       <button class="lp-tab" id="lpt-tahunan" onclick="switchLaporan('tahunan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar"></i> Tahunan</button>
       <button class="lp-tab" id="lpt-kustom" onclick="switchLaporan('kustom')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-adjustments-horizontal"></i> Kustom</button>
+      <button class="lp-tab" id="lpt-labarugi" onclick="switchLaporan('labarugi')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-report-money"></i> Laba Rugi</button>
     </div>
 
     <!-- Date selector -->
@@ -2916,6 +2927,9 @@ function initAuth() {
   const session = getSession();
   if (session) {
     applyRole(session.role);
+    // Kembalikan ke tab terakhir setelah page refresh
+    const _savedTab = localStorage.getItem('koneo_last_tab');
+    if (_savedTab) try { switchTab(_savedTab); } catch(e) {}
     return;
   }
   document.getElementById('auth-overlay').style.display = 'flex';
@@ -3166,7 +3180,7 @@ function saveData() {
   const simple = {};
   // Tanggal disimpan sebagai string, nilai currency disimpan sebagai angka murni
   const el = document.getElementById('tanggal'); if (el) simple['tanggal'] = el.value;
-  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos']
+  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos','modal_awal']
     .forEach(id => { simple[id] = getVal(id); });
 
   const data = {
@@ -3204,7 +3218,7 @@ function saveData() {
 }
 
 function clearForm() {
-  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'].forEach(id => {
+  ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos','modal_awal'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   extraRows = []; barRows = []; kitchenRows = []; operasionalRows = []; pLainnyaRows = []; rowId = 0;
@@ -3217,7 +3231,7 @@ function clearForm() {
 
 function loadFromData(data) {
   rowId = data.rowId || 0;
-  const simpleIds = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'];
+  const simpleIds = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos','modal_awal'];
   simpleIds.forEach(id => { if (data.simple?.[id] != null) setRupiah(id, data.simple[id]); });
 
   barRows = (data.barRows || []).map((r,i) => ({ id: data.rowId ? r.id || ++rowId : ++rowId }));
@@ -3355,6 +3369,7 @@ function showToast(msg) {
 }
 
 function switchTab(tab) {
+  try { localStorage.setItem('koneo_last_tab', tab); } catch(e) {}
   const session = getSession();
   const role = session ? session.role : '';
   const canAdmin = role === 'owner';
@@ -4935,6 +4950,13 @@ function removeItemRow(containerId, rowsArr, id, placeholder) {
 
 function renderItemRows(containerId, rowsArr, placeholder) {
   const container = document.getElementById(containerId);
+  // Simpan nilai yang sudah diisi sebelum re-render
+  rowsArr.forEach(r => {
+    const k = document.getElementById('item_ket_' + r.id);
+    const v = document.getElementById('item_val_' + r.id);
+    if (k) r._ket = k.value;
+    if (v) r._val = v.value;
+  });
   container.innerHTML = '';
   rowsArr.forEach(r => {
     const div = document.createElement('div');
@@ -4948,6 +4970,9 @@ function renderItemRows(containerId, rowsArr, placeholder) {
       <button class="btn-danger-sm" onclick="removeItemRow('${containerId}', ${containerId === 'bar-rows' ? 'barRows' : containerId === 'kitchen-rows' ? 'kitchenRows' : 'extraRows'}, ${r.id}, '${placeholder}')" title="Hapus"><i class="ti ti-trash"></i></button>
     `;
     container.appendChild(div);
+    // Kembalikan nilai yang sudah diisi
+    if (r._ket != null) { const k = document.getElementById('item_ket_' + r.id); if (k) k.value = r._ket; }
+    if (r._val != null) { const v = document.getElementById('item_val_' + r.id); if (v) v.value = r._val; }
   });
 }
 
@@ -5023,12 +5048,15 @@ function calc() {
   const tunai = mt + pt, nontunai = mnt + pnt, online = gj + gr;
   let pLainnya = 0;
   pLainnyaRows.forEach(r => { pLainnya += getRawVal(document.getElementById('p_lainnya_val_' + r.id)); });
-  const totalP = tunai + nontunai + online + pLainnya;
+  const modalAwal = getVal('modal_awal');
+  const totalP = tunai + nontunai + online + pLainnya + modalAwal;
   document.getElementById('s_tunai').textContent = fmt(tunai);
   document.getElementById('s_nontunai').textContent = fmt(nontunai);
   document.getElementById('s_online').textContent = fmt(online);
   const pLainnyaEl = document.getElementById('s_p_lainnya');
   if (pLainnyaEl) pLainnyaEl.textContent = fmt(pLainnya);
+  const sModalEl = document.getElementById('s_modal_awal');
+  if (sModalEl) sModalEl.textContent = fmt(modalAwal);
   document.getElementById('s_pemasukan').textContent = fmt(totalP);
 
   let bar = 0; barRows.forEach(r => { bar += getRawVal(document.getElementById('item_val_' + r.id)); });
@@ -5111,6 +5139,81 @@ function getDataInRange(fromDate, toDate) {
     });
 }
 
+function buildLabaRugiView(fromDate, toDate, periodLabel) {
+  const records = getDataInRange(fromDate, toDate);
+  const out = document.getElementById('laporan-output');
+  if (!records.length) {
+    out.innerHTML = `<div class="card"><div class="empty-state"><i class="ti ti-calendar-off" style="font-size:32px;display:block;margin-bottom:8px;opacity:0.4;"></i>Tidak ada data untuk periode ini.<br><span style="font-size:11px;">Pastikan data sudah disubmit terlebih dahulu.</span></div></div>`;
+    return;
+  }
+  // Aggregate
+  let pendapatanPenjualan = 0, modalAwalTotal = 0, pLainnyaTotal = 0;
+  let hppBar = 0, hppKitchen = 0;
+  let biayaPajak = 0, biayaOps = 0, biayaLainnya = 0;
+  records.forEach(r => {
+    const p = r.data.simple;
+    pendapatanPenjualan += (p.majoo_tunai||0)+(p.majoo_nontunai||0)+(p.pos_tunai||0)+(p.pos_nontunai||0)+(p.gojek||0)+(p.grab||0);
+    modalAwalTotal += (p.modal_awal||0);
+    let pl=0; (r.data.pLainnyaRows||[]).forEach(x=>pl+=x.val); pLainnyaTotal += pl;
+    let b=0; (r.data.barRows||[]).forEach(x=>b+=x.val); hppBar += b;
+    let k=0; (r.data.kitchenRows||[]).forEach(x=>k+=x.val); hppKitchen += k;
+    biayaPajak += (p.pajak_majoo||0)+(p.pajak_pos||0);
+    let o=0; (r.data.operasionalRows||[]).forEach(x=>o+=x.val); biayaOps += o;
+    let ln=0; (r.data.extraRows||[]).forEach(x=>ln+=x.val); biayaLainnya += ln;
+  });
+  const totalPendapatan = pendapatanPenjualan + modalAwalTotal + pLainnyaTotal;
+  const totalHPP = hppBar + hppKitchen;
+  const labaKotor = totalPendapatan - totalHPP;
+  const totalBiayaOps = biayaPajak + biayaOps + biayaLainnya;
+  const labaBersih = labaKotor - totalBiayaOps;
+  const marginKotor = totalPendapatan > 0 ? ((labaKotor/totalPendapatan)*100).toFixed(1) : '0.0';
+  const marginBersih = totalPendapatan > 0 ? ((labaBersih/totalPendapatan)*100).toFixed(1) : '0.0';
+  const row = (label, val, bold, color, indent) =>
+    `<tr style="${bold?'font-weight:700;':''}${indent?'':''}">
+      <td style="padding:7px 10px;${indent?'padding-left:24px;color:var(--text2);':''}font-size:13px;">${label}</td>
+      <td style="padding:7px 10px;text-align:right;font-size:13px;${color?'color:'+color+';font-weight:700;':''}">${val>=0?'':'− '}${fmt(Math.abs(val))}</td>
+    </tr>`;
+  const divider = (label) =>
+    `<tr style="background:rgba(9,58,114,0.05);">
+      <td colspan="2" style="padding:6px 10px;font-size:11px;font-weight:700;letter-spacing:0.5px;color:#093a72;text-transform:uppercase;">${label}</td>
+    </tr>`;
+  out.innerHTML = `
+    <div class="net-box ${labaBersih>=0?'profit':'loss'}" style="margin-bottom:1rem;">
+      <div class="net-meta">Laporan Laba Rugi — ${periodLabel}</div>
+      <div class="net-amount">${labaBersih<0?'− ':''}${fmt(Math.abs(labaBersih))}</div>
+      <div class="net-date">${records.length} hari data &nbsp;·&nbsp; Margin Bersih ${marginBersih}%</div>
+    </div>
+    <div class="card" style="margin-bottom:1rem;padding:0;overflow:hidden;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:#093a72;color:#fff;"><th style="padding:10px;text-align:left;font-size:13px;">Keterangan</th><th style="padding:10px;text-align:right;font-size:13px;">Jumlah</th></tr></thead>
+        <tbody>
+          ${divider('I. Pendapatan')}
+          ${row('Penjualan (Majoo + Kasir + Online)', pendapatanPenjualan, false, '', true)}
+          ${modalAwalTotal > 0 ? row('Modal Awal', modalAwalTotal, false, '', true) : ''}
+          ${pLainnyaTotal > 0 ? row('Pemasukan Lainnya', pLainnyaTotal, false, '', true) : ''}
+          ${row('Total Pendapatan', totalPendapatan, true, '#093a72', false)}
+          ${divider('II. Harga Pokok Penjualan (HPP)')}
+          ${row('Bar', hppBar, false, '', true)}
+          ${row('Kitchen', hppKitchen, false, '', true)}
+          ${row('Total HPP', totalHPP, true, '#E24B4A', false)}
+          <tr style="background:rgba(29,158,117,0.08);">
+            <td style="padding:9px 10px;font-size:13px;font-weight:700;">Laba Kotor &nbsp;<span style="font-size:11px;font-weight:400;color:var(--text2);">(Margin ${marginKotor}%)</span></td>
+            <td style="padding:9px 10px;text-align:right;font-size:14px;font-weight:700;color:${labaKotor>=0?'#1D9E75':'var(--red)'};">${labaKotor<0?'− ':''}${fmt(Math.abs(labaKotor))}</td>
+          </tr>
+          ${divider('III. Biaya Operasional')}
+          ${biayaPajak > 0 ? row('Pajak', biayaPajak, false, '', true) : ''}
+          ${row('Operasional', biayaOps, false, '', true)}
+          ${biayaLainnya > 0 ? row('Pengeluaran Lainnya', biayaLainnya, false, '', true) : ''}
+          ${row('Total Biaya Operasional', totalBiayaOps, true, '#E24B4A', false)}
+          <tr style="background:rgba(9,58,114,0.1);">
+            <td style="padding:10px;font-size:14px;font-weight:700;">LABA / RUGI BERSIH</td>
+            <td style="padding:10px;text-align:right;font-size:16px;font-weight:700;color:${labaBersih>=0?'#1D9E75':'var(--red)'};">${labaBersih<0?'− ':''}${fmt(Math.abs(labaBersih))}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
 function buildLaporanView() {
   const fromEl = document.getElementById('laporan-from');
   const toEl = document.getElementById('laporan-to');
@@ -5145,6 +5248,8 @@ function buildLaporanView() {
     const fD = new Date(fromDate + 'T12:00:00'), tD = new Date(toDate + 'T12:00:00');
     periodLabel = fD.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ' – ' + tD.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
   }
+
+  if (currentLaporan === 'labarugi') { buildLabaRugiView(fromDate, toDate, periodLabel); return; }
 
   const records = getDataInRange(fromDate, toDate);
   const out = document.getElementById('laporan-output');
@@ -5191,7 +5296,8 @@ function buildSingleDayDetail(rec) {
   const peRows = [
     {src:'Majoo Tunai', val:p.majoo_tunai||0},{src:'Majoo Non-Tunai', val:p.majoo_nontunai||0},
     {src:'Koneo Kasir Tunai', val:p.pos_tunai||0},{src:'Koneo Kasir Non-Tunai', val:p.pos_nontunai||0},
-    {src:'GoFood', val:p.gojek||0},{src:'GrabFood', val:p.grab||0}
+    {src:'GoFood', val:p.gojek||0},{src:'GrabFood', val:p.grab||0},
+    {src:'Modal Awal', val:p.modal_awal||0}
   ].filter(r=>r.val>0);
 
   const keRows = [
@@ -5995,7 +6101,7 @@ function openSubmitModal() {
   let ops = 0; operasionalRows.forEach(r => { ops += getRawVal(document.getElementById('item_val_' + r.id)); });
   let lainnya = 0;
   extraRows.forEach(r => { lainnya += getRawVal(document.getElementById('extra_val_' + r.id)); });
-  const totalP = mt + mnt + pt + pnt + gj + gr;
+  const totalP = mt + mnt + pt + pnt + gj + gr + getVal('modal_awal');
   const totalK = bar + kitchen + pajakMajoo + pajakPos + ops + lainnya;
   const net = totalP - totalK;
 
@@ -6044,12 +6150,11 @@ function confirmSubmit() {
   buildRiwayat();
   renderSubmitBar();
   buildDashboard();
-  switchTab('beranda');
 }
 
 // Kumpulkan semua nilai form jadi objek snapshot
 function buildSnapshot() {
-  const simpleIds = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos'];
+  const simpleIds = ['majoo_tunai','majoo_nontunai','pos_tunai','pos_nontunai','gojek','grab','pajak_majoo','pajak_pos','modal_awal'];
   const simple = {};
   simpleIds.forEach(id => { simple[id] = getVal(id); });
 
@@ -6067,7 +6172,7 @@ function buildSnapshot() {
 function calcSnapshot(s) {
   const p = s.simple;
   let pLainnya=0; (s.pLainnyaRows||[]).forEach(r=>pLainnya+=r.val);
-  const totalP = (p.majoo_tunai||0)+(p.majoo_nontunai||0)+(p.pos_tunai||0)+(p.pos_nontunai||0)+(p.gojek||0)+(p.grab||0)+pLainnya;
+  const totalP = (p.majoo_tunai||0)+(p.majoo_nontunai||0)+(p.pos_tunai||0)+(p.pos_nontunai||0)+(p.gojek||0)+(p.grab||0)+pLainnya+(p.modal_awal||0);
   let bar=0; (s.barRows||[]).forEach(r=>bar+=r.val);
   let kitchen=0; (s.kitchenRows||[]).forEach(r=>kitchen+=r.val);
   let ops=0; (s.operasionalRows||[]).forEach(r=>ops+=r.val);
