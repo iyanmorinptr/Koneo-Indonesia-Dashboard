@@ -6207,13 +6207,7 @@ function confirmSubmit() {
 
   _editingTgl = null;
   clearForm();
-  if (!isMerge) {
-    // Mode normal: maju ke hari berikutnya
-    const nextDate = new Date(tgl + 'T12:00:00');
-    nextDate.setDate(nextDate.getDate() + 1);
-    document.getElementById('tanggal').value = getLocalDateStr(nextDate);
-  }
-  // Kalau merge: tetap di tanggal yang sama, form kosong, siap tambah lagi
+  // Tetap di tanggal yang sama setelah submit — user klik "Maju ke Besok" jika mau ganti hari
   calc();
 
   buildRiwayat();
