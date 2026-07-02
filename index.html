@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-008">
+<meta name="app-version" content="v20260702-009">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-008';
+  var VER = 'v20260702-009';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -2206,13 +2206,13 @@
     </div>
 
     <!-- Period sub-tabs -->
-    <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-      <button class="lp-tab active" id="lpt-harian" onclick="switchLaporan('harian')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:var(--surface);color:#093a72;border-radius:7px;box-shadow:0 1px 3px rgba(9,58,114,0.1);display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar-day"></i> Harian</button>
-      <button class="lp-tab" id="lpt-mingguan" onclick="switchLaporan('mingguan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar-week"></i> Mingguan</button>
-      <button class="lp-tab" id="lpt-bulanan" onclick="switchLaporan('bulanan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar-month"></i> Bulanan</button>
-      <button class="lp-tab" id="lpt-tahunan" onclick="switchLaporan('tahunan')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-calendar"></i> Tahunan</button>
-      <button class="lp-tab" id="lpt-kustom" onclick="switchLaporan('kustom')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-adjustments-horizontal"></i> Kustom</button>
-      <button class="lp-tab" id="lpt-labarugi" onclick="switchLaporan('labarugi')" style="flex:0 0 auto;padding:7px 10px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;"><i class="ti ti-report-money"></i> Laba Rugi</button>
+    <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.25rem;">
+      <button class="lp-tab active" id="lpt-harian" onclick="switchLaporan('harian')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:var(--surface);color:#093a72;border-radius:7px;box-shadow:0 1px 3px rgba(9,58,114,0.1);display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;"><i class="ti ti-calendar-day"></i> Harian</button>
+      <button class="lp-tab" id="lpt-mingguan" onclick="switchLaporan('mingguan')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;"><i class="ti ti-calendar-week"></i> Mingguan</button>
+      <button class="lp-tab" id="lpt-bulanan" onclick="switchLaporan('bulanan')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;"><i class="ti ti-calendar-month"></i> Bulanan</button>
+      <button class="lp-tab" id="lpt-tahunan" onclick="switchLaporan('tahunan')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;"><i class="ti ti-calendar"></i> Tahunan</button>
+      <button class="lp-tab" id="lpt-kustom" onclick="switchLaporan('kustom')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;"><i class="ti ti-adjustments-horizontal"></i> Kustom</button>
+      <button class="lp-tab" id="lpt-labarugi" onclick="switchLaporan('labarugi')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:7px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;"><i class="ti ti-report-money"></i> Laba Rugi</button>
     </div>
 
     <!-- Date selector -->
