@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-013">
+<meta name="app-version" content="v20260702-014">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-013';
+  var VER = 'v20260702-014';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -6591,6 +6591,8 @@ function buildDataSummary() {
   const keys = DB.keys().filter(k => k.startsWith('koneo_day_')).sort().reverse();
   const el = document.getElementById('data-summary');
   const listEl = document.getElementById('all-data-list');
+  const _sess = getSession();
+  const _isOwner = _sess && _sess.role === 'owner';
 
   if (!keys.length) {
     el.innerHTML = '<i class="ti ti-database-off"></i> Belum ada data laporan yang tersimpan.';
@@ -6605,7 +6607,7 @@ function buildDataSummary() {
 
   el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
     <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL HARI</div><div style="font-size:18px;font-weight:700;color:var(--text);">${keys.length} hari</div></div>
-    <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL OMSET</div><div style="font-size:18px;font-weight:700;color:var(--green);">${fmt(totP)}</div></div>
+    ${_isOwner ? `<div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">TOTAL OMSET</div><div style="font-size:18px;font-weight:700;color:var(--green);">${fmt(totP)}</div></div>` : ''}
     <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">DATA TERLAMA</div><div style="font-size:13px;font-weight:500;color:var(--text);">${oldest}</div></div>
     <div><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;">DATA TERBARU</div><div style="font-size:13px;font-weight:500;color:var(--text);">${newest}</div></div>
   </div>`;
@@ -6647,9 +6649,9 @@ function buildDataSummary() {
       html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface);border-radius:8px;margin-bottom:4px;">
         <div style="flex:1;">
           <div style="font-size:13px;font-weight:600;color:var(--text);">${tglFmt}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Masuk ${fmt(totalP)} · Keluar ${fmt(totalK)}</div>
+          ${_isOwner ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">Masuk ${fmt(totalP)} · Keluar ${fmt(totalK)}</div>` : ''}
         </div>
-        <div style="font-size:13px;font-weight:700;color:${netColor};margin-right:6px;">${net>=0?'+':''}${fmt(net)}</div>
+        ${_isOwner ? `<div style="font-size:13px;font-weight:700;color:${netColor};margin-right:6px;">${net>=0?'+':''}${fmt(net)}</div>` : ''}
         <button onclick="editDataHariIni('${tgl}')" title="Edit" style="background:var(--blue-light);border:none;cursor:pointer;color:var(--blue-dark);padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;white-space:nowrap;">
           <i class="ti ti-pencil"></i> Edit
         </button>
