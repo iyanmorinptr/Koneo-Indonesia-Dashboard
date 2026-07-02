@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-010">
+<meta name="app-version" content="v20260702-011">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-010';
+  var VER = 'v20260702-011';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -5180,6 +5180,14 @@ function switchLaporan(period) {
     document.getElementById('laporan-to').value = getLocalDateStr();
   }
 
+  // Laba Rugi: sembunyikan selector, auto gunakan bulan berjalan s/d hari ini
+  const selector = document.getElementById('laporan-selector');
+  if (period === 'labarugi') {
+    selector.style.display = 'none';
+  } else {
+    selector.style.display = '';
+  }
+
   buildLaporanView();
 }
 
@@ -5314,7 +5322,16 @@ function buildLaporanView() {
     periodLabel = fD.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ' – ' + tD.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
   }
 
-  if (currentLaporan === 'labarugi') { buildLabaRugiView(fromDate, toDate, periodLabel); return; }
+  if (currentLaporan === 'labarugi') {
+    // Auto: bulan berjalan dari tgl 1 s/d hari ini
+    const now2 = new Date();
+    const m = String(now2.getMonth()+1).padStart(2,'0');
+    const autoFrom = now2.getFullYear() + '-' + m + '-01';
+    const autoTo = getLocalDateStr();
+    const autoLabel = now2.toLocaleDateString('id-ID', { month:'long', year:'numeric' });
+    buildLabaRugiView(autoFrom, autoTo, autoLabel);
+    return;
+  }
 
   const records = getDataInRange(fromDate, toDate);
   const out = document.getElementById('laporan-output');
