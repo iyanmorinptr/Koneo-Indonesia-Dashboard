@@ -3200,6 +3200,7 @@ function getLocalDateStr(d) {
 }
 
 let extraRows = [], barRows = [], kitchenRows = [], operasionalRows = [], pLainnyaRows = [], rowId = 0;
+let _editingTgl = null; // tanggal yang sedang diedit dari riwayat
 
 // ── LOCALSTORAGE ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'koneo_laporan';
@@ -3337,13 +3338,27 @@ function renderSubmitBar() {
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
-  if (submitted) {
+  const isEditMode = _editingTgl && _editingTgl === tgl;
+  if (isEditMode) {
+    const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    bar.innerHTML = `<div class="submit-info" style="color:#d97706;"><i class="ti ti-pencil" style="margin-right:4px;"></i><strong style="color:#d97706;">Mode Edit</strong> — ${tglFmt}. Pastikan perubahan sudah benar.</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="batalEdit()"><i class="ti ti-x"></i> Batal</button>
+        <button class="btn-submit" style="background:#d97706;" onclick="openSubmitModal()"><i class="ti ti-device-floppy"></i> Simpan Perubahan</button>
+      </div>`;
+    bar.style.background = 'rgba(251,191,36,0.12)';
+    bar.style.borderColor = 'rgba(217,119,6,0.3)';
+  } else if (submitted) {
     const tglFmt = new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
     bar.innerHTML = `<div class="submitted-badge"><i class="ti ti-circle-check"></i> Laporan ${tglFmt} sudah disubmit</div>
       <button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="resetHariIni()"><i class="ti ti-edit"></i> Edit ulang</button>`;
+    bar.style.background = '';
+    bar.style.borderColor = '';
   } else {
     bar.innerHTML = `<div class="submit-info"><strong>Konfirmasi Data</strong> — Pastikan semua data sudah benar sebelum submit</div>
       <button class="btn-submit" onclick="openSubmitModal()"><i class="ti ti-check"></i> Submit Data</button>`;
+    bar.style.background = '';
+    bar.style.borderColor = '';
   }
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -6171,6 +6186,7 @@ function confirmSubmit() {
   showToast('Laporan ' + tglFmt + ' berhasil disimpan!');
 
   // Bersihkan form & maju ke hari berikutnya
+  _editingTgl = null;
   clearForm();
   const nextDate = new Date(tgl + 'T12:00:00'); // tengah hari supaya tidak kena masalah timezone
   nextDate.setDate(nextDate.getDate() + 1);
@@ -6453,11 +6469,20 @@ function muatHari(tgl) {
   tutupDetail();
   const data = JSON.parse(DB.getItem('koneo_day_' + tgl));
   if (!data) return;
+  _editingTgl = tgl;
   document.getElementById('tanggal').value = tgl;
   clearForm();
   loadFromData(data);
   switchTab('pemasukan');
-  showToast('Data ' + tgl + ' dimuat. Edit lalu submit ulang.');
+  renderSubmitBar();
+  showToast('Mode Edit: ' + new Date(tgl+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}));
+}
+
+function batalEdit() {
+  _editingTgl = null;
+  loadData(); // reload today's data
+  renderSubmitBar();
+  showToast('Edit dibatalkan.');
 }
 
 function resetHariIni() {
