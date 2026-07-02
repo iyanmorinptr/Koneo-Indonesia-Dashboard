@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-007">
+<meta name="app-version" content="v20260702-008">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-007';
+  var VER = 'v20260702-008';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -6178,11 +6178,11 @@ function openSubmitModal() {
     showToast('Belum ada data yang diisi.');
     return;
   }
+
+  const tgl = document.getElementById('tanggal').value;
   // Cek apakah ini mode tambah data (merge)
   const _existingForModal = DB.getItem('koneo_day_' + tgl);
   const _isMergeModal = !!_existingForModal && !_editingTgl;
-
-  const tgl = document.getElementById('tanggal').value;
   const tglFmt = tgl ? new Date(tgl + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
   document.getElementById('modal-date-label').textContent = tglFmt + (_isMergeModal ? ' (Tambah Data)' : '');
   document.getElementById('m-pemasukan').textContent = fmt(totalP);
