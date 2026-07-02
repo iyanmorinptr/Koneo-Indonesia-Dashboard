@@ -10,7 +10,7 @@
 <script>
 // Force cache clear on version mismatch
 (function(){
-  var VER = 'v20260702-002';
+  var VER = 'v20260702-003';
   if (localStorage.getItem('koneo_app_ver') !== VER) {
     localStorage.setItem('koneo_app_ver', VER);
     if (window.location.search.indexOf('cleared') === -1) {
@@ -3306,15 +3306,23 @@ function loadFromData(data) {
 }
 
 function loadData() {
-  let tgl = getLocalDateStr();
-
-  // Stay on today — user clicks "Maju ke Besok" explicitly to advance
+  const tgl = getLocalDateStr();
   document.getElementById('tanggal').value = tgl;
+  loadDataForDate(tgl);
+}
 
-  // Load draft if today not yet submitted
-  const draft = DB.getItem('koneo_draft_' + tgl);
-  if (draft && !DB.getItem('koneo_day_' + tgl)) {
-    loadFromData(JSON.parse(draft));
+function loadDataForDate(tgl) {
+  clearForm();
+  _editingTgl = null;
+
+  const existing = DB.getItem('koneo_day_' + tgl);
+  if (existing) {
+    // Date has submitted data — load it into form so user can see it
+    loadFromData(JSON.parse(existing));
+  } else {
+    // Load draft if available
+    const draft = DB.getItem('koneo_draft_' + tgl);
+    if (draft) loadFromData(JSON.parse(draft));
   }
 
   renderSubmitBar();
@@ -6116,6 +6124,9 @@ function buildOmsetChart() {
   if (splash) splash.style.display = 'none';
   _uiReady = true;
   loadData();
+  document.getElementById('tanggal').addEventListener('change', function() {
+    loadDataForDate(this.value);
+  });
   initAuth();
   applyLang();
   initAutoBackup();
@@ -6522,8 +6533,8 @@ function majuKeBesok() {
 
 function batalEdit() {
   _editingTgl = null;
-  loadData(); // reload today's data
-  renderSubmitBar();
+  const tgl = document.getElementById('tanggal').value || getLocalDateStr();
+  loadDataForDate(tgl);
   showToast('Edit dibatalkan.');
 }
 
