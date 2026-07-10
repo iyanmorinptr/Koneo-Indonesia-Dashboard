@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-015">
+<meta name="app-version" content="v20260702-016">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-015';
+  var VER = 'v20260702-016';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -6271,6 +6271,7 @@ function buildSnapshot() {
     kitchenRows: kitchenRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('item_val_' + r.id)) })),
     operasionalRows: operasionalRows.map(r => ({ ket: document.getElementById('item_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('item_val_' + r.id)) })),
     extraRows: extraRows.map(r => ({ ket: document.getElementById('extra_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('extra_val_' + r.id)) })),
+    pLainnyaRows: pLainnyaRows.map(r => ({ ket: document.getElementById('p_lainnya_ket_' + r.id)?.value || '', val: getRawVal(document.getElementById('p_lainnya_val_' + r.id)) })),
   };
 }
 
