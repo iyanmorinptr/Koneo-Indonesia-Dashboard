@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-028">
+<meta name="app-version" content="v20260702-029">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-028';
+  var VER = 'v20260702-029';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -3740,11 +3740,20 @@ function downloadInvoicePNG() {
     }
 
     removeWhiteBg(logoEl, function(transparentSrc) {
-      if (transparentSrc && logoEl) logoEl.src = transparentSrc;
-      html2canvas(wrapper, { scale: 2, backgroundColor: '#f5f0e0', useCORS: true, allowTaint: false, logging: false }).then(canvas => {
-        if (logoEl && prevSrc) logoEl.src = prevSrc;
-        const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
-      });
+      function capture() {
+        // Sementara hapus mix-blend-mode agar html2canvas bisa render
+        if (logoEl) logoEl.style.mixBlendMode = 'normal';
+        html2canvas(wrapper, { scale: 2, backgroundColor: '#f5f0e0', useCORS: true, allowTaint: false, logging: false }).then(canvas => {
+          if (logoEl) { logoEl.style.mixBlendMode = 'multiply'; logoEl.src = prevSrc; }
+          const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
+        });
+      }
+      if (transparentSrc && logoEl) {
+        logoEl.onload = function() { logoEl.onload = null; capture(); };
+        logoEl.src = transparentSrc;
+      } else {
+        capture();
+      }
     });
   } else {
     showToast('html2canvas belum dimuat, coba refresh halaman');
