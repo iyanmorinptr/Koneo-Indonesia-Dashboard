@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-029">
+<meta name="app-version" content="v20260702-030">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-029';
+  var VER = 'v20260702-030';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -3095,7 +3095,8 @@ function doLogout() {
 const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'kasir', 'kasir-produk', 'kasir-riwayat', 'kasir-manual', 'member'];
 const OWNER_ONLY_TABS = ['pengaturan', 'cogs', 'laporan'];
 // Tab yang boleh diakses karyawan (selain beranda)
-const KARYAWAN_ALLOWED = ['beranda', 'stok', 'jadwal', 'absensi', 'manager-report', 'manager-todo', 'manager-pengumuman'];
+const KARYAWAN_ALLOWED = ['beranda', 'stok', 'jadwal', 'absensi'];
+const KARYAWAN_STOK_ALLOWED = ['beli', 'opname']; // perlu dibeli + pembelian stock
 
 function _show(id, show) {
   const el = document.getElementById(id);
@@ -3127,12 +3128,17 @@ function applyRole(role) {
   // Report Staff (SDM): owner + manager only
   _show('sitem-sdm-report', canFinance);
 
-  // --- Manager group (semua role bisa akses) ---
-  _show('sg-manager', true);
-  // sg-manager-items biarkan toggle normal
+  // --- Manager group (owner + manager only) ---
+  _show('sg-manager', canFinance);
+  _show('sg-manager-items', canFinance);
+  ['sitem-manager-report','sitem-manager-todo','sitem-manager-pengumuman'].forEach(id => _show(id, canFinance));
 
-  // --- Stock group (semua role bisa akses) ---
+  // --- Stock group (semua role bisa akses, tapi karyawan dibatasi sub-tab) ---
   _show('sg-stok', true);
+  _show('sitem-stok-master', canFinance);   // Master Barang: owner+manager only
+  _show('sitem-stok-laporan', canFinance);  // Laporan Stok: owner+manager only
+  _show('sitem-stok-opname', true);         // Pembelian Stock: semua
+  _show('sitem-stok-beli', true);           // Perlu Dibeli: semua
 
   // --- SDM group (semua role bisa akses) ---
   _show('sg-sdm', true);
@@ -3549,7 +3555,7 @@ function toggleSidebarGroup(group) {
   // Karyawan tidak boleh toggle Finance atau Kasir
   const _s = getSession();
   const _isKaryawan = _s && _s.role !== 'owner' && _s.role !== 'manager';
-  if (_isKaryawan && (group === 'finance' || group === 'kasir')) return;
+  if (_isKaryawan && (group === 'finance' || group === 'kasir' || group === 'manager')) return;
   const items = document.getElementById('sg-' + group + '-items');
   const chevron = document.getElementById('sg-' + group + '-chevron');
   const isOpen = items.style.display !== 'none';
@@ -5312,6 +5318,12 @@ function sidebarGo(tab) {
 }
 
 function sidebarGoStok(subTab) {
+  const _s = getSession();
+  const _isKaryawan = _s && _s.role !== 'owner' && _s.role !== 'manager';
+  if (_isKaryawan && !KARYAWAN_STOK_ALLOWED.includes(subTab)) {
+    document.getElementById('finance-deny-overlay').style.display = 'flex';
+    return;
+  }
   openSidebarGroup('stok');
   switchTab('stok');
   updateSidebarActive('sitem-stok-' + subTab);
@@ -7457,6 +7469,15 @@ function saveOpnameData(tgl, data) {
 }
 
 function buildStokTab() {
+  const _s = getSession();
+  const _isKaryawan = _s && _s.role !== 'owner' && _s.role !== 'manager';
+  // Sembunyikan tab button Master & Laporan untuk karyawan
+  _show('stok-tab-master', !_isKaryawan);
+  _show('stok-tab-laporan', !_isKaryawan);
+  // Kalau currentStokTab tidak diizinkan, reset ke 'beli'
+  if (_isKaryawan && !KARYAWAN_STOK_ALLOWED.includes(currentStokTab)) {
+    currentStokTab = 'beli';
+  }
   switchStokTab(currentStokTab);
 }
 
