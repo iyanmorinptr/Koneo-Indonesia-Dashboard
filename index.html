@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-021">
+<meta name="app-version" content="v20260702-022">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-021';
+  var VER = 'v20260702-022';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -4214,10 +4214,84 @@ function renderPengumumanList() {
 function renderBerandaWidgets() {
   var el = document.getElementById('widget-info-staff');
   if (!el) return;
+  var session = getSession();
+  var role = session ? session.role : '';
   var pengs = getPengumuman().slice(0, 3);
   var todos = getTodos().filter(function(t){ return !t.done; }).slice(0, 3);
   var html = '';
 
+  // ── TOMBOL ABSENSI ──────────────────────────────────────────────────────────
+  (function() {
+    var tgl = getLocalDateStr(new Date());
+    var empId = session ? session.email.split('@')[0].toLowerCase() : '';
+    var data = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
+    var rec = data[empId] || {};
+    var statusText, btnHtml;
+    if (rec.jamMasuk && rec.jamKeluar) {
+      statusText = '<span style="color:#1D9E75;font-weight:700;">✓ Sudah Check-in ' + rec.jamMasuk + ' & Check-out ' + rec.jamKeluar + '</span>';
+      btnHtml = '';
+    } else if (rec.jamMasuk) {
+      statusText = '<span style="color:#093a72;font-weight:700;">Check-in: ' + rec.jamMasuk + '</span> &nbsp;·&nbsp; Belum check-out';
+      btnHtml = '<button onclick="berandaDoCheckout()" style="padding:12px 28px;border-radius:12px;border:none;background:#1D9E75;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-logout"></i> Check Out</button>';
+    } else {
+      statusText = '<span style="color:var(--text3);">Belum check-in hari ini</span>';
+      btnHtml = '<button onclick="berandaDoCheckin()" style="padding:12px 28px;border-radius:12px;border:none;background:#093a72;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-fingerprint"></i> Check In</button>';
+    }
+    html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
+      '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
+        '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-fingerprint"></i> Absensi Hari Ini</div>' +
+        '<button onclick="switchTab(\'absensi\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Detail →</button>' +
+      '</div>' +
+      '<div style="padding:16px;text-align:center;">' +
+        '<div style="font-size:13px;margin-bottom:12px;">' + statusText + '</div>' +
+        btnHtml +
+        '<div id="beranda-absensi-gps" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>' +
+      '</div>' +
+    '</div>';
+  })();
+
+  // ── JADWAL HARI INI ─────────────────────────────────────────────────────────
+  (function() {
+    try {
+      var today = new Date();
+      var dayIdx = today.getDay(); // 0=Sun
+      var isoDay = dayIdx === 0 ? 6 : dayIdx - 1; // 0=Mon…6=Sun
+      var DAYS_LABEL = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+      var weekKey = getWeekKey(getLocalDateStr(today));
+      var config = getJadwalConfig();
+      var schedule = getWeekSchedule(weekKey, config);
+
+      var rows = '';
+      config.departments.forEach(function(dept) {
+        dept.employees.forEach(function(emp) {
+          var shifts = schedule[emp.id] || [];
+          var shift = shifts[isoDay] || 'L';
+          var isOff = shift === 'L';
+          var shiftColor = isOff ? '#999' : (shift === 'F' ? '#093a72' : '#085041');
+          var shiftBg = isOff ? '#f0f0f0' : (shift === 'F' ? '#E6F1FB' : '#E1F5EE');
+          rows += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);">' +
+            '<div>' +
+              '<div style="font-size:13px;font-weight:600;color:#1a1a18;">' + emp.name + '</div>' +
+              '<div style="font-size:11px;color:var(--text3);">' + dept.name + '</div>' +
+            '</div>' +
+            '<span style="font-size:12px;font-weight:700;padding:3px 12px;border-radius:50px;background:' + shiftBg + ';color:' + shiftColor + ';">' + (isOff ? 'Libur' : shift) + '</span>' +
+          '</div>';
+        });
+      });
+
+      if (rows) {
+        html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
+          '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
+            '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-calendar-week"></i> Jadwal ' + DAYS_LABEL[isoDay] + ' Ini</div>' +
+            '<button onclick="switchTab(\'jadwal\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Lihat Semua →</button>' +
+          '</div>' +
+          rows +
+        '</div>';
+      }
+    } catch(e) {}
+  })();
+
+  // ── PENGUMUMAN ──────────────────────────────────────────────────────────────
   if (pengs.length) {
     html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
       '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
@@ -4236,6 +4310,7 @@ function renderBerandaWidgets() {
     html += '</div>';
   }
 
+  // ── TO DO ───────────────────────────────────────────────────────────────────
   if (todos.length) {
     html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
       '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
@@ -4255,12 +4330,30 @@ function renderBerandaWidgets() {
     html += '</div>';
   }
 
-  if (!pengs.length && !todos.length) {
-    html = '<div style="background:#fff;border-radius:16px;padding:20px;text-align:center;color:var(--text3);font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,0.07);">Belum ada pengumuman atau to do aktif.</div>';
-  }
-
   el.innerHTML = html;
 }
+
+// Absensi dari beranda (reuse GPS state dari tab absensi)
+function _berandaAbsensiAction(type) {
+  // Cek/aktifkan GPS dulu
+  if (!_absensiGpsCoords) {
+    var gpsEl = document.getElementById('beranda-absensi-gps');
+    if (gpsEl) gpsEl.textContent = 'Mengambil lokasi GPS...';
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      _absensiGpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      if (gpsEl) gpsEl.textContent = '';
+      if (type === 'in') doCheckin(); else doCheckout();
+      renderBerandaWidgets();
+    }, function() {
+      if (gpsEl) gpsEl.textContent = 'Gagal mendapatkan lokasi GPS. Pastikan GPS aktif.';
+    });
+    return;
+  }
+  if (type === 'in') doCheckin(); else doCheckout();
+  renderBerandaWidgets();
+}
+function berandaDoCheckin()  { _berandaAbsensiAction('in'); }
+function berandaDoCheckout() { _berandaAbsensiAction('out'); }
 
 // ── BACKUP OTOMATIS ────────────────────────────────────────────────────────────
 var BACKUP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcMNzCiscuGIBoU-0aP4TX0zgVBUqYF71Qf3Va72rYgm8CzEW7qMoSKWwgW8JfTytH/exec';
@@ -5687,8 +5780,7 @@ function buildDashboard() {
   }
   const netHari = todayPemasukan - todayPengeluaran;
 
-
-
+  renderBerandaWidgets();
 }
 
 
