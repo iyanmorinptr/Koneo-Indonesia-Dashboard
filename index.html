@@ -1833,7 +1833,7 @@
       <div style="width:320px;min-width:280px;display:flex;flex-direction:column;background:var(--bg);">
         <div style="padding:14px;border-bottom:1px solid var(--border);font-size:15px;font-weight:700;color:#093a72;display:flex;align-items:center;justify-content:space-between;">
           <span><i class="ti ti-shopping-cart"></i> Pesanan</span>
-          <button onclick="clearKasirCart()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:inherit;">🗑 Kosongkan</button>
+          <button onclick="clearKasirCart()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:inherit;"><i class="ti ti-trash"></i> Kosongkan</button>
         </div>
         <!-- Nama pelanggan -->
         <div style="padding:10px 14px;border-bottom:1px solid var(--border);">
@@ -1882,7 +1882,7 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <button onclick="closeKasirPayment()" style="padding:14px;background:none;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Batal</button>
-          <button onclick="confirmKasirPayment()" style="padding:14px;background:#093a72;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✅ Bayar</button>
+          <button onclick="confirmKasirPayment()" style="padding:14px;background:#093a72;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-check"></i> Bayar</button>
         </div>
       </div>
     </div>
@@ -1895,7 +1895,7 @@
           <button onclick="closeKasirStruk()" style="padding:10px 14px;background:#f3f4f6;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border-radius:8px;">Tutup</button>
           <button onclick="printKasirChecker('bar')" style="padding:10px 14px;background:#0d7a3e;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border-radius:8px;">☕ Bar</button>
           <button onclick="printKasirChecker('kitchen')" style="padding:10px 14px;background:#d97706;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border-radius:8px;">🍳 Kitchen</button>
-          <button onclick="printKasirStruk()" style="padding:10px 14px;background:#093a72;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border-radius:8px;">🖨 Struk</button>
+          <button onclick="printKasirStruk()" style="padding:10px 14px;background:#093a72;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border-radius:8px;"><i class="ti ti-printer"></i> Struk</button>
         </div>
       </div>
     </div>
@@ -2032,12 +2032,12 @@
       </div>
       <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Metode Pembayaran</label>
       <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <button onclick="setManualMetode('tunai')" id="manual-metode-tunai" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:#093a72;color:#fff;">💵 Tunai</button>
-        <button onclick="setManualMetode('non-tunai')" id="manual-metode-nontunai" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:rgba(9,58,114,0.08);color:#093a72;">💳 Non-Tunai</button>
+        <button onclick="setManualMetode('tunai')" id="manual-metode-tunai" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:#093a72;color:#fff;"><i class="ti ti-cash"></i> Tunai</button>
+        <button onclick="setManualMetode('non-tunai')" id="manual-metode-nontunai" style="flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:rgba(9,58,114,0.08);color:#093a72;"><i class="ti ti-credit-card"></i> Non-Tunai</button>
       </div>
       <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Dicatat oleh</label>
       <input type="text" id="manual-trx-staff" placeholder="Nama staff" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:16px;">
-      <button onclick="submitManualTrx()" style="width:100%;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✅ Simpan Transaksi</button>
+      <button onclick="submitManualTrx()" style="width:100%;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-check"></i> Simpan Transaksi</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:#093a72;"><i class="ti ti-list"></i> Riwayat Transaksi Manual</div>
@@ -2080,7 +2080,7 @@
       <div style="font-size:16px;font-weight:800;color:#093a72;margin-bottom:16px;"><i class="ti ti-list-check"></i> Tambah To Do / Jadwal</div>
       <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Jenis</label>
       <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <button onclick="setTodoType('todo')" id="todo-type-todo" style="padding:7px 16px;border-radius:50px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;background:#093a72;color:#fff;">📋 To Do</button>
+        <button onclick="setTodoType('todo')" id="todo-type-todo" style="padding:7px 16px;border-radius:50px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;background:#093a72;color:#fff;"><i class="ti ti-list-check"></i> To Do</button>
         <button onclick="setTodoType('meeting')" id="todo-type-meeting" style="padding:7px 16px;border-radius:50px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;background:rgba(9,58,114,0.08);color:#093a72;">📅 Meeting</button>
       </div>
       <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Deskripsi / Tugas</label>
@@ -2093,9 +2093,9 @@
       </div>
       <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Dibuat oleh</label>
       <input type="text" id="todo-creator" placeholder="Nama owner / manager" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:16px;">
-      <div id="todo-edit-banner" style="display:none;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:600;color:#92400e;">✏️ Mode Edit — ubah data lalu klik Simpan</div>
+      <div id="todo-edit-banner" style="display:none;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:600;color:#92400e;"><i class="ti ti-pencil"></i> Mode Edit — ubah data lalu klik Simpan</div>
       <div style="display:flex;gap:8px;">
-        <button onclick="submitTodo()" id="todo-submit-btn" style="flex:1;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">➕ Tambah To Do</button>
+        <button onclick="submitTodo()" id="todo-submit-btn" style="flex:1;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-plus"></i> Tambah To Do</button>
         <button onclick="cancelEditTodo()" id="todo-cancel-btn" style="display:none;padding:13px 18px;background:#f3f4f6;color:#374151;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✕ Batal</button>
       </div>
     </div>
@@ -2537,7 +2537,7 @@
         </div>
         <button id="backup-btn" onclick="manualBackup()" style="padding:9px 16px;background:#093a72;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;">☁️ Backup Sekarang</button>
       </div>
-      <button onclick="restoreFromBackup()" style="width:100%;padding:11px;background:none;border:1.5px solid rgba(9,58,114,0.25);border-radius:10px;font-size:13px;font-weight:600;color:#093a72;cursor:pointer;">🔄 Restore dari Backup Terakhir</button>
+      <button onclick="restoreFromBackup()" style="width:100%;padding:11px;background:none;border:1.5px solid rgba(9,58,114,0.25);border-radius:10px;font-size:13px;font-weight:600;color:#093a72;cursor:pointer;"><i class="ti ti-refresh"></i> Restore dari Backup Terakhir</button>
     </div>
 
     <div class="card" style="margin-bottom:1rem;">
@@ -3892,7 +3892,7 @@ async function buildMemberTab() {
     wrap.innerHTML = '<div style="color:#dc2626;font-size:14px;padding:32px 16px;text-align:center;">' +
       '<i class="ti ti-alert-circle" style="font-size:28px;display:block;margin-bottom:8px;"></i>' +
       'Gagal mengambil data.<br><small style="color:var(--text3);">' + e.message + '</small><br><br>' +
-      '<a href="' + MEMBER_SHEET_URL + '" target="_blank" style="display:inline-block;margin-top:8px;padding:8px 16px;background:#093a72;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">📊 Buka Google Sheets</a>' +
+      '<a href="' + MEMBER_SHEET_URL + '" target="_blank" style="display:inline-block;margin-top:8px;padding:8px 16px;background:#093a72;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;"><i class="ti ti-external-link"></i> Buka Google Sheets</a>' +
       '</div>';
   }
 }
@@ -4028,7 +4028,7 @@ function renderManagerReportHistory() {
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
         '<div><span style="font-size:13px;font-weight:800;color:#093a72;">' + r.hari + ', ' + r.tanggal + '</span>' +
         '<span style="margin-left:8px;font-size:11px;color:var(--text3);">oleh ' + (r.manager||'Manager') + '</span></div>' +
-        '<button onclick="deleteManagerReport(\'' + r.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;">🗑</button>' +
+        '<button onclick="deleteManagerReport(\'' + r.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;"><i class="ti ti-trash"></i></button>' +
       '</div>' +
       '<div style="font-size:12px;font-weight:700;color:#093a72;margin-bottom:4px;">KENDALA</div>' +
       '<div style="font-size:13px;color:var(--text2);background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:8px;white-space:pre-wrap;">' + (r.kendala||'-') + '</div>' +
@@ -4134,7 +4134,7 @@ function notifyNewTodo(todo) {
   if (!('Notification' in window)) return;
   var msg = todo.type === 'meeting'
     ? '📅 Meeting baru: ' + (todo.tema || todo.deskripsi) + (todo.jadwal ? ' — ' + new Date(todo.jadwal).toLocaleString('id-ID') : '')
-    : '📋 To Do baru: ' + todo.deskripsi;
+    : '<i class="ti ti-list-check"></i> To Do baru: ' + todo.deskripsi;
   if (Notification.permission === 'granted') {
     new Notification('Koneo — Tugas Baru dari ' + (todo.creator||'Owner'), { body: msg, icon: '/favicon.ico' });
   } else if (Notification.permission !== 'denied') {
@@ -4212,16 +4212,16 @@ function renderTodoList() {
       '</div>' +
       '<div style="flex:1;">' +
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">' +
-          '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px;' + (isMeeting ? 'background:#ede9fe;color:#7c3aed;' : 'background:rgba(9,58,114,0.08);color:#093a72;') + '">' + (isMeeting ? '📅 Meeting' : '📋 To Do') + '</span>' +
+          '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px;' + (isMeeting ? 'background:#ede9fe;color:#7c3aed;' : 'background:rgba(9,58,114,0.08);color:#093a72;') + '">' + (isMeeting ? '<i class="ti ti-calendar-event"></i> Meeting' : '<i class="ti ti-list-check"></i> To Do') + '</span>' +
         '</div>' +
         '<div style="font-size:13px;font-weight:600;color:#1a1a18;' + (t.done?'text-decoration:line-through;':'') + '">' + t.deskripsi + '</div>' +
         jadwalStr + temaStr +
         '<div style="font-size:11px;color:var(--text3);margin-top:4px;">Dibuat oleh ' + (t.creator||'Owner') + ' · ' + new Date(t.createdAt).toLocaleDateString('id-ID') + '</div>' +
-        (t.done && t.doneAt ? '<div style="font-size:11px;color:#16a34a;margin-top:2px;">✅ Selesai ' + new Date(t.doneAt).toLocaleDateString('id-ID') + '</div>' : '') +
+        (t.done && t.doneAt ? '<div style="font-size:11px;color:#16a34a;margin-top:2px;"><i class="ti ti-circle-check"></i> Selesai ' + new Date(t.doneAt).toLocaleDateString('id-ID') + '</div>' : '') +
       '</div>' +
       '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">' +
-        '<button onclick="editTodo(\'' + t.id + '\')" style="background:none;border:none;color:#093a72;cursor:pointer;font-size:16px;padding:0;" title="Edit">✏️</button>' +
-        '<button onclick="deleteTodo(\'' + t.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;" title="Hapus">🗑</button>' +
+        '<button onclick="editTodo(\'' + t.id + '\')" style="background:none;border:none;color:#093a72;cursor:pointer;font-size:16px;padding:0;" title="Edit"><i class="ti ti-pencil"></i></button>' +
+        '<button onclick="deleteTodo(\'' + t.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;" title="Hapus"><i class="ti ti-trash"></i></button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -4274,7 +4274,7 @@ function cancelEditTodo() {
   var submitBtn = document.getElementById('todo-submit-btn');
   var cancelBtn = document.getElementById('todo-cancel-btn');
   if (banner) banner.style.display = 'none';
-  if (submitBtn) submitBtn.textContent = '➕ Tambah To Do';
+  if (submitBtn) submitBtn.textContent = '<i class="ti ti-plus"></i> Tambah To Do';
   if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
@@ -4384,7 +4384,7 @@ function renderPengumumanList() {
         waktuStr + lokasiStr + detailStr +
         '<div style="font-size:11px;color:var(--text3);margin-top:4px;">Oleh ' + (p.creator || 'Owner') + ' · ' + new Date(p.createdAt).toLocaleDateString('id-ID') + '</div>' +
       '</div>' +
-      '<button onclick="deletePengumuman(\'' + p.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;flex-shrink:0;">🗑</button>' +
+      '<button onclick="deletePengumuman(\'' + p.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;flex-shrink:0;"><i class="ti ti-trash"></i></button>' +
     '</div>';
   }).join('');
 }
@@ -4430,7 +4430,7 @@ function renderBerandaWidgets() {
       '</div>';
     regularTodos.forEach(function(t) {
       html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">' +
-        '<span style="font-size:15px;">📋</span>' +
+        '<span style="font-size:15px;"><i class="ti ti-clipboard"></i></span>' +
         '<div style="flex:1;">' +
           '<div style="font-size:13px;font-weight:600;color:#1a1a18;">' + t.deskripsi + '</div>' +
           (t.creator ? '<div style="font-size:11px;color:var(--text3);">Oleh ' + t.creator + '</div>' : '') +
@@ -4617,11 +4617,11 @@ function manualBackup() {
   fetch(url, { mode: 'no-cors' }).then(function() {
     localStorage.setItem('koneo_last_backup', new Date().toISOString());
     updateBackupStatus();
-    if (btn) { btn.textContent = '✅ Tersimpan!'; btn.disabled = false; }
+    if (btn) { btn.textContent = '<i class="ti ti-check"></i> Tersimpan!'; btn.disabled = false; }
     setTimeout(function() { if (btn) btn.textContent = '☁️ Backup Sekarang'; }, 2000);
     showToast('Backup berhasil disimpan ke Google Sheets!');
   }).catch(function(err) {
-    if (btn) { btn.textContent = '❌ Gagal'; btn.disabled = false; }
+    if (btn) { btn.textContent = '<i class="ti ti-x"></i> Gagal'; btn.disabled = false; }
     setTimeout(function() { if (btn) btn.textContent = '☁️ Backup Sekarang'; }, 2000);
     showToast('Backup gagal. Cek koneksi internet.');
   });
@@ -4838,7 +4838,7 @@ function openKasirPayment(metode) {
   _kasirPayMetode = metode;
   var totals = getKasirTotal();
   var modal  = document.getElementById('kasir-payment-modal');
-  document.getElementById('kasir-pay-metode-label').textContent = metode === 'tunai' ? '💵 Tunai' : '💳 Non-Tunai';
+  document.getElementById('kasir-pay-metode-label').textContent = metode === 'tunai' ? '<i class="ti ti-cash"></i> Tunai' : '<i class="ti ti-credit-card"></i> Non-Tunai';
   document.getElementById('kasir-pay-total-display').textContent = kasirFmtRp(totals.total);
   var tunaiSec = document.getElementById('kasir-tunai-section');
   if (metode === 'tunai') {
@@ -5106,7 +5106,7 @@ function renderManualTrxList() {
       '<div style="text-align:center;min-width:44px;">' +
         '<div style="font-size:11px;font-weight:700;color:#093a72;">' + tgl + '</div>' +
         '<div style="font-size:10px;color:var(--text3);">' + jam + '</div>' +
-        '<div style="font-size:12px;">' + (t.metode === 'tunai' ? '💵' : '💳') + '</div>' +
+        '<div style="font-size:12px;">' + (t.metode === 'tunai' ? '<i class="ti ti-cash"></i>' : '<i class="ti ti-credit-card"></i>') + '</div>' +
       '</div>' +
       '<div style="flex:1;">' +
         '<div style="font-size:13px;font-weight:600;color:#1a1a18;">' + t.ket + '</div>' +
@@ -5180,11 +5180,11 @@ function buildKasirProdukTab() {
         '<td style="padding:10px 14px;text-align:center;">' +
           '<button onclick="toggleKasirProdukStatus(\'' + p.id + '\')" style="padding:3px 10px;border-radius:50px;border:none;cursor:pointer;font-size:11px;font-weight:700;' +
           (p.tersedia !== false ? 'background:#d1fae5;color:#065f46;' : 'background:#fee2e2;color:#991b1b;') + '">' +
-          (p.tersedia !== false ? '✅ Tersedia' : '❌ Habis') + '</button>' +
+          (p.tersedia !== false ? '<i class="ti ti-circle-check" style="font-size:10px;"></i> Tersedia' : '<i class="ti ti-ban" style="font-size:10px;"></i> Habis') + '</button>' +
         '</td>' +
         '<td style="padding:10px 14px;text-align:right;">' +
-          (canManage ? '<button onclick="openKasirProdukForm(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;">✏️</button>' +
-          '<button onclick="deleteKasirProduk(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;">🗑</button>' : '') +
+          (canManage ? '<button onclick="openKasirProdukForm(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;"><i class="ti ti-pencil"></i></button>' +
+          '<button onclick="deleteKasirProduk(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;"><i class="ti ti-trash"></i></button>' : '') +
         '</td>' +
       '</tr>';
     }).join('') +
@@ -5300,7 +5300,7 @@ function renderKasirKategoriList() {
   el.innerHTML = list.map(function(k) {
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;">' +
       '<span style="font-size:14px;font-weight:600;color:#1a1a18;"><i class="ti ti-tag" style="color:#093a72;margin-right:6px;"></i>' + k + '</span>' +
-      '<button onclick="deleteKasirKategori(\'' + k.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;">🗑</button>' +
+      '<button onclick="deleteKasirKategori(\'' + k.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;"><i class="ti ti-trash"></i></button>' +
     '</div>';
   }).join('');
 }
@@ -5331,11 +5331,11 @@ function buildKasirProdukTabInto(containerId) {
         '<td style="padding:10px 14px;text-align:center;">' +
           '<button onclick="toggleKasirProdukStatus(\'' + p.id + '\')" style="padding:3px 10px;border-radius:50px;border:none;cursor:pointer;font-size:11px;font-weight:700;' +
           (p.tersedia !== false ? 'background:#d1fae5;color:#065f46;' : 'background:#fee2e2;color:#991b1b;') + '">' +
-          (p.tersedia !== false ? '✅ Tersedia' : '❌ Habis') + '</button>' +
+          (p.tersedia !== false ? '<i class="ti ti-circle-check" style="font-size:10px;"></i> Tersedia' : '<i class="ti ti-ban" style="font-size:10px;"></i> Habis') + '</button>' +
         '</td>' +
         '<td style="padding:10px 14px;text-align:right;">' +
-          (canManage ? '<button onclick="openKasirProdukForm(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;">✏️</button>' +
-          '<button onclick="deleteKasirProduk(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;">🗑</button>' : '') +
+          (canManage ? '<button onclick="openKasirProdukForm(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;"><i class="ti ti-pencil"></i></button>' +
+          '<button onclick="deleteKasirProduk(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;"><i class="ti ti-trash"></i></button>' : '') +
         '</td>' +
       '</tr>';
     }).join('') +
@@ -5438,7 +5438,7 @@ function buildKasirRiwayatTab() {
     return '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">' +
       '<div style="text-align:center;min-width:40px;">' +
         '<div style="font-size:11px;font-weight:700;color:#093a72;">' + jam + '</div>' +
-        '<div style="font-size:10px;color:var(--text3);">' + (t.metode === 'tunai' ? '💵' : '💳') + '</div>' +
+        '<div style="font-size:10px;color:var(--text3);">' + (t.metode === 'tunai' ? '<i class="ti ti-cash"></i>' : '<i class="ti ti-credit-card"></i>') + '</div>' +
       '</div>' +
       '<div style="flex:1;">' +
         '<div style="font-size:13px;font-weight:600;">' + t.pelanggan + '</div>' +
