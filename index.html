@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-017">
+<meta name="app-version" content="v20260702-018">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-017';
+  var VER = 'v20260702-018';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -3649,13 +3649,32 @@ function downloadInvoicePNG() {
   if (num > 0) DB.setItem('koneo_invoice_counter', String(num));
 
   if (typeof html2canvas !== 'undefined') {
-    // Paksa background logo jadi transparan sebelum render
     const logoEl = document.getElementById('inv-logo-img');
-    const prevLogoMix = logoEl ? logoEl.style.mixBlendMode : '';
-    if (logoEl) { logoEl.style.background = 'transparent'; logoEl.style.mixBlendMode = 'multiply'; }
-    html2canvas(wrapper, { scale: 2, backgroundColor: '#f5f0e0', useCORS: true, allowTaint: false, logging: false }).then(canvas => {
-      if (logoEl) logoEl.style.mixBlendMode = prevLogoMix;
-      const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
+    const prevSrc = logoEl ? logoEl.src : '';
+
+    // html2canvas tidak support mix-blend-mode — hapus pixel putih dari logo secara manual
+    function removeWhiteBg(imgEl, cb) {
+      if (!imgEl || !imgEl.src || !imgEl.naturalWidth) return cb(null);
+      try {
+        const cvs = document.createElement('canvas');
+        cvs.width = imgEl.naturalWidth; cvs.height = imgEl.naturalHeight;
+        const ctx = cvs.getContext('2d');
+        ctx.drawImage(imgEl, 0, 0);
+        const d = ctx.getImageData(0, 0, cvs.width, cvs.height);
+        for (let i = 0; i < d.data.length; i += 4) {
+          if (d.data[i] > 230 && d.data[i+1] > 230 && d.data[i+2] > 230) d.data[i+3] = 0;
+        }
+        ctx.putImageData(d, 0, 0);
+        cb(cvs.toDataURL('image/png'));
+      } catch(e) { cb(null); }
+    }
+
+    removeWhiteBg(logoEl, function(transparentSrc) {
+      if (transparentSrc && logoEl) logoEl.src = transparentSrc;
+      html2canvas(wrapper, { scale: 2, backgroundColor: '#f5f0e0', useCORS: true, allowTaint: false, logging: false }).then(canvas => {
+        if (logoEl && prevSrc) logoEl.src = prevSrc;
+        const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
+      });
     });
   } else {
     showToast('html2canvas belum dimuat, coba refresh halaman');
