@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260712-039">
+<meta name="app-version" content="v20260712-040">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260712-039';
+  var VER = 'v20260712-040';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -5153,7 +5153,7 @@ function refundManualTrx(id) {
 
 // ── KASIR PRODUK MANAGEMENT ────────────────────────────────────────────────────
 function buildKasirProdukTab() {
-  var produk = kasirDB_getProduk().slice().sort(function(a,b){ return (a.nama||'').localeCompare(b.nama||'','id'); });
+  var produk = kasirDB_getProduk().slice().sort(function(a,b){ var k=(a.kategori||'').localeCompare(b.kategori||'','id'); return k!==0?k:(a.nama||'').localeCompare(b.nama||'','id'); });
   var el = document.getElementById('kasir-produk-list');
   if (!el) return;
   var sess = getSession();
@@ -5306,7 +5306,7 @@ function renderKasirKategoriList() {
 }
 
 function buildKasirProdukTabInto(containerId) {
-  var produk = kasirDB_getProduk().slice().sort(function(a,b){ return (a.nama||'').localeCompare(b.nama||'','id'); });
+  var produk = kasirDB_getProduk().slice().sort(function(a,b){ var k=(a.kategori||'').localeCompare(b.kategori||'','id'); return k!==0?k:(a.nama||'').localeCompare(b.nama||'','id'); });
   var el = document.getElementById(containerId);
   if (!el) return;
   var sess = getSession();
