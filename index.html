@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-030">
+<meta name="app-version" content="v20260702-031">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-030';
+  var VER = 'v20260702-031';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -1321,7 +1321,7 @@
   <div style="padding:0.75rem 0.75rem;flex:1;">
 
     <!-- Beranda (all users) -->
-    <button class="sidebar-item" id="sitem-beranda" onclick="sidebarGo('beranda')" style="width:100%;padding:12px 14px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:4px;"><i class="ti ti-home"></i> Beranda</button>
+    <button class="sidebar-item" id="sitem-beranda" onclick="sidebarGo('beranda')" style="width:100%;padding:12px 14px;border-radius:12px;font-weight:700;font-size:14px;margin-bottom:4px;"><i class="ti ti-home"></i> Home</button>
 
     <!-- Finance -->
     <button onclick="toggleSidebarGroup('finance')" id="sg-finance" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
@@ -1341,7 +1341,7 @@
     <!-- Stock -->
         <!-- Kasir -->
     <button onclick="toggleSidebarGroup('kasir')" id="sg-kasir" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
-      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-cash-register" style="font-size:17px;color:#093a72;"></i> Kasir</span>
+      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-cash-register" style="font-size:17px;color:#093a72;"></i> Cashier</span>
       <i class="ti ti-chevron-right" id="sg-kasir-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
     </button>
     <div id="sg-kasir-items" style="display:none;padding-left:10px;padding-bottom:4px;">
@@ -1352,7 +1352,7 @@
       <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')"><i class="ti ti-users"></i> Member</button>
     </div>
     <button onclick="toggleSidebarGroup('manager')" id="sg-manager" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
-      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-clipboard-list" style="font-size:17px;color:#093a72;"></i> Manager <span id="todo-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:50px;margin-left:4px;">0</span></span>
+      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-clipboard-list" style="font-size:17px;color:#093a72;"></i> Managerial <span id="todo-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:50px;margin-left:4px;">0</span></span>
       <i class="ti ti-chevron-right" id="sg-manager-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
     </button>
     <div id="sg-manager-items" style="display:none;padding-left:10px;padding-bottom:4px;">
@@ -1373,7 +1373,7 @@
 
     <!-- SDM -->
     <button onclick="toggleSidebarGroup('sdm')" id="sg-sdm" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
-      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-users" style="font-size:17px;color:#093a72;"></i> SDM</span>
+      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-users" style="font-size:17px;color:#093a72;"></i> Staff</span>
       <i class="ti ti-chevron-right" id="sg-sdm-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
     </button>
     <div id="sg-sdm-items" style="display:none;padding-left:10px;padding-bottom:4px;">
@@ -1394,7 +1394,7 @@
 
     <!-- Pengaturan langsung -->
     <button class="sidebar-item" id="sitem-pengaturan" onclick="sidebarGo('pengaturan')" style="width:100%;padding:12px 14px;font-size:14px;font-weight:700;color:#1a1a18;margin-top:2px;">
-      <i class="ti ti-settings" style="font-size:17px;color:#093a72;"></i> Pengaturan
+      <i class="ti ti-settings" style="font-size:17px;color:#093a72;"></i> Setting
     </button>
 
   </div>
