@@ -1414,7 +1414,9 @@ function toggleNontunaiMenu() {
 
 function toggleKasirMenu() {
   var d = document.getElementById('kasirMenuDropdown');
-});
+  if (!d) return;
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
 
 function refreshKasirProduk() {
   showKasirToast('Memuat produk dari cloud...');
