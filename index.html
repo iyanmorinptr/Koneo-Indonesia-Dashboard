@@ -2017,6 +2017,37 @@
       <div id="klp-kategori-list"></div>
     </div>
   </div>
+  <!-- ── TAB KASIR LAPORAN PRODUK ────────────────────────────────────────────── -->
+  <div id="tab-kasir-laporan-produk" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-chart-dots"></i> Laporan Produk</div>
+        <input type="date" id="kasir-laporan-produk-date" onchange="buildKasirLaporanProdukTab()"
+          style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);">
+      </div>
+    </div>
+    <!-- Top & Bottom sellers -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;">
+      <div class="card" style="padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-trending-up"></i> Terlaris</div>
+        <div id="klp-top"></div>
+      </div>
+      <div class="card" style="padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-trending-down"></i> Paling Sedikit</div>
+        <div id="klp-bottom"></div>
+      </div>
+    </div>
+    <!-- Semua produk ranking -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-trophy"></i> Ranking Semua Produk</div>
+      <div id="klp-produk-list"></div>
+    </div>
+    <!-- Per kategori -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-category"></i> Produk per Kategori</div>
+      <div id="klp-kategori-list"></div>
+    </div>
+  </div>
   <!-- ── TAB KASIR RIWAYAT ─────────────────────────────────────────────────── -->
   <div id="tab-kasir-riwayat" class="section">
     <div class="card" style="margin-bottom:1rem;">
