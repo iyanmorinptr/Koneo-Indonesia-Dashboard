@@ -1945,8 +1945,11 @@
     <div class="card" style="margin-bottom:1rem;">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
         <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-chart-bar"></i> Laporan Kasir</div>
-        <input type="date" id="kasir-laporan-date" onchange="buildKasirLaporanTab()"
-          style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input type="date" id="kasir-laporan-date" onchange="buildKasirLaporanTab()"
+            style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);">
+          <button onclick="resetKasirLaporan()" style="padding:8px 14px;background:#fee2e2;color:#dc2626;border:1.5px solid #fecaca;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;"><i class="ti ti-refresh"></i> Reset</button>
+        </div>
       </div>
     </div>
     <!-- Summary cards -->
@@ -1976,6 +1979,42 @@
     <div class="card" style="margin-bottom:1rem;">
       <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-credit-card"></i> Breakdown Pembayaran</div>
       <div id="kl-breakdown"></div>
+    </div>
+    <!-- Daftar Transaksi -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-list-details"></i> Daftar Transaksi</div>
+      <div id="kl-trx-list"></div>
+    </div>
+  </div>
+  <!-- ── TAB KASIR LAPORAN PRODUK ────────────────────────────────────────────── -->
+  <div id="tab-kasir-laporan-produk" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-chart-dots"></i> Laporan Produk</div>
+        <input type="date" id="kasir-laporan-produk-date" onchange="buildKasirLaporanProdukTab()"
+          style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);">
+      </div>
+    </div>
+    <!-- Top & Bottom sellers -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;">
+      <div class="card" style="padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-trending-up"></i> Terlaris</div>
+        <div id="klp-top"></div>
+      </div>
+      <div class="card" style="padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-trending-down"></i> Paling Sedikit</div>
+        <div id="klp-bottom"></div>
+      </div>
+    </div>
+    <!-- Semua produk ranking -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-trophy"></i> Ranking Semua Produk</div>
+      <div id="klp-produk-list"></div>
+    </div>
+    <!-- Per kategori -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-category"></i> Produk per Kategori</div>
+      <div id="klp-kategori-list"></div>
     </div>
   </div>
   <!-- ── TAB KASIR LAPORAN PRODUK ────────────────────────────────────────────── -->
@@ -5395,6 +5434,36 @@ function buildKasirLaporanTab() {
   set('kl-tunai', kasirFmtRp(totalTunai));
   set('kl-nontunai', kasirFmtRp(totalNontunai));
   set('kl-pajak', kasirFmtRp(totalPajak));
+  // Daftar transaksi dengan tombol hapus
+  var trxListEl = document.getElementById('kl-trx-list');
+  if (trxListEl) {
+    var allWithRefund = kasirDB_getTransaksi().filter(function(t) {
+      var ts = t.timestamp || t.tanggal || '';
+      return ts.startsWith(filterDate);
+    });
+    if (!allWithRefund.length) {
+      trxListEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Belum ada transaksi.</div>';
+    } else {
+      trxListEl.innerHTML = allWithRefund.map(function(t) {
+        var jam = new Date(t.timestamp || t.tanggal).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+        var metodeIcon = t.metode === 'tunai' ? '<i class="ti ti-cash"></i>' : '<i class="ti ti-credit-card"></i>';
+        var itemStr = (t.items||[]).map(function(i){ return i.nama + ' x' + i.qty; }).join(', ');
+        var isRefunded = !!t.refunded;
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);' + (isRefunded ? 'opacity:0.5;' : '') + '">' +
+          '<div style="min-width:38px;text-align:center;">' +
+            '<div style="font-size:11px;font-weight:700;color:#093a72;">' + jam + '</div>' +
+            '<div style="font-size:10px;color:var(--text3);">' + metodeIcon + '</div>' +
+          '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:12px;font-weight:700;color:#1a1a18;">' + (t.pelanggan||'-') + (isRefunded ? ' <span style="font-size:10px;color:#dc2626;font-weight:700;">[REFUND]</span>' : '') + '</div>' +
+            '<div style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + itemStr + '</div>' +
+          '</div>' +
+          '<div style="font-size:13px;font-weight:800;color:#093a72;min-width:70px;text-align:right;">' + kasirFmtRp(t.total) + '</div>' +
+          '<button onclick="hapusKasirTrx(\'' + t.id + '\')" title="Hapus permanen" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:4px;flex-shrink:0;"><i class="ti ti-trash"></i></button>' +
+        '</div>';
+      }).join('');
+    }
+  }
   // Breakdown
   var bkEl = document.getElementById('kl-breakdown');
   if (bkEl) {
@@ -5410,6 +5479,31 @@ function buildKasirLaporanTab() {
         '<div style="background:var(--border);border-radius:50px;height:8px;overflow:hidden;"><div style="height:100%;background:#7c3aed;width:' + pctNon + '%;border-radius:50px;transition:width 0.3s;"></div></div>' +
       '</div>';
   }
+}
+
+function hapusKasirTrx(trxId) {
+  if (!confirm('Hapus transaksi ini secara permanen? Aksi ini tidak bisa dibatalkan.')) return;
+  var all = kasirDB_getTransaksi();
+  var filtered = all.filter(function(t) { return t.id !== trxId; });
+  kasirDB_saveTransaksi(filtered);
+  showToast('Transaksi dihapus.');
+  buildKasirLaporanTab();
+  if (document.getElementById('tab-kasir-laporan-produk') && document.getElementById('tab-kasir-laporan-produk').style.display !== 'none') buildKasirLaporanProdukTab();
+}
+
+function resetKasirLaporan() {
+  var dateEl = document.getElementById('kasir-laporan-date');
+  var filterDate = (dateEl && dateEl.value) ? dateEl.value : new Date().toISOString().substring(0, 10);
+  if (!confirm('Reset SEMUA transaksi pada tanggal ' + filterDate + '? Data akan dihapus permanen.')) return;
+  var all = kasirDB_getTransaksi();
+  var filtered = all.filter(function(t) {
+    var ts = t.timestamp || t.tanggal || '';
+    return !ts.startsWith(filterDate);
+  });
+  kasirDB_saveTransaksi(filtered);
+  showToast('Semua transaksi tanggal ' + filterDate + ' direset.');
+  buildKasirLaporanTab();
+  if (document.getElementById('tab-kasir-laporan-produk') && document.getElementById('tab-kasir-laporan-produk').style.display !== 'none') buildKasirLaporanProdukTab();
 }
 
 // ── LAPORAN PRODUK KASIR ──────────────────────────────────────────────────────
