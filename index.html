@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260712-037">
+<meta name="app-version" content="v20260712-038">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260712-037';
+  var VER = 'v20260712-038';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -3590,7 +3590,8 @@ function switchTab(tab) {
   if (tab === 'manager-report') buildManagerReportTab();
   if (tab === 'manager-todo') buildManagerTodoTab();
   if (tab === 'manager-pengumuman') buildPengumumanTab();
-  if (bar) bar.style.display = (tab === 'stok' || tab === 'pengaturan' || tab === 'jadwal' || tab === 'absensi' || tab === 'cogs' || tab === 'beranda' || tab === 'laporan-pajak' || tab === 'invoice' || tab === 'member') ? 'none' : '';
+  var _noBar = ['stok','pengaturan','jadwal','absensi','cogs','beranda','laporan-pajak','invoice','member','kasir','kasir-produk','kasir-kelola','kasir-laporan','kasir-riwayat','kasir-manual'];
+  if (bar) bar.style.display = _noBar.includes(tab) ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
 }
