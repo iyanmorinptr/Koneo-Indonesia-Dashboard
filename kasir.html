@@ -740,20 +740,50 @@ body {
 <div id="gateScreen">
   <div class="gate-card">
     <div class="gate-logo-circle">K</div>
-    <div class="gate-title">Daftarkan Perangkat Kasir</div>
-    <div class="gate-subtitle">Masukkan kode registrasi dari owner untuk mengaktifkan kasir di perangkat ini.</div>
 
-    <input
-      type="password"
-      class="gate-input"
-      id="gateCodeInput"
-      placeholder="••••••"
-      autocomplete="off"
-      onkeydown="if(event.key==='Enter') registerDevice()"
-    >
-    <button class="gate-btn" onclick="registerDevice()">Daftarkan Perangkat</button>
-    <div class="gate-error" id="gateError">Kode salah. Hubungi owner.</div>
-    <div class="gate-note">Kode diatur oleh owner di Dashboard Koneo &rarr; Pengaturan</div>
+    <!-- Step 1: Login -->
+    <div id="gateLoginStep">
+      <div class="gate-title">Buka Kasir</div>
+      <div class="gate-subtitle">Masuk dengan akun kasir Anda untuk memulai sesi.</div>
+      <input
+        type="text"
+        class="gate-input"
+        id="gateNamaInput"
+        placeholder="Nama"
+        autocomplete="off"
+        style="letter-spacing:0;font-size:16px;font-family:inherit;"
+        onkeydown="if(event.key==='Enter') document.getElementById('gatePassInput').focus()"
+      >
+      <input
+        type="password"
+        class="gate-input"
+        id="gatePassInput"
+        placeholder="Password"
+        autocomplete="off"
+        style="letter-spacing:2px;"
+        onkeydown="if(event.key==='Enter') doGateLogin()"
+      >
+      <button class="gate-btn" id="gateMasukBtn" onclick="doGateLogin()">Masuk</button>
+      <div class="gate-error" id="gateLoginError">Nama atau password salah.</div>
+    </div>
+
+    <!-- Step 2: Modal Awal -->
+    <div id="gateModalAwalStep" style="display:none;">
+      <div class="gate-title" id="gateWelcomeTitle">Selamat datang!</div>
+      <div class="gate-subtitle">Masukkan jumlah uang tunai awal di laci kasir.</div>
+      <input
+        type="text"
+        class="gate-input"
+        id="gateModalAwalInput"
+        placeholder="Rp 0"
+        autocomplete="off"
+        style="letter-spacing:0;font-size:18px;font-family:inherit;"
+        onkeydown="if(event.key==='Enter') doBukaKasir()"
+        oninput="formatGateModalAwal(this)"
+      >
+      <button class="gate-btn" onclick="doBukaKasir()">Buka Kasir</button>
+      <div class="gate-error" id="gateModalAwalError">Masukkan jumlah modal awal.</div>
+    </div>
   </div>
 </div>
 
@@ -771,6 +801,7 @@ body {
     <div id="kasirMenuDropdown" style="display:none;position:absolute;top:56px;left:0;width:220px;background:#fff;border-radius:0 0 14px 0;box-shadow:4px 4px 24px rgba(0,0,0,0.18);z-index:200;overflow:hidden;">
       <button onclick="openRiwayatModal();toggleKasirMenu()" style="width:100%;text-align:left;padding:14px 18px;background:none;border:none;border-bottom:1px solid #f3f4f6;font-size:14px;font-weight:600;color:#093a72;cursor:pointer;display:flex;align-items:center;gap:10px;">🧾 Riwayat & Refund</button>
       <button onclick="refreshKasirProduk();toggleKasirMenu()" style="width:100%;text-align:left;padding:14px 18px;background:none;border:none;border-bottom:1px solid #f3f4f6;font-size:14px;font-weight:600;color:#093a72;cursor:pointer;display:flex;align-items:center;gap:10px;">🔄 Refresh Produk</button>
+      <button onclick="openTutupKasirModal();toggleKasirMenu()" style="width:100%;text-align:left;padding:14px 18px;background:none;border:none;border-bottom:1px solid #f3f4f6;font-size:14px;font-weight:600;color:#E24B4A;cursor:pointer;display:flex;align-items:center;gap:10px;">🔒 Tutup Kasir</button>
       <a href="index.html" style="display:flex;align-items:center;gap:10px;padding:14px 18px;font-size:14px;font-weight:600;color:#093a72;text-decoration:none;"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
     </div>
     <div class="pos-header-logo" style="position:absolute;left:50%;transform:translateX(-50%);">KONEO <span>Indonesia</span></div>
@@ -918,19 +949,360 @@ var kasirKategoriAktif = 'Semua';
 var kasirProdukList = [];
 var kasirMetodePembayaran = 'tunai';
 var kasirLastTrx = null;
+var _kasirSession = null;
+var _kasirModalAwal = 0;
+var _kasirOpenedAt = null;
+var _kasirOpenedBy = '';
+
+// ===== PASSWORD HASH =====
+function hashPass(p) {
+  var h = 5381;
+  for (var i = 0; i < p.length; i++) { h = ((h << 5) + h) ^ p.charCodeAt(i); h >>>= 0; }
+  return 'kh' + h.toString(36) + '_' + p.length;
+}
+
+// ===== GATE HELPERS =====
+function formatGateModalAwal(el) {
+  var digits = el.value.replace(/\D/g, '');
+  var num = parseInt(digits) || 0;
+  el.value = num > 0 ? kasirFmtRp(num) : '';
+}
+
+function formatTutupCash(el) {
+  var digits = el.value.replace(/\D/g, '');
+  var num = parseInt(digits) || 0;
+  el.value = num > 0 ? kasirFmtRp(num) : '';
+}
 
 // ===== INIT =====
-function checkDevice() {
-  // Langsung buka kasir tanpa gate
+function showGateScreen() {
+  document.getElementById('gateScreen').classList.add('active');
+  document.getElementById('posScreen').classList.remove('active');
+}
+
+function showPosScreen() {
+  document.getElementById('gateScreen').classList.remove('active');
   document.getElementById('posScreen').classList.add('active');
-  initKasir();
+  // Update header label
+  var lbl = document.getElementById('headerKasirLabel');
+  if (lbl && _kasirOpenedBy) lbl.textContent = _kasirOpenedBy;
+}
+
+function checkDevice() {
+  // Check for existing valid session today
+  try {
+    var raw = localStorage.getItem('koneo_kasir_session');
+    if (raw) {
+      var sess = JSON.parse(raw);
+      var openedDate = (sess.openedAt || '').substring(0, 10);
+      var today = new Date().toISOString().substring(0, 10);
+      if (openedDate === today && sess.nama) {
+        // Restore session
+        _kasirSession = { nama: sess.nama, role: sess.role || '' };
+        _kasirModalAwal = sess.modalAwal || 0;
+        _kasirOpenedAt = sess.openedAt;
+        _kasirOpenedBy = sess.nama;
+        showPosScreen();
+        initKasir();
+        return;
+      }
+    }
+  } catch(e) {}
+  // Show gate screen
+  showGateScreen();
 }
 
 function registerDevice() {
-  // Tidak digunakan lagi
-  document.getElementById('gateScreen').classList.remove('active');
-  document.getElementById('posScreen').classList.add('active');
+  // Kept for compatibility — redirect to gate
+  showGateScreen();
+}
+
+// ===== GATE LOGIN =====
+function doGateLogin() {
+  var nama = (document.getElementById('gateNamaInput').value || '').trim();
+  var pass = document.getElementById('gatePassInput').value || '';
+  var errEl = document.getElementById('gateLoginError');
+  errEl.classList.remove('show');
+
+  if (!nama || !pass) {
+    errEl.textContent = 'Nama dan password harus diisi.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  var btn = document.getElementById('gateMasukBtn');
+  btn.disabled = true;
+  btn.textContent = 'Memeriksa...';
+
+  if (!window._kasirFS) {
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+    errEl.textContent = 'Koneksi ke server gagal. Coba lagi.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  window._kasirFS.collection('store').doc('koneo_users').get().then(function(doc) {
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+    if (!doc.exists) {
+      errEl.textContent = 'Data pengguna tidak ditemukan.';
+      errEl.classList.add('show');
+      return;
+    }
+    var users = [];
+    try { users = JSON.parse(doc.data().v || '[]'); } catch(e) { users = []; }
+    var namaLower = nama.toLowerCase();
+    var user = null;
+    for (var i = 0; i < users.length; i++) {
+      if ((users[i].nama || '').toLowerCase() === namaLower) { user = users[i]; break; }
+    }
+    if (!user) {
+      errEl.textContent = 'Nama atau password salah.';
+      errEl.classList.add('show');
+      return;
+    }
+    if (hashPass(pass) !== user.password) {
+      errEl.textContent = 'Nama atau password salah.';
+      errEl.classList.add('show');
+      return;
+    }
+    // Success
+    _kasirSession = { id: user.id, nama: user.nama, role: user.role || '' };
+    document.getElementById('gateLoginStep').style.display = 'none';
+    document.getElementById('gateModalAwalStep').style.display = '';
+    document.getElementById('gateWelcomeTitle').textContent = 'Selamat datang, ' + user.nama + '!';
+    document.getElementById('gateModalAwalInput').value = '';
+    document.getElementById('gateModalAwalError').classList.remove('show');
+    document.getElementById('gateModalAwalInput').focus();
+  }).catch(function(err) {
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+    errEl.textContent = 'Error: ' + (err.message || 'Gagal memuat data.');
+    errEl.classList.add('show');
+  });
+}
+
+function doBukaKasir() {
+  var raw = document.getElementById('gateModalAwalInput').value;
+  var digits = raw.replace(/\D/g, '');
+  var modalAwal = parseInt(digits) || 0;
+  var errEl = document.getElementById('gateModalAwalError');
+  errEl.classList.remove('show');
+
+  if (modalAwal < 0) {
+    errEl.textContent = 'Masukkan jumlah modal awal (boleh 0).';
+    errEl.classList.add('show');
+    return;
+  }
+
+  var now = new Date();
+  _kasirModalAwal = modalAwal;
+  _kasirOpenedAt = now.toISOString();
+  _kasirOpenedBy = _kasirSession ? _kasirSession.nama : '';
+
+  var sess = {
+    nama: _kasirOpenedBy,
+    role: _kasirSession ? (_kasirSession.role || '') : '',
+    modalAwal: _kasirModalAwal,
+    openedAt: _kasirOpenedAt
+  };
+  localStorage.setItem('koneo_kasir_session', JSON.stringify(sess));
+
+  // Reset login step for next time
+  document.getElementById('gateLoginStep').style.display = '';
+  document.getElementById('gateModalAwalStep').style.display = 'none';
+  document.getElementById('gateNamaInput').value = '';
+  document.getElementById('gatePassInput').value = '';
+
+  showPosScreen();
   initKasir();
+}
+
+// ===== TUTUP KASIR =====
+function openTutupKasirModal() {
+  var trxList = getTrxList();
+  var today = new Date().toISOString().substring(0, 10);
+  var todayTrx = trxList.filter(function(t) {
+    var ts = t.tanggal || t.timestamp || '';
+    return ts.startsWith(today);
+  });
+  var nonRefunded = todayTrx.filter(function(t) { return !t.refunded; });
+
+  var tunai = 0, qris = 0, debit = 0, pajak = 0, diskon = 0;
+  nonRefunded.forEach(function(t) {
+    if (t.metode === 'tunai') tunai += (t.total || 0);
+    else if (t.metode === 'qris') qris += (t.total || 0);
+    else if (t.metode === 'debit') debit += (t.total || 0);
+    pajak += (t.pajak || 0);
+    diskon += (t.diskon || 0);
+  });
+
+  // Info bar
+  var openedAt = _kasirOpenedAt || '';
+  var openedAtFmt = openedAt ? new Date(openedAt).toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}) : '-';
+  document.getElementById('tutupKasirInfo').innerHTML =
+    '<b>Kasir:</b> ' + escHtml(_kasirOpenedBy || '-') + ' &nbsp;|&nbsp; <b>Jam Buka:</b> ' + openedAtFmt;
+
+  // Summary
+  var rows = [
+    { label: 'Modal Awal', val: _kasirModalAwal || 0, color: '#374151' },
+    { label: 'Pemasukan Tunai', val: tunai, color: '#1D9E75' },
+    { label: 'Non Tunai QRIS', val: qris, color: '#093a72' },
+    { label: 'Non Tunai Debit', val: debit, color: '#093a72' },
+    { label: 'Total Pajak', val: pajak, color: '#d97706' },
+    { label: 'Total Diskon', val: diskon, color: '#E24B4A' },
+    { label: 'Total Transaksi', val: nonRefunded.length, color: '#374151', isCount: true }
+  ];
+  var summaryEl = document.getElementById('tutupKasirSummary');
+  summaryEl.innerHTML = rows.map(function(r) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f9fafb;border-radius:8px;">' +
+      '<span style="font-size:13px;color:#6b7280;">' + r.label + '</span>' +
+      '<span style="font-size:14px;font-weight:700;color:' + r.color + ';">' + (r.isCount ? r.val + ' transaksi' : kasirFmtRp(r.val)) + '</span>' +
+    '</div>';
+  }).join('');
+
+  // Reset cash input and selisih
+  document.getElementById('tutupCashInput').value = '';
+  var selisihRow = document.getElementById('tutupSelisihRow');
+  selisihRow.style.display = 'none';
+  document.getElementById('tutupSelisihVal').textContent = 'Rp 0';
+
+  // Store computed values for later use
+  document.getElementById('tutupKasirModal')._tutupData = {
+    tunai: tunai, qris: qris, debit: debit, pajak: pajak, diskon: diskon,
+    modalAwal: _kasirModalAwal || 0,
+    openedBy: _kasirOpenedBy || '',
+    openedAt: _kasirOpenedAt || '',
+    totalTrx: nonRefunded.length
+  };
+
+  document.getElementById('tutupKasirModal').classList.add('active');
+}
+
+function closeTutupKasirModal() {
+  document.getElementById('tutupKasirModal').classList.remove('active');
+}
+
+function hitungSelisih() {
+  var modal = document.getElementById('tutupKasirModal');
+  var data = modal._tutupData || {};
+  var cashRaw = document.getElementById('tutupCashInput').value.replace(/\D/g, '');
+  var cash = parseInt(cashRaw) || 0;
+  var selisih = cash - ((data.modalAwal || 0) + (data.tunai || 0));
+  var selisihRow = document.getElementById('tutupSelisihRow');
+  var selisihVal = document.getElementById('tutupSelisihVal');
+  selisihRow.style.display = 'flex';
+  selisihRow.style.background = selisih < 0 ? '#fff0f0' : '#f0fdf4';
+  selisihRow.style.border = '1px solid ' + (selisih < 0 ? '#fecaca' : '#bbf7d0');
+  selisihVal.style.color = selisih < 0 ? '#dc2626' : '#15803d';
+  selisihVal.textContent = (selisih < 0 ? '- ' : '') + kasirFmtRp(Math.abs(selisih));
+}
+
+function closeTutupKasir() {
+  var modal = document.getElementById('tutupKasirModal');
+  var data = modal._tutupData || {};
+  var cashRaw = document.getElementById('tutupCashInput').value.replace(/\D/g, '');
+  var cash = parseInt(cashRaw) || 0;
+  var now = new Date();
+  var selisih = cash - ((data.modalAwal || 0) + (data.tunai || 0));
+
+  var laporan = {
+    openedBy: data.openedBy,
+    openedAt: data.openedAt,
+    closedAt: now.toISOString(),
+    modalAwal: data.modalAwal,
+    tunai: data.tunai,
+    qris: data.qris,
+    debit: data.debit,
+    pajak: data.pajak,
+    diskon: data.diskon,
+    totalTrx: data.totalTrx,
+    totalCash: cash,
+    selisih: selisih
+  };
+
+  // Save to localStorage
+  var laporanArr = [];
+  try {
+    var rawLap = localStorage.getItem('koneo_kasir_laporan');
+    laporanArr = rawLap ? JSON.parse(rawLap) : [];
+  } catch(e) { laporanArr = []; }
+  laporanArr.push(laporan);
+  localStorage.setItem('koneo_kasir_laporan', JSON.stringify(laporanArr));
+
+  // Save to Firestore
+  if (window._kasirFS) {
+    window._kasirFS.collection('store').doc('koneo_kasir_laporan').set({ v: JSON.stringify(laporanArr) }).catch(function(){});
+  }
+
+  // Clear session
+  localStorage.removeItem('koneo_kasir_session');
+  _kasirSession = null;
+  _kasirModalAwal = 0;
+  _kasirOpenedAt = null;
+  _kasirOpenedBy = '';
+
+  // Print
+  printTutupKasirLaporan(laporan);
+
+  // Close modal and go to gate
+  closeTutupKasirModal();
+  showGateScreen();
+}
+
+function printTutupKasirLaporan(data) {
+  var openedAtFmt = data.openedAt ? new Date(data.openedAt).toLocaleString('id-ID', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-';
+  var closedAtFmt = data.closedAt ? new Date(data.closedAt).toLocaleString('id-ID', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-';
+  var tanggal = data.closedAt ? new Date(data.closedAt).toLocaleDateString('id-ID', {weekday:'long',year:'numeric',month:'long',day:'numeric'}) : '-';
+  var printedAt = new Date().toLocaleString('id-ID');
+  var selisihSign = data.selisih < 0 ? '- ' : '';
+  var selisihColor = data.selisih < 0 ? '#dc2626' : '#15803d';
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan Tutup Kasir</title>' +
+    '<style>' +
+    'body{font-family:system-ui,-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#111;}' +
+    'h1{font-size:20px;font-weight:800;color:#093a72;margin:0 0 4px;}' +
+    'h2{font-size:14px;font-weight:400;color:#6b7280;margin:0 0 20px;}' +
+    '.section{margin-bottom:16px;}' +
+    '.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e5e7eb;font-size:13px;}' +
+    '.row:last-child{border-bottom:none;}' +
+    '.label{color:#6b7280;}' +
+    '.val{font-weight:700;}' +
+    '.footer{margin-top:24px;font-size:12px;color:#9ca3af;text-align:center;}' +
+    '.divider{border:none;border-top:2px solid #e5e7eb;margin:16px 0;}' +
+    '</style></head><body>' +
+    '<h1>KONEO Indonesia</h1>' +
+    '<h2>Laporan Tutup Kasir</h2>' +
+    '<div class="section">' +
+      '<div class="row"><span class="label">Tanggal</span><span class="val">' + tanggal + '</span></div>' +
+      '<div class="row"><span class="label">Kasir</span><span class="val">' + (data.openedBy || '-') + '</span></div>' +
+      '<div class="row"><span class="label">Jam Buka</span><span class="val">' + openedAtFmt + '</span></div>' +
+      '<div class="row"><span class="label">Jam Tutup</span><span class="val">' + closedAtFmt + '</span></div>' +
+    '</div>' +
+    '<hr class="divider">' +
+    '<div class="section">' +
+      '<div class="row"><span class="label">Modal Awal</span><span class="val">Rp ' + (data.modalAwal||0).toLocaleString('id-ID') + '</span></div>' +
+      '<div class="row"><span class="label">Pemasukan Tunai</span><span class="val" style="color:#1D9E75;">Rp ' + (data.tunai||0).toLocaleString('id-ID') + '</span></div>' +
+      '<div class="row"><span class="label">Non Tunai QRIS</span><span class="val">Rp ' + (data.qris||0).toLocaleString('id-ID') + '</span></div>' +
+      '<div class="row"><span class="label">Non Tunai Debit</span><span class="val">Rp ' + (data.debit||0).toLocaleString('id-ID') + '</span></div>' +
+      '<div class="row"><span class="label">Total Pajak</span><span class="val">Rp ' + (data.pajak||0).toLocaleString('id-ID') + '</span></div>' +
+      '<div class="row"><span class="label">Total Diskon</span><span class="val">Rp ' + (data.diskon||0).toLocaleString('id-ID') + '</span></div>' +
+      '<div class="row"><span class="label">Total Transaksi</span><span class="val">' + (data.totalTrx||0) + ' transaksi</span></div>' +
+    '</div>' +
+    '<hr class="divider">' +
+    '<div class="section">' +
+      '<div class="row"><span class="label">Total Uang Cash</span><span class="val">Rp ' + (data.totalCash||0).toLocaleString('id-ID') + '</span></div>' +
+      '<div class="row"><span class="label">Selisih</span><span class="val" style="color:' + selisihColor + ';">' + selisihSign + 'Rp ' + Math.abs(data.selisih||0).toLocaleString('id-ID') + '</span></div>' +
+    '</div>' +
+    '<div class="footer">Dicetak pada ' + printedAt + '</div>' +
+    '</body></html>';
+
+  var popup = window.open('', '_blank', 'width=520,height=700');
+  if (!popup) { alert('Popup diblokir browser. Izinkan popup untuk mencetak laporan.'); return; }
+  popup.document.write(html);
+  popup.document.close();
+  popup.onload = function() { popup.print(); popup.onafterprint = function() { popup.close(); }; };
 }
 
 // ===== KASIR INIT =====
@@ -1576,7 +1948,41 @@ function doRefund(trxId) {
 
 <style>
 #riwayatModal.active { display:flex !important; }
+#tutupKasirModal.active { display:flex !important; }
 </style>
+
+<!-- ===== TUTUP KASIR MODAL ===== -->
+<div id="tutupKasirModal" class="modal-overlay" style="display:none;z-index:1100;">
+  <div class="modal-box" style="max-width:500px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div class="modal-header">
+      <div class="modal-title">🔒 Tutup Kasir</div>
+      <button onclick="closeTutupKasirModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#6b7280;">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1;">
+      <div id="tutupKasirInfo" style="background:#f3f4f6;border-radius:10px;padding:12px 16px;font-size:13px;color:#374151;margin-bottom:4px;"></div>
+
+      <!-- Summary cards -->
+      <div style="display:flex;flex-direction:column;gap:6px;" id="tutupKasirSummary"></div>
+
+      <!-- Cash input -->
+      <div class="modal-field" style="margin-top:4px;">
+        <label>Total Uang Cash (Dihitung Manual)</label>
+        <input type="text" class="modal-input" id="tutupCashInput" placeholder="Rp 0"
+          oninput="formatTutupCash(this);hitungSelisih()" style="font-size:15px;">
+      </div>
+
+      <!-- Selisih -->
+      <div id="tutupSelisihRow" style="display:none;padding:10px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;font-weight:600;">Selisih</span>
+        <span id="tutupSelisihVal" style="font-size:16px;font-weight:800;">Rp 0</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" onclick="closeTutupKasirModal()">Batal</button>
+      <button class="modal-btn" style="background:#E24B4A;color:#fff;" onclick="closeTutupKasir()">Tutup Kasir &amp; Cetak Laporan</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
