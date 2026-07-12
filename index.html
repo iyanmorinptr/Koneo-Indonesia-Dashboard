@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-031">
+<meta name="app-version" content="v20260702-032">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-031';
+  var VER = 'v20260702-032';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -1271,7 +1271,7 @@
     <div style="font-size:48px;margin-bottom:12px;">🔒</div>
     <div class="auth-title" style="font-size:19px;margin-bottom:8px;">Akses Terbatas</div>
     <div class="auth-sub" style="margin-bottom:1.5rem;">Fitur Finance hanya dapat diakses oleh Owner. Hubungi owner untuk informasi lebih lanjut.</div>
-    <button onclick="document.getElementById('finance-deny-overlay').style.display='none';switchTab('beranda');" class="auth-btn">Kembali ke Beranda</button>
+    <button onclick="document.getElementById('finance-deny-overlay').style.display='none';switchTab('beranda');" class="auth-btn">Kembali ke Home</button>
   </div>
 </div>
 
@@ -2712,10 +2712,10 @@ const I18N = {
     welcome_sub: 'Koneo Indonesia &nbsp;&bull;&nbsp; Powered by Mipo Group',
     welcome_desc: 'Hari ini adalah kesempatan baru untuk memberikan yang terbaik bagi Koneo.',
     greeting_pagi: 'Selamat Pagi', greeting_siang: 'Selamat Siang', greeting_sore: 'Selamat Sore', greeting_malam: 'Selamat Malam',
-    tab_beranda: 'Beranda', tab_pemasukan: 'Pemasukan', tab_pengeluaran: 'Pengeluaran',
+    tab_beranda: 'Home', tab_pemasukan: 'Pemasukan', tab_pengeluaran: 'Pengeluaran',
     tab_laporan: 'Laporan', tab_riwayat: 'Riwayat', tab_stok: 'Stok',
     tab_pengaturan: 'Pengaturan', tab_cogs: 'COGS/HPP',
-    nav_beranda: 'Beranda', nav_finance: 'Finance', nav_stok: 'Stock', nav_sdm: 'SDM', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Pengaturan',
+    nav_beranda: 'Home', nav_finance: 'Finance', nav_stok: 'Stock', nav_sdm: 'Staff', nav_cogs: 'COGS / HPP', nav_pengaturan: 'Setting',
     nav_pemasukan: 'Pemasukan', nav_pengeluaran: 'Pengeluaran', nav_laporan: 'Laporan', nav_riwayat: 'Riwayat',
     nav_master: 'Master Barang', nav_pembelian: 'Pembelian Stock', nav_perlu: 'Perlu Dibeli', nav_lapstok: 'Laporan Stok',
     nav_jadwal: 'Jadwal Karyawan', nav_absensi: 'Absensi',
