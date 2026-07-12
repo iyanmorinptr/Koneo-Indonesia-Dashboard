@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-016">
+<meta name="app-version" content="v20260702-017">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-016';
+  var VER = 'v20260702-017';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -1636,12 +1636,12 @@
 
     <!-- Preview -->
     <div style="font-size:12px;color:var(--text3);margin-bottom:8px;text-align:center;">Preview Invoice</div>
-    <div id="invoice-preview-wrapper" style="background:#f5f0e0;border-radius:12px;padding:36px 40px;max-width:680px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,0.10);font-family:sans-serif;">
+    <div id="invoice-preview-wrapper" style="background:#f5f0e0;border-radius:12px;padding:clamp(18px,5vw,40px) clamp(16px,5vw,40px);max-width:680px;width:100%;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,0.10);font-family:sans-serif;box-sizing:border-box;overflow-x:auto;">
       <!-- Header -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;">
-        <div>
-          <img id="inv-logo-img" src="" style="width:90px;height:90px;object-fit:contain;display:block;margin-bottom:6px;mix-blend-mode:multiply;background:transparent;">
-          <div style="font-size:14px;font-weight:800;color:#093a72;letter-spacing:2px;">KONEO</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:8px;">
+        <div style="min-width:0;">
+          <img id="inv-logo-img" src="" style="width:70px;height:70px;object-fit:contain;display:block;margin-bottom:6px;mix-blend-mode:multiply;background:transparent;" crossorigin="anonymous">
+          <div style="font-size:13px;font-weight:800;color:#093a72;letter-spacing:2px;">KONEO</div>
           <div style="margin-top:14px;">
             <div style="font-size:11px;font-weight:700;color:#093a72;margin-bottom:4px;">BILLED TO:</div>
             <div id="inv-prev-name" style="font-size:13px;color:#093a72;">-</div>
@@ -1650,7 +1650,7 @@
           </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:52px;font-weight:900;color:#093a72;line-height:1;font-family:serif;letter-spacing:-1px;">INVOICE</div>
+          <div style="font-size:clamp(28px,8vw,52px);font-weight:900;color:#093a72;line-height:1;font-family:serif;letter-spacing:-1px;">INVOICE</div>
           <div style="margin-top:16px;">
             <div id="inv-prev-no" style="font-size:13px;color:#555;">Invoice No. -</div>
             <div id="inv-prev-date" style="font-size:13px;color:#555;">-</div>
@@ -3545,12 +3545,24 @@ function initInvoice() {
 }
 
 function addInvoiceItem() {
-  invoiceItems.push({ id: ++invoiceItemId });
+  // Simpan nilai yang sudah diketik sebelum re-render
+  invoiceItems.forEach(item => {
+    item._name = document.getElementById('inv-item-name-' + item.id)?.value || '';
+    item._qty = document.getElementById('inv-item-qty-' + item.id)?.value || '1';
+    item._price = getRawVal(document.getElementById('inv-item-price-' + item.id));
+  });
+  invoiceItems.push({ id: ++invoiceItemId, _name: '', _qty: '1', _price: 0 });
   renderInvoiceItemInputs();
   renderInvoicePreview();
 }
 
 function removeInvoiceItem(id) {
+  // Simpan nilai sebelum hapus dan re-render
+  invoiceItems.forEach(item => {
+    item._name = document.getElementById('inv-item-name-' + item.id)?.value || '';
+    item._qty = document.getElementById('inv-item-qty-' + item.id)?.value || '1';
+    item._price = getRawVal(document.getElementById('inv-item-price-' + item.id));
+  });
   invoiceItems = invoiceItems.filter(i => i.id !== id);
   renderInvoiceItemInputs();
   renderInvoicePreview();
@@ -3562,14 +3574,19 @@ function renderInvoiceItemInputs() {
   c.innerHTML = '';
   invoiceItems.forEach(item => {
     const div = document.createElement('div');
-    div.style.cssText = 'display:grid;grid-template-columns:1fr 80px 120px 40px;gap:8px;margin-bottom:8px;align-items:center;';
+    div.style.cssText = 'display:grid;grid-template-columns:1fr 60px 110px 36px;gap:6px;margin-bottom:8px;align-items:center;';
     div.innerHTML = `
       <input type="text" placeholder="Nama item / deskripsi" id="inv-item-name-${item.id}" oninput="renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;">
-      <input type="number" placeholder="Qty" id="inv-item-qty-${item.id}" value="1" min="1" oninput="renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;text-align:center;">
+      <input type="number" placeholder="Qty" id="inv-item-qty-${item.id}" value="${item._qty||1}" min="1" oninput="renderInvoicePreview()" style="padding:8px 6px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;text-align:center;">
       <input type="text" inputmode="numeric" placeholder="Harga" id="inv-item-price-${item.id}" oninput="fmtInput(this);renderInvoicePreview()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;">
       <button onclick="removeInvoiceItem(${item.id})" style="padding:8px;background:#fee2e2;border:none;border-radius:8px;cursor:pointer;color:#dc2626;font-size:14px;"><i class="ti ti-trash"></i></button>
     `;
     c.appendChild(div);
+    // Restore nilai yang sudah diketik
+    const nameEl = document.getElementById('inv-item-name-' + item.id);
+    const priceEl = document.getElementById('inv-item-price-' + item.id);
+    if (nameEl && item._name) nameEl.value = item._name;
+    if (priceEl && item._price) setRupiahEl(priceEl, item._price);
   });
 }
 
@@ -3632,7 +3649,12 @@ function downloadInvoicePNG() {
   if (num > 0) DB.setItem('koneo_invoice_counter', String(num));
 
   if (typeof html2canvas !== 'undefined') {
-    html2canvas(wrapper, { scale: 2, backgroundColor: '#f5f0e0', useCORS: true, logging: false }).then(canvas => {
+    // Paksa background logo jadi transparan sebelum render
+    const logoEl = document.getElementById('inv-logo-img');
+    const prevLogoMix = logoEl ? logoEl.style.mixBlendMode : '';
+    if (logoEl) { logoEl.style.background = 'transparent'; logoEl.style.mixBlendMode = 'multiply'; }
+    html2canvas(wrapper, { scale: 2, backgroundColor: '#f5f0e0', useCORS: true, allowTaint: false, logging: false }).then(canvas => {
+      if (logoEl) logoEl.style.mixBlendMode = prevLogoMix;
       const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = filename; a.click();
     });
   } else {
