@@ -667,13 +667,12 @@ body {
 
 /* ===== STRUK ===== */
 .struk-content {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 13px;
   background: #fff;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  white-space: pre-wrap;
   line-height: 1.5;
   max-height: 60vh;
   overflow-y: auto;
@@ -1699,53 +1698,50 @@ function confirmKasirPayment() {
 }
 
 // ===== STRUK =====
-function showKasirStruk(trx) {
+function buildStrukHTML(trx) {
   var d = new Date(trx.tanggal);
-  var tgl = d.toLocaleDateString('id-ID', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+  var tgl = d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   var jam = d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  var metodeLabel = trx.metode === 'tunai' ? 'Tunai' : trx.metode === 'debit' ? 'Debit' : 'QRIS';
 
-  var line = '--------------------------------';
-  var title = centerStr('KONEO INDONESIA', 32);
-  var sub = centerStr('Point of Sale', 32);
+  var itemsHTML = trx.items.map(function(i) {
+    return '<tr><td>' + (i.nama||'') + ' <span style="color:#6b7280;">x' + i.qty + '</span></td><td style="text-align:right;">' + kasirFmtRp(i.harga * i.qty) + '</td></tr>';
+  }).join('');
 
-  var itemsStr = trx.items.map(function(i) {
-    var nama = (i.nama || '').substring(0, 20);
-    var qty = i.qty + 'x';
-    var harga = kasirFmtRp(i.harga);
-    var subtotal = rightAlign(kasirFmtRp(i.harga * i.qty), 32 - nama.length - 1);
-    return nama + '\n  ' + qty + ' ' + harga;
-  }).join('\n');
+  var html =
+    '<div style="text-align:center;margin-bottom:14px;">' +
+      '<div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#093a72;">KONEO <span style="font-weight:300;font-size:14px;color:#6b7280;">Indonesia</span></div>' +
+      '<div style="font-size:11px;color:#9ca3af;margin-top:2px;letter-spacing:0.5px;">FIRST BINGSOO BAR IN BALI</div>' +
+    '</div>' +
+    '<div style="border-top:1px dashed #d1d5db;margin:10px 0;"></div>' +
+    '<div style="font-size:12px;color:#6b7280;margin-bottom:8px;">' +
+      '<div>Tgl &nbsp;: ' + tgl + '</div>' +
+      '<div>Jam &nbsp;: ' + jam + '</div>' +
+      '<div>ID &nbsp;&nbsp;: ' + trx.id + '</div>' +
+      (trx.pelanggan && trx.pelanggan !== '-' ? '<div>Cust : ' + trx.pelanggan + '</div>' : '') +
+    '</div>' +
+    '<div style="border-top:1px dashed #d1d5db;margin:10px 0;"></div>' +
+    '<table style="width:100%;font-size:13px;border-collapse:collapse;">' + itemsHTML + '</table>' +
+    '<div style="border-top:1px dashed #d1d5db;margin:10px 0;"></div>' +
+    '<table style="width:100%;font-size:13px;">' +
+      '<tr><td>Subtotal</td><td style="text-align:right;">' + kasirFmtRp(trx.subtotal) + '</td></tr>' +
+      (trx.diskon > 0 ? '<tr><td>Diskon</td><td style="text-align:right;color:#E24B4A;">- ' + kasirFmtRp(trx.diskon) + '</td></tr>' : '') +
+      (trx.pajak > 0 ? '<tr><td>Pajak</td><td style="text-align:right;color:#d97706;">' + kasirFmtRp(trx.pajak) + '</td></tr>' : '') +
+      '<tr style="font-weight:800;font-size:15px;"><td>TOTAL</td><td style="text-align:right;">' + kasirFmtRp(trx.total) + '</td></tr>' +
+    '</table>' +
+    '<div style="border-top:1px dashed #d1d5db;margin:10px 0;"></div>' +
+    '<table style="width:100%;font-size:13px;">' +
+      '<tr><td>Metode</td><td style="text-align:right;">' + metodeLabel + '</td></tr>' +
+      (trx.metode === 'tunai' ? '<tr><td>Bayar</td><td style="text-align:right;">' + kasirFmtRp(trx.bayar) + '</td></tr><tr><td>Kembalian</td><td style="text-align:right;">' + kasirFmtRp(trx.kembalian) + '</td></tr>' : '') +
+    '</table>' +
+    '<div style="border-top:1px dashed #d1d5db;margin:10px 0;"></div>' +
+    '<div style="text-align:center;font-size:12px;color:#6b7280;"><div style="font-weight:700;color:#111;">Terima kasih!</div><div>Powered by Koneo</div></div>';
 
-  var itemsStrFull = trx.items.map(function(i) {
-    var nama = (i.nama || '').substring(0, 18);
-    var sub = kasirFmtRp(i.harga * i.qty);
-    var spaces = 32 - nama.length - sub.length;
-    if (spaces < 1) spaces = 1;
-    return '  ' + nama + new Array(spaces).join(' ') + sub;
-  }).join('\n');
+  return html;
+}
 
-  var struk =
-    title + '\n' +
-    sub + '\n' +
-    line + '\n' +
-    'Tgl  : ' + tgl + '\n' +
-    'Jam  : ' + jam + '\n' +
-    'ID   : ' + trx.id + '\n' +
-    (trx.pelanggan !== '-' ? 'Cust : ' + trx.pelanggan + '\n' : '') +
-    line + '\n' +
-    itemsStrFull + '\n' +
-    line + '\n' +
-    fmtRow('Subtotal', kasirFmtRp(trx.subtotal)) + '\n' +
-    (trx.diskon > 0 ? fmtRow('Diskon', '- ' + kasirFmtRp(trx.diskon)) + '\n' : '') +
-    fmtRow('TOTAL', kasirFmtRp(trx.total)) + '\n' +
-    line + '\n' +
-    fmtRow('Metode', trx.metode === 'tunai' ? 'Tunai' : 'QRIS') + '\n' +
-    (trx.metode === 'tunai' ? fmtRow('Bayar', kasirFmtRp(trx.bayar)) + '\n' + fmtRow('Kembalian', kasirFmtRp(trx.kembalian)) + '\n' : '') +
-    line + '\n' +
-    centerStr('Terima kasih!', 32) + '\n' +
-    centerStr('Powered by Koneo', 32);
-
-  document.getElementById('struktContent').textContent = struk;
+function showKasirStruk(trx) {
+  document.getElementById('struktContent').innerHTML = buildStrukHTML(trx);
   document.getElementById('struktModal').classList.add('active');
 }
 
@@ -1768,13 +1764,13 @@ function closeKasirStruk() {
 }
 
 function printKasirStruk() {
-  var content = document.getElementById('struktContent').textContent;
-  var popup = window.open('', '_blank', 'width=400,height=600');
-  popup.document.write('<html><head><title>Struk</title><style>body{font-family:monospace;font-size:13px;white-space:pre;padding:20px;}</style></head><body>');
-  popup.document.write(content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  var content = document.getElementById('struktContent').innerHTML;
+  var popup = window.open('', '_blank', 'width=360,height=620');
+  popup.document.write('<html><head><title>Struk Koneo</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:system-ui,sans-serif;font-size:13px;padding:20px;max-width:300px;margin:0 auto;}table{width:100%;border-collapse:collapse;}@media print{@page{margin:8mm;}}</style></head><body>');
+  popup.document.write(content);
   popup.document.write('</body></html>');
   popup.document.close();
-  popup.print();
+  popup.onload = function(){ popup.print(); };
 }
 
 // ===== REFRESH =====
