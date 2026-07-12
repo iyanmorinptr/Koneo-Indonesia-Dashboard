@@ -1412,6 +1412,19 @@ function toggleNontunaiMenu() {
   d.style.display = d.style.display === 'none' ? 'block' : 'none';
 }
 
+function toggleKasirMenu() {
+  var d = document.getElementById('kasirMenuDropdown');
+  if (!d) return;
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', function(e) {
+  var btn = document.getElementById('kasirMenuBtn');
+  var dd = document.getElementById('kasirMenuDropdown');
+  if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) dd.style.display = 'none';
+  var ntBtn = document.getElementById('payNontunaiBtn');
+  var ntMenu = document.getElementById('nontunaiMenu');
+  if (ntMenu && ntBtn && !ntBtn.contains(e.target) && !ntMenu.contains(e.target)) ntMenu.style.display = 'none';
 });
 
 function refreshKasirProduk() {
