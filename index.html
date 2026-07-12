@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-026">
+<meta name="app-version" content="v20260702-027">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-026';
+  var VER = 'v20260702-027';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -2050,7 +2050,11 @@
       </div>
       <label style="font-size:12px;font-weight:600;color:#093a72;display:block;margin-bottom:5px;">Dibuat oleh</label>
       <input type="text" id="todo-creator" placeholder="Nama owner / manager" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);margin-bottom:16px;">
-      <button onclick="submitTodo()" style="width:100%;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">➕ Tambah To Do</button>
+      <div id="todo-edit-banner" style="display:none;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:600;color:#92400e;">✏️ Mode Edit — ubah data lalu klik Simpan</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="submitTodo()" id="todo-submit-btn" style="flex:1;padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">➕ Tambah To Do</button>
+        <button onclick="cancelEditTodo()" id="todo-cancel-btn" style="display:none;padding:13px 18px;background:#f3f4f6;color:#374151;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✕ Batal</button>
+      </div>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
@@ -4011,6 +4015,34 @@ function submitTodo() {
   var deskripsi = (document.getElementById('todo-deskripsi').value || '').trim();
   var creator   = (document.getElementById('todo-creator').value || '').trim();
   if (!deskripsi) { showToast('Isi deskripsi tugas!'); return; }
+
+  // Mode edit
+  if (_editTodoId) {
+    var all = getTodos();
+    for (var i=0;i<all.length;i++) {
+      if (all[i].id === _editTodoId) {
+        all[i].type      = _todoType;
+        all[i].deskripsi = deskripsi;
+        all[i].creator   = creator || all[i].creator;
+        if (_todoType === 'meeting') {
+          all[i].jadwal = document.getElementById('todo-jadwal').value || '';
+          all[i].tema   = (document.getElementById('todo-tema').value || '').trim();
+        } else {
+          all[i].jadwal = '';
+          all[i].tema   = '';
+        }
+        break;
+      }
+    }
+    saveTodos(all);
+    showToast('✅ Perubahan disimpan!');
+    cancelEditTodo();
+    renderTodoList();
+    updateTodoBadge();
+    renderBerandaWidgets();
+    return;
+  }
+
   var todo = {
     id: 'TD-' + Date.now(),
     type: _todoType,
@@ -4126,9 +4158,63 @@ function renderTodoList() {
         '<div style="font-size:11px;color:var(--text3);margin-top:4px;">Dibuat oleh ' + (t.creator||'Owner') + ' · ' + new Date(t.createdAt).toLocaleDateString('id-ID') + '</div>' +
         (t.done && t.doneAt ? '<div style="font-size:11px;color:#16a34a;margin-top:2px;">✅ Selesai ' + new Date(t.doneAt).toLocaleDateString('id-ID') + '</div>' : '') +
       '</div>' +
-      '<button onclick="deleteTodo(\'' + t.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;flex-shrink:0;">🗑</button>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">' +
+        '<button onclick="editTodo(\'' + t.id + '\')" style="background:none;border:none;color:#093a72;cursor:pointer;font-size:16px;padding:0;" title="Edit">✏️</button>' +
+        '<button onclick="deleteTodo(\'' + t.id + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0;" title="Hapus">🗑</button>' +
+      '</div>' +
     '</div>';
   }).join('');
+}
+
+var _editTodoId = null;
+
+function editTodo(id) {
+  var all = getTodos();
+  var t = null;
+  for (var i=0;i<all.length;i++) if (all[i].id===id) { t=all[i]; break; }
+  if (!t) return;
+  _editTodoId = id;
+
+  // Isi form
+  setTodoType(t.type || 'todo');
+  var deskEl = document.getElementById('todo-deskripsi');
+  var creEl  = document.getElementById('todo-creator');
+  var jadEl  = document.getElementById('todo-jadwal');
+  var temaEl = document.getElementById('todo-tema');
+  if (deskEl) deskEl.value = t.deskripsi || '';
+  if (creEl)  creEl.value  = t.creator   || '';
+  if (jadEl)  jadEl.value  = t.jadwal    || '';
+  if (temaEl) temaEl.value = t.tema      || '';
+
+  // Tampilkan banner + ubah tombol
+  var banner = document.getElementById('todo-edit-banner');
+  var submitBtn = document.getElementById('todo-submit-btn');
+  var cancelBtn = document.getElementById('todo-cancel-btn');
+  if (banner) banner.style.display = '';
+  if (submitBtn) submitBtn.textContent = '💾 Simpan Perubahan';
+  if (cancelBtn) cancelBtn.style.display = '';
+
+  // Scroll ke form
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function cancelEditTodo() {
+  _editTodoId = null;
+  var deskEl = document.getElementById('todo-deskripsi');
+  var creEl  = document.getElementById('todo-creator');
+  var jadEl  = document.getElementById('todo-jadwal');
+  var temaEl = document.getElementById('todo-tema');
+  if (deskEl) deskEl.value = '';
+  if (creEl)  creEl.value  = localStorage.getItem('koneo_report_manager') || '';
+  if (jadEl)  jadEl.value  = '';
+  if (temaEl) temaEl.value = '';
+  setTodoType('todo');
+  var banner = document.getElementById('todo-edit-banner');
+  var submitBtn = document.getElementById('todo-submit-btn');
+  var cancelBtn = document.getElementById('todo-cancel-btn');
+  if (banner) banner.style.display = 'none';
+  if (submitBtn) submitBtn.textContent = '➕ Tambah To Do';
+  if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 // ── PENGUMUMAN STAFF ───────────────────────────────────────────────────────────
