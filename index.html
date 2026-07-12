@@ -1347,7 +1347,8 @@
     <div id="sg-kasir-items" style="display:none;padding-left:10px;padding-bottom:4px;">
       <button class="sidebar-item" id="sitem-kasir" onclick="sidebarGo('kasir')"><i class="ti ti-cash-register"></i> Kasir</button>
       <button class="sidebar-item" id="sitem-kasir-kelola" onclick="sidebarGo('kasir-kelola')"><i class="ti ti-package"></i> Kelola Produk</button>
-      <button class="sidebar-item" id="sitem-kasir-laporan" onclick="sidebarGo('kasir-laporan')"><i class="ti ti-chart-bar"></i> Laporan</button>
+      <button class="sidebar-item" id="sitem-kasir-laporan" onclick="sidebarGo('kasir-laporan')"><i class="ti ti-chart-bar"></i> Laporan Kasir</button>
+      <button class="sidebar-item" id="sitem-kasir-laporan-produk" onclick="sidebarGo('kasir-laporan-produk')"><i class="ti ti-chart-dots"></i> Laporan Produk</button>
       <button class="sidebar-item" id="sitem-kasir-riwayat" onclick="sidebarGo('kasir-riwayat')"><i class="ti ti-receipt"></i> Riwayat Transaksi</button>
       <button class="sidebar-item" id="sitem-kasir-manual" onclick="sidebarGo('kasir-manual')" style="display:none;"><i class="ti ti-pencil-plus"></i> Tambah Transaksi</button>
       <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')" style="display:none;"><i class="ti ti-users"></i> Member</button>
@@ -1971,15 +1972,41 @@
         <div style="font-size:11px;color:var(--text3);">Pajak</div>
       </div>
     </div>
-    <!-- Produk Terjual -->
-    <div class="card" style="margin-bottom:1rem;">
-      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-package"></i> Produk Terjual</div>
-      <div id="kl-produk-list"></div>
-    </div>
     <!-- Breakdown Tunai vs Non-Tunai -->
     <div class="card" style="margin-bottom:1rem;">
       <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-credit-card"></i> Breakdown Pembayaran</div>
       <div id="kl-breakdown"></div>
+    </div>
+  </div>
+  <!-- ── TAB KASIR LAPORAN PRODUK ────────────────────────────────────────────── -->
+  <div id="tab-kasir-laporan-produk" class="section">
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:16px;font-weight:700;color:#093a72;"><i class="ti ti-chart-dots"></i> Laporan Produk</div>
+        <input type="date" id="kasir-laporan-produk-date" onchange="buildKasirLaporanProdukTab()"
+          style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:var(--surface);">
+      </div>
+    </div>
+    <!-- Top & Bottom sellers -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;">
+      <div class="card" style="padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-trending-up"></i> Terlaris</div>
+        <div id="klp-top"></div>
+      </div>
+      <div class="card" style="padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-trending-down"></i> Paling Sedikit</div>
+        <div id="klp-bottom"></div>
+      </div>
+    </div>
+    <!-- Semua produk ranking -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-trophy"></i> Ranking Semua Produk</div>
+      <div id="klp-produk-list"></div>
+    </div>
+    <!-- Per kategori -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="font-size:14px;font-weight:700;color:#093a72;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);"><i class="ti ti-category"></i> Produk per Kategori</div>
+      <div id="klp-kategori-list"></div>
     </div>
   </div>
   <!-- ── TAB KASIR RIWAYAT ─────────────────────────────────────────────────── -->
@@ -3135,7 +3162,7 @@ function doLogout() {
   location.reload();
 }
 
-const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'kasir', 'kasir-produk', 'kasir-kelola', 'kasir-laporan', 'kasir-riwayat', 'kasir-manual', 'member'];
+const FINANCE_TABS = ['pemasukan', 'pengeluaran', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'kasir', 'kasir-produk', 'kasir-kelola', 'kasir-laporan', 'kasir-laporan-produk', 'kasir-riwayat', 'kasir-manual', 'member'];
 const OWNER_ONLY_TABS = ['pengaturan', 'cogs', 'laporan'];
 // Tab yang boleh diakses karyawan (selain beranda)
 const KARYAWAN_ALLOWED = ['beranda', 'stok', 'jadwal', 'absensi'];
@@ -3166,7 +3193,7 @@ function applyRole(role) {
   // --- Kasir group (owner + manager only) ---
   _show('sg-kasir', canFinance);
   _show('sg-kasir-items', canFinance);
-  ['sitem-kasir','sitem-kasir-produk','sitem-kasir-kelola','sitem-kasir-laporan','sitem-kasir-riwayat','sitem-kasir-manual','sitem-member'].forEach(id => _show(id, canFinance));
+  ['sitem-kasir','sitem-kasir-produk','sitem-kasir-kelola','sitem-kasir-laporan','sitem-kasir-laporan-produk','sitem-kasir-riwayat','sitem-kasir-manual','sitem-member'].forEach(id => _show(id, canFinance));
 
   // Report Staff (SDM): owner + manager only
   _show('sitem-sdm-report', canFinance);
@@ -3457,7 +3484,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-sdm-report','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-manager-pengumuman','tab-kasir','tab-kasir-produk','tab-kasir-kelola','tab-kasir-laporan','tab-kasir-riwayat','tab-kasir-manual'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-sdm-report','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-manager-pengumuman','tab-kasir','tab-kasir-produk','tab-kasir-kelola','tab-kasir-laporan','tab-kasir-laporan-produk','tab-kasir-riwayat','tab-kasir-manual'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -3562,7 +3589,7 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-kelola', 'kasir-laporan', 'kasir-riwayat', 'kasir-manual', 'stok', 'jadwal', 'absensi', 'sdm-report', 'pengaturan', 'cogs'];
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-kelola', 'kasir-laporan', 'kasir-laporan-produk', 'kasir-riwayat', 'kasir-manual', 'stok', 'jadwal', 'absensi', 'sdm-report', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -3582,15 +3609,16 @@ function switchTab(tab) {
   if (tab === 'kasir-produk') buildKasirProdukTab();
   if (tab === 'kasir-kelola') buildKasirKelolaTab();
   if (tab === 'kasir-laporan') buildKasirLaporanTab();
+  if (tab === 'kasir-laporan-produk') buildKasirLaporanProdukTab();
   if (tab === 'kasir-riwayat') buildKasirRiwayatTab();
   if (tab === 'kasir-manual') buildKasirManualTab();
   // sembunyikan submit bar di stok dan pengaturan
   const bar = document.getElementById('submit-bar');
-  if (tab === 'member' || tab === 'kasir' || tab === 'kasir-produk' || tab === 'kasir-kelola' || tab === 'kasir-laporan' || tab === 'kasir-riwayat') buildMemberTab();
+  if (tab === 'member' || tab === 'kasir' || tab === 'kasir-produk' || tab === 'kasir-kelola' || tab === 'kasir-laporan' || tab === 'kasir-laporan-produk' || tab === 'kasir-riwayat') buildMemberTab();
   if (tab === 'manager-report') buildManagerReportTab();
   if (tab === 'manager-todo') buildManagerTodoTab();
   if (tab === 'manager-pengumuman') buildPengumumanTab();
-  var _noBar = ['stok','pengaturan','jadwal','absensi','cogs','beranda','laporan-pajak','invoice','member','kasir','kasir-produk','kasir-kelola','kasir-laporan','kasir-riwayat','kasir-manual'];
+  var _noBar = ['stok','pengaturan','jadwal','absensi','cogs','beranda','laporan-pajak','invoice','member','kasir','kasir-produk','kasir-kelola','kasir-laporan','kasir-laporan-produk','kasir-riwayat','kasir-manual'];
   if (bar) bar.style.display = _noBar.includes(tab) ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
@@ -5367,33 +5395,6 @@ function buildKasirLaporanTab() {
   set('kl-tunai', kasirFmtRp(totalTunai));
   set('kl-nontunai', kasirFmtRp(totalNontunai));
   set('kl-pajak', kasirFmtRp(totalPajak));
-  // Produk terjual
-  var produkMap = {};
-  all.forEach(function(t) {
-    (t.items||[]).forEach(function(item) {
-      if (!produkMap[item.nama]) produkMap[item.nama] = { qty: 0, total: 0 };
-      produkMap[item.nama].qty += item.qty;
-      produkMap[item.nama].total += item.harga * item.qty;
-    });
-  });
-  var produkArr = Object.keys(produkMap).map(function(nama) {
-    return { nama: nama, qty: produkMap[nama].qty, total: produkMap[nama].total };
-  }).sort(function(a,b){ return b.qty - a.qty; });
-  var el = document.getElementById('kl-produk-list');
-  if (el) {
-    if (!produkArr.length) {
-      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px;">Belum ada transaksi pada tanggal ini.</div>';
-    } else {
-      el.innerHTML = produkArr.map(function(p, i) {
-        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">' +
-          '<div style="font-size:13px;font-weight:700;color:#093a72;min-width:20px;">' + (i+1) + '.</div>' +
-          '<div style="flex:1;font-size:13px;font-weight:600;color:#1a1a18;">' + p.nama + '</div>' +
-          '<div style="font-size:13px;font-weight:700;color:#6b7280;min-width:50px;text-align:center;">' + p.qty + 'x</div>' +
-          '<div style="font-size:13px;font-weight:800;color:#093a72;">' + kasirFmtRp(p.total) + '</div>' +
-        '</div>';
-      }).join('');
-    }
-  }
   // Breakdown
   var bkEl = document.getElementById('kl-breakdown');
   if (bkEl) {
@@ -5408,6 +5409,118 @@ function buildKasirLaporanTab() {
         '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:600;">Non-Tunai</span><span style="font-size:13px;font-weight:700;color:#7c3aed;">' + kasirFmtRp(totalNontunai) + ' (' + pctNon + '%)</span></div>' +
         '<div style="background:var(--border);border-radius:50px;height:8px;overflow:hidden;"><div style="height:100%;background:#7c3aed;width:' + pctNon + '%;border-radius:50px;transition:width 0.3s;"></div></div>' +
       '</div>';
+  }
+}
+
+// ── LAPORAN PRODUK KASIR ──────────────────────────────────────────────────────
+function buildKasirLaporanProdukTab() {
+  var dateEl = document.getElementById('kasir-laporan-produk-date');
+  var today = new Date().toISOString().substring(0, 10);
+  if (!dateEl || !dateEl.value) { if (dateEl) dateEl.value = today; }
+  var filterDate = (dateEl && dateEl.value) ? dateEl.value : today;
+  var all = kasirDB_getTransaksi().filter(function(t) {
+    var ts = t.timestamp || t.tanggal || '';
+    return ts.startsWith(filterDate) && !t.refunded;
+  });
+
+  var emptyMsg = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Belum ada transaksi pada tanggal ini.</div>';
+
+  // Build product map
+  var produkMap = {};
+  all.forEach(function(t) {
+    (t.items||[]).forEach(function(item) {
+      var key = item.nama || '?';
+      if (!produkMap[key]) produkMap[key] = { nama: key, kategori: item.kategori || '-', qty: 0, total: 0 };
+      produkMap[key].qty += item.qty;
+      produkMap[key].total += (item.harga||0) * item.qty;
+    });
+  });
+  var produkArr = Object.values(produkMap).sort(function(a,b){ return b.qty - a.qty; });
+
+  // Top 3 & Bottom 3
+  var topEl = document.getElementById('klp-top');
+  var botEl = document.getElementById('klp-bottom');
+  if (!produkArr.length) {
+    if (topEl) topEl.innerHTML = emptyMsg;
+    if (botEl) botEl.innerHTML = emptyMsg;
+  } else {
+    var top3 = produkArr.slice(0, 3);
+    var bot3 = produkArr.slice().sort(function(a,b){ return a.qty - b.qty; }).slice(0, 3);
+    var rankColors = ['#f59e0b','#9ca3af','#d97706'];
+    var rankIcons = ['ti-medal', 'ti-award', 'ti-star'];
+    if (topEl) topEl.innerHTML = top3.map(function(p,i){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">' +
+        '<i class="ti ' + rankIcons[i] + '" style="color:' + rankColors[i] + ';font-size:16px;min-width:20px;"></i>' +
+        '<div style="flex:1;font-size:12px;font-weight:700;">' + p.nama + '</div>' +
+        '<div style="font-size:12px;font-weight:800;color:#065f46;">' + p.qty + 'x</div>' +
+      '</div>';
+    }).join('');
+    if (botEl) botEl.innerHTML = bot3.map(function(p){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">' +
+        '<i class="ti ti-minus-vertical" style="color:#dc2626;font-size:16px;min-width:20px;"></i>' +
+        '<div style="flex:1;font-size:12px;font-weight:700;">' + p.nama + '</div>' +
+        '<div style="font-size:12px;font-weight:800;color:#991b1b;">' + p.qty + 'x</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Ranking semua produk with bar
+  var listEl = document.getElementById('klp-produk-list');
+  if (listEl) {
+    if (!produkArr.length) {
+      listEl.innerHTML = emptyMsg;
+    } else {
+      var maxQty = produkArr[0].qty || 1;
+      listEl.innerHTML = produkArr.map(function(p, i) {
+        var pct = Math.round(p.qty / maxQty * 100);
+        return '<div style="padding:10px 14px;border-bottom:1px solid var(--border);">' +
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">' +
+            '<div style="font-size:12px;font-weight:700;color:#9ca3af;min-width:22px;">' + (i+1) + '</div>' +
+            '<div style="flex:1;font-size:13px;font-weight:700;color:#1a1a18;">' + p.nama + '</div>' +
+            '<div style="font-size:11px;color:var(--text3);margin-right:4px;">' + (p.kategori||'-') + '</div>' +
+            '<div style="font-size:13px;font-weight:800;color:#6b7280;min-width:36px;text-align:center;">' + p.qty + 'x</div>' +
+            '<div style="font-size:13px;font-weight:800;color:#093a72;min-width:80px;text-align:right;">' + kasirFmtRp(p.total) + '</div>' +
+          '</div>' +
+          '<div style="background:var(--border);border-radius:50px;height:5px;overflow:hidden;margin-left:32px;">' +
+            '<div style="height:100%;background:' + (i===0?'#f59e0b':i<3?'#093a72':'#9ca3af') + ';width:' + pct + '%;border-radius:50px;transition:width 0.4s;"></div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+  }
+
+  // Per kategori
+  var katMap = {};
+  produkArr.forEach(function(p) {
+    var k = p.kategori || '-';
+    if (!katMap[k]) katMap[k] = { total: 0, qty: 0, items: [] };
+    katMap[k].total += p.total;
+    katMap[k].qty += p.qty;
+    katMap[k].items.push(p);
+  });
+  var katEl = document.getElementById('klp-kategori-list');
+  if (katEl) {
+    if (!Object.keys(katMap).length) {
+      katEl.innerHTML = emptyMsg;
+    } else {
+      var katArr = Object.keys(katMap).sort(function(a,b){ return katMap[b].qty - katMap[a].qty; });
+      katEl.innerHTML = katArr.map(function(k) {
+        var kd = katMap[k];
+        var itemsHTML = kd.items.sort(function(a,b){ return b.qty-a.qty; }).map(function(p) {
+          return '<div style="display:flex;justify-content:space-between;padding:4px 0 4px 16px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">' +
+            '<span>' + p.nama + '</span>' +
+            '<span style="font-weight:700;">' + p.qty + 'x &nbsp; ' + kasirFmtRp(p.total) + '</span>' +
+          '</div>';
+        }).join('');
+        return '<div style="margin-bottom:12px;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">' +
+          '<div style="background:rgba(9,58,114,0.05);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">' +
+            '<span style="font-size:13px;font-weight:800;color:#093a72;">' + k + '</span>' +
+            '<span style="font-size:12px;font-weight:700;color:#6b7280;">' + kd.qty + 'x &nbsp; ' + kasirFmtRp(kd.total) + '</span>' +
+          '</div>' +
+          itemsHTML +
+        '</div>';
+      }).join('');
+    }
   }
 }
 
