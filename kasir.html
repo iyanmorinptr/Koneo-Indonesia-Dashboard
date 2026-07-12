@@ -852,11 +852,17 @@ body {
         </div>
         <div class="pay-buttons">
           <button class="pay-btn pay-btn-tunai" id="payTunaiBtn" onclick="openKasirPayment('tunai')" disabled>
-            &#128181; Tunai
+            Tunai
           </button>
-          <button class="pay-btn pay-btn-qris" id="payQrisBtn" onclick="openKasirPayment('qris')" disabled>
-            &#128179; QRIS
-          </button>
+          <div style="position:relative;flex:1;display:flex;">
+            <button class="pay-btn pay-btn-qris" id="payNontunaiBtn" onclick="toggleNontunaiMenu()" disabled style="width:100%;">
+              Non Tunai ▾
+            </button>
+            <div id="nontunaiMenu" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);overflow:hidden;z-index:50;">
+              <button onclick="openKasirPayment('qris');toggleNontunaiMenu()" style="width:100%;padding:13px 16px;background:none;border:none;border-bottom:1px solid #f3f4f6;font-size:14px;font-weight:700;color:#093a72;cursor:pointer;text-align:left;">QRIS</button>
+              <button onclick="openKasirPayment('debit');toggleNontunaiMenu()" style="width:100%;padding:13px 16px;background:none;border:none;font-size:14px;font-weight:700;color:#093a72;cursor:pointer;text-align:left;">Debit</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -891,7 +897,7 @@ body {
       <div id="qrisSection" style="display:none;">
         <div style="text-align:center; padding:20px; color:var(--text3); font-size:14px;">
           <i class="ti ti-qrcode" style="font-size:64px;display:block;margin-bottom:12px;color:var(--blue);"></i>
-          Tunjukkan QRIS ke pelanggan dan konfirmasi pembayaran.
+          <span id="nontunaiSectionLabel">Tunjukkan QRIS ke pelanggan dan konfirmasi pembayaran.</span>
         </div>
       </div>
     </div>
@@ -1216,7 +1222,7 @@ function updateKasirTotal() {
   if (pajakDisplay) pajakDisplay.textContent = kasirFmtRp(pajak);
 
   document.getElementById('payTunaiBtn').disabled = !hasItems;
-  document.getElementById('payQrisBtn').disabled = !hasItems;
+  document.getElementById('payNontunaiBtn').disabled = !hasItems;
 }
 
 // ===== PAYMENT =====
@@ -1226,7 +1232,8 @@ function openKasirPayment(metode) {
   var total = getKasirTotal();
 
   document.getElementById('paymentModal').classList.add('active');
-  document.getElementById('paymentModalTitle').textContent = metode === 'tunai' ? 'Pembayaran Tunai' : 'Pembayaran QRIS';
+  var judulMap = {tunai:'Pembayaran Tunai', qris:'Pembayaran QRIS', debit:'Pembayaran Debit'};
+  document.getElementById('paymentModalTitle').textContent = judulMap[metode] || 'Pembayaran Non Tunai';
   document.getElementById('paymentTotalDisplay').textContent = kasirFmtRp(total);
 
   if (metode === 'tunai') {
@@ -1239,6 +1246,8 @@ function openKasirPayment(metode) {
   } else {
     document.getElementById('tunaiSection').style.display = 'none';
     document.getElementById('qrisSection').style.display = '';
+    var lbl = document.getElementById('nontunaiSectionLabel');
+    if (lbl) lbl.textContent = metode === 'debit' ? 'Konfirmasi pembayaran dengan kartu Debit.' : 'Tunjukkan QRIS ke pelanggan dan konfirmasi pembayaran.';
   }
 }
 
@@ -1419,6 +1428,12 @@ function printKasirStruk() {
 }
 
 // ===== REFRESH =====
+function toggleNontunaiMenu() {
+  var d = document.getElementById('nontunaiMenu');
+  if (!d) return;
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
 function toggleKasirMenu() {
   var d = document.getElementById('kasirMenuDropdown');
   if (!d) return;
@@ -1428,6 +1443,9 @@ document.addEventListener('click', function(e) {
   var btn = document.getElementById('kasirMenuBtn');
   var dd = document.getElementById('kasirMenuDropdown');
   if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) dd.style.display = 'none';
+  var ntBtn = document.getElementById('payNontunaiBtn');
+  var ntMenu = document.getElementById('nontunaiMenu');
+  if (ntMenu && ntBtn && !ntBtn.contains(e.target) && !ntMenu.contains(e.target)) ntMenu.style.display = 'none';
 });
 
 function refreshKasirProduk() {
