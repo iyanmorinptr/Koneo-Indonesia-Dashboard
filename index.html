@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-023">
+<meta name="app-version" content="v20260702-024">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-023';
+  var VER = 'v20260702-024';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -1379,6 +1379,7 @@
     <div id="sg-sdm-items" style="display:none;padding-left:10px;padding-bottom:4px;">
       <button class="sidebar-item" id="sitem-jadwal" onclick="switchTab('jadwal')"><i class="ti ti-calendar-week"></i> Jadwal Karyawan</button>
       <button class="sidebar-item" id="sitem-absensi" onclick="switchTab('absensi')"><i class="ti ti-fingerprint"></i> Absensi</button>
+      <button class="sidebar-item" id="sitem-sdm-report" onclick="switchTab('sdm-report')"><i class="ti ti-chart-dots-3"></i> Report Staff</button>
     </div>
 
     <!-- COGS (owner only) -->
@@ -2363,6 +2364,28 @@
     </div>
   </div>
 
+  <!-- SDM REPORT -->
+  <div id="tab-sdm-report" class="section">
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;">
+        <div style="font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.3px;"><i class="ti ti-chart-dots-3"></i> Report Absensi Staff</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+            <label style="font-weight:600;color:var(--text2);">Dari</label>
+            <input type="date" id="sdm-report-from" style="padding:7px 10px;border-radius:10px;border:1px solid rgba(9,58,114,0.15);font-family:inherit;font-size:13px;">
+            <label style="font-weight:600;color:var(--text2);">Sampai</label>
+            <input type="date" id="sdm-report-to" style="padding:7px 10px;border-radius:10px;border:1px solid rgba(9,58,114,0.15);font-family:inherit;font-size:13px;">
+            <button onclick="buildSdmReportTab()" style="padding:7px 14px;border-radius:10px;border:none;background:#093a72;color:#fff;font-size:13px;font-weight:600;cursor:pointer;"><i class="ti ti-search"></i> Tampilkan</button>
+          </div>
+        </div>
+      </div>
+      <div id="sdm-report-summary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem;"></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <div id="sdm-report-table"></div>
+    </div>
+  </div>
+
   <!-- PENGATURAN -->
   <!-- COGS / HPP -->
   <div id="tab-cogs" class="section">
@@ -3097,6 +3120,9 @@ function applyRole(role) {
   _show('sg-kasir-items', canFinance);
   ['sitem-kasir','sitem-kasir-produk','sitem-kasir-riwayat','sitem-kasir-manual','sitem-member'].forEach(id => _show(id, canFinance));
 
+  // Report Staff (SDM): owner + manager only
+  _show('sitem-sdm-report', canFinance);
+
   // --- Manager group (semua role bisa akses) ---
   _show('sg-manager', true);
   // sg-manager-items biarkan toggle normal
@@ -3378,7 +3404,7 @@ function renderSubmitBar() {
   const bar = document.getElementById('submit-bar');
   // Hide submit bar on beranda and non-finance tabs
   const activeTab = document.querySelector('.section.active');
-  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-manager-pengumuman','tab-kasir','tab-kasir-produk','tab-kasir-riwayat','tab-kasir-manual'];
+  const hideOnTabs = ['tab-beranda','tab-stok','tab-pengaturan','tab-jadwal','tab-absensi','tab-sdm-report','tab-cogs','tab-laporan-pajak','tab-invoice','tab-member','tab-manager-report','tab-manager-todo','tab-manager-pengumuman','tab-kasir','tab-kasir-produk','tab-kasir-riwayat','tab-kasir-manual'];
   if (!activeTab || hideOnTabs.includes(activeTab.id)) { bar.style.display = 'none'; return; }
   bar.style.display = '';
   const submitted = tgl ? DB.getItem('koneo_day_' + tgl) : null;
@@ -3479,7 +3505,11 @@ function switchTab(tab) {
     document.getElementById('finance-deny-overlay').style.display = 'flex';
     return;
   }
-  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-riwayat', 'kasir-manual', 'stok', 'jadwal', 'absensi', 'pengaturan', 'cogs'];
+  if (tab === 'sdm-report' && isKaryawan) {
+    document.getElementById('finance-deny-overlay').style.display = 'flex';
+    return;
+  }
+  const tabs = ['beranda', 'pemasukan', 'pengeluaran', 'laporan', 'riwayat', 'modal-awal', 'laporan-pajak', 'invoice', 'member', 'manager-report', 'manager-todo', 'manager-pengumuman', 'kasir', 'kasir-produk', 'kasir-riwayat', 'kasir-manual', 'stok', 'jadwal', 'absensi', 'sdm-report', 'pengaturan', 'cogs'];
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -3489,6 +3519,7 @@ function switchTab(tab) {
   if (tab === 'stok') buildStokTab();
   if (tab === 'jadwal') buildJadwalTab();
   if (tab === 'absensi') buildAbsensiTab();
+  if (tab === 'sdm-report') buildSdmReportTab();
   if (tab === 'pengaturan') { buildDataSummary(); loadApiKeyInput(); buildUserManagementCard(); loadKasirRegCode(); loadKasirPajak(); loadKasirAutoPrint(); loadOwnerWA(); }
   if (tab === 'cogs') buildCogsTab();
   if (tab === 'laporan-pajak') renderLaporanPajak();
