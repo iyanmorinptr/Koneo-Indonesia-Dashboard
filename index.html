@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-022">
+<meta name="app-version" content="v20260702-023">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-022';
+  var VER = 'v20260702-023';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -4220,35 +4220,24 @@ function renderBerandaWidgets() {
   var todos = getTodos().filter(function(t){ return !t.done; }).slice(0, 3);
   var html = '';
 
-  // ── TOMBOL ABSENSI ──────────────────────────────────────────────────────────
-  (function() {
-    var tgl = getLocalDateStr(new Date());
-    var empId = session ? session.email.split('@')[0].toLowerCase() : '';
-    var data = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
-    var rec = data[empId] || {};
-    var statusText, btnHtml;
-    if (rec.jamMasuk && rec.jamKeluar) {
-      statusText = '<span style="color:#1D9E75;font-weight:700;">✓ Sudah Check-in ' + rec.jamMasuk + ' & Check-out ' + rec.jamKeluar + '</span>';
-      btnHtml = '';
-    } else if (rec.jamMasuk) {
-      statusText = '<span style="color:#093a72;font-weight:700;">Check-in: ' + rec.jamMasuk + '</span> &nbsp;·&nbsp; Belum check-out';
-      btnHtml = '<button onclick="berandaDoCheckout()" style="padding:12px 28px;border-radius:12px;border:none;background:#1D9E75;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-logout"></i> Check Out</button>';
-    } else {
-      statusText = '<span style="color:var(--text3);">Belum check-in hari ini</span>';
-      btnHtml = '<button onclick="berandaDoCheckin()" style="padding:12px 28px;border-radius:12px;border:none;background:#093a72;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-fingerprint"></i> Check In</button>';
-    }
+  // ── PENGUMUMAN ──────────────────────────────────────────────────────────────
+  if (pengs.length) {
     html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
       '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
-        '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-fingerprint"></i> Absensi Hari Ini</div>' +
-        '<button onclick="switchTab(\'absensi\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Detail →</button>' +
-      '</div>' +
-      '<div style="padding:16px;text-align:center;">' +
-        '<div style="font-size:13px;margin-bottom:12px;">' + statusText + '</div>' +
-        btnHtml +
-        '<div id="beranda-absensi-gps" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>' +
-      '</div>' +
-    '</div>';
-  })();
+        '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-speakerphone"></i> Pengumuman Staff</div>' +
+        '<button onclick="sidebarGo(\'manager-pengumuman\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Lihat Semua →</button>' +
+      '</div>';
+    pengs.forEach(function(p) {
+      var isJadwal = p.type === 'jadwal';
+      var waktuStr = (isJadwal && p.waktu) ? ' <span style="color:#7c3aed;font-size:11px;">📅 ' + new Date(p.waktu).toLocaleDateString('id-ID',{day:'2-digit',month:'short'}) + '</span>' : '';
+      html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);">' +
+        '<div style="font-size:13px;font-weight:700;color:#1a1a18;">' + p.judul + waktuStr + '</div>' +
+        (p.detail ? '<div style="font-size:12px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.detail + '</div>' : '') +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">Oleh ' + (p.creator||'Owner') + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
 
   // ── JADWAL HARI INI ─────────────────────────────────────────────────────────
   (function() {
@@ -4291,24 +4280,35 @@ function renderBerandaWidgets() {
     } catch(e) {}
   })();
 
-  // ── PENGUMUMAN ──────────────────────────────────────────────────────────────
-  if (pengs.length) {
+  // ── TOMBOL ABSENSI ──────────────────────────────────────────────────────────
+  (function() {
+    var tgl = getLocalDateStr(new Date());
+    var empId = session ? session.email.split('@')[0].toLowerCase() : '';
+    var data = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
+    var rec = data[empId] || {};
+    var statusText, btnHtml;
+    if (rec.jamMasuk && rec.jamKeluar) {
+      statusText = '<span style="color:#1D9E75;font-weight:700;">✓ Sudah Check-in ' + rec.jamMasuk + ' & Check-out ' + rec.jamKeluar + '</span>';
+      btnHtml = '';
+    } else if (rec.jamMasuk) {
+      statusText = '<span style="color:#093a72;font-weight:700;">Check-in: ' + rec.jamMasuk + '</span> &nbsp;·&nbsp; Belum check-out';
+      btnHtml = '<button onclick="berandaDoCheckout()" style="padding:12px 28px;border-radius:12px;border:none;background:#1D9E75;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-logout"></i> Check Out</button>';
+    } else {
+      statusText = '<span style="color:var(--text3);">Belum check-in hari ini</span>';
+      btnHtml = '<button onclick="berandaDoCheckin()" style="padding:12px 28px;border-radius:12px;border:none;background:#093a72;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-fingerprint"></i> Check In</button>';
+    }
     html += '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;">' +
       '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">' +
-        '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-speakerphone"></i> Pengumuman Staff</div>' +
-        '<button onclick="sidebarGo(\'manager-pengumuman\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Lihat Semua →</button>' +
-      '</div>';
-    pengs.forEach(function(p) {
-      var isJadwal = p.type === 'jadwal';
-      var waktuStr = (isJadwal && p.waktu) ? ' <span style="color:#7c3aed;font-size:11px;">📅 ' + new Date(p.waktu).toLocaleDateString('id-ID',{day:'2-digit',month:'short'}) + '</span>' : '';
-      html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);">' +
-        '<div style="font-size:13px;font-weight:700;color:#1a1a18;">' + p.judul + waktuStr + '</div>' +
-        (p.detail ? '<div style="font-size:12px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.detail + '</div>' : '') +
-        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">Oleh ' + (p.creator||'Owner') + '</div>' +
-      '</div>';
-    });
-    html += '</div>';
-  }
+        '<div style="font-size:14px;font-weight:800;color:#093a72;"><i class="ti ti-fingerprint"></i> Absensi Hari Ini</div>' +
+        '<button onclick="switchTab(\'absensi\')" style="font-size:11px;color:#093a72;background:none;border:none;cursor:pointer;font-weight:700;">Detail →</button>' +
+      '</div>' +
+      '<div style="padding:16px;text-align:center;">' +
+        '<div style="font-size:13px;margin-bottom:12px;">' + statusText + '</div>' +
+        btnHtml +
+        '<div id="beranda-absensi-gps" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>' +
+      '</div>' +
+    '</div>';
+  })();
 
   // ── TO DO ───────────────────────────────────────────────────────────────────
   if (todos.length) {
