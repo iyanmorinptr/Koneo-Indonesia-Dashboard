@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260712-038">
+<meta name="app-version" content="v20260712-039">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260712-038';
+  var VER = 'v20260712-039';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -5153,7 +5153,7 @@ function refundManualTrx(id) {
 
 // ── KASIR PRODUK MANAGEMENT ────────────────────────────────────────────────────
 function buildKasirProdukTab() {
-  var produk = kasirDB_getProduk();
+  var produk = kasirDB_getProduk().slice().sort(function(a,b){ return (a.nama||'').localeCompare(b.nama||'','id'); });
   var el = document.getElementById('kasir-produk-list');
   if (!el) return;
   var sess = getSession();
@@ -5295,7 +5295,7 @@ function deleteKasirKategori(nama) {
 function renderKasirKategoriList() {
   var el = document.getElementById('kasir-kat-list');
   if (!el) return;
-  var list = getKasirKategoriList();
+  var list = getKasirKategoriList().slice().sort(function(a,b){ return a.localeCompare(b,'id'); });
   if (!list.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Belum ada kategori. Tambahkan kategori dulu sebelum input produk.</div>'; return; }
   el.innerHTML = list.map(function(k) {
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;">' +
@@ -5306,7 +5306,7 @@ function renderKasirKategoriList() {
 }
 
 function buildKasirProdukTabInto(containerId) {
-  var produk = kasirDB_getProduk();
+  var produk = kasirDB_getProduk().slice().sort(function(a,b){ return (a.nama||'').localeCompare(b.nama||'','id'); });
   var el = document.getElementById(containerId);
   if (!el) return;
   var sess = getSession();
