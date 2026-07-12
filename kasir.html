@@ -167,6 +167,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  position: relative;
 }
 
 .pos-header-logo {
@@ -779,12 +780,21 @@ body {
 <div id="posScreen">
   <!-- Header -->
   <div class="pos-header">
-    <div class="pos-header-logo">KONEO <span>Indonesia</span></div>
+    <!-- Hamburger menu kiri -->
+    <button id="kasirMenuBtn" onclick="toggleKasirMenu()" style="background:none;border:none;color:#fff;cursor:pointer;padding:6px 8px;display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;border-radius:8px;transition:background 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.15)'" onmouseleave="this.style.background='none'">
+      <span style="display:block;width:22px;height:2.5px;background:#fff;border-radius:2px;"></span>
+      <span style="display:block;width:22px;height:2.5px;background:#fff;border-radius:2px;"></span>
+      <span style="display:block;width:22px;height:2.5px;background:#fff;border-radius:2px;"></span>
+    </button>
+    <!-- Dropdown menu -->
+    <div id="kasirMenuDropdown" style="display:none;position:absolute;top:56px;left:0;width:220px;background:#fff;border-radius:0 0 14px 0;box-shadow:4px 4px 24px rgba(0,0,0,0.18);z-index:200;overflow:hidden;">
+      <button onclick="openRiwayatModal();toggleKasirMenu()" style="width:100%;text-align:left;padding:14px 18px;background:none;border:none;border-bottom:1px solid #f3f4f6;font-size:14px;font-weight:600;color:#093a72;cursor:pointer;display:flex;align-items:center;gap:10px;">🧾 Riwayat & Refund</button>
+      <button onclick="refreshKasirProduk();toggleKasirMenu()" style="width:100%;text-align:left;padding:14px 18px;background:none;border:none;border-bottom:1px solid #f3f4f6;font-size:14px;font-weight:600;color:#093a72;cursor:pointer;display:flex;align-items:center;gap:10px;">🔄 Refresh Produk</button>
+      <a href="index.html" style="display:flex;align-items:center;gap:10px;padding:14px 18px;font-size:14px;font-weight:600;color:#093a72;text-decoration:none;"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    </div>
+    <div class="pos-header-logo" style="position:absolute;left:50%;transform:translateX(-50%);">KONEO <span>Indonesia</span></div>
     <div class="pos-header-right">
       <span id="headerKasirLabel">Kasir</span>
-      <button onclick="openRiwayatModal()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🧾 Riwayat & Refund</button>
-      <button onclick="refreshKasirProduk()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">🔄 Refresh</button>
-      <a href="index.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
     </div>
   </div>
 
@@ -1409,6 +1419,17 @@ function printKasirStruk() {
 }
 
 // ===== REFRESH =====
+function toggleKasirMenu() {
+  var d = document.getElementById('kasirMenuDropdown');
+  if (!d) return;
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(e) {
+  var btn = document.getElementById('kasirMenuBtn');
+  var dd = document.getElementById('kasirMenuDropdown');
+  if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) dd.style.display = 'none';
+});
+
 function refreshKasirProduk() {
   showKasirToast('Memuat produk dari cloud...');
   loadKasirProdukFromCloud(function(list) {
