@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-020">
+<meta name="app-version" content="v20260702-021">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-020';
+  var VER = 'v20260702-021';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -1351,11 +1351,11 @@
       <button class="sidebar-item" id="sitem-kasir-manual" onclick="sidebarGo('kasir-manual')"><i class="ti ti-pencil-plus"></i> Tambah Transaksi</button>
       <button class="sidebar-item" id="sitem-member" onclick="sidebarGo('member')"><i class="ti ti-users"></i> Member</button>
     </div>
-    <button onclick="toggleSidebarGroup('manager')" id="sg-manager" class="sidebar-group-btn" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 14px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--text1);border-radius:10px;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.06)'" onmouseout="this.style.background='none'">
-      <span><i class="ti ti-clipboard-list"></i> Manager <span id="todo-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:50px;margin-left:4px;">0</span></span>
-      <i class="ti ti-chevron-down" id="sg-manager-arrow" style="font-size:12px;transition:transform 0.2s;"></i>
+    <button onclick="toggleSidebarGroup('manager')" id="sg-manager" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1a1a18;transition:background 0.15s;" onmouseover="this.style.background='rgba(9,58,114,0.05)'" onmouseout="this.style.background='none'">
+      <span style="display:flex;align-items:center;gap:10px;"><i class="ti ti-clipboard-list" style="font-size:17px;color:#093a72;"></i> Manager <span id="todo-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:50px;margin-left:4px;">0</span></span>
+      <i class="ti ti-chevron-right" id="sg-manager-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;"></i>
     </button>
-    <div id="sg-manager-items" style="display:none;padding-left:12px;">
+    <div id="sg-manager-items" style="display:none;padding-left:10px;padding-bottom:4px;">
       <button class="sidebar-item" id="sitem-manager-report" onclick="sidebarGo('manager-report')"><i class="ti ti-file-text"></i> Report</button>
       <button class="sidebar-item" id="sitem-manager-todo" onclick="sidebarGo('manager-todo')"><i class="ti ti-list-check"></i> To Do List</button>
       <button class="sidebar-item" id="sitem-manager-pengumuman" onclick="sidebarGo('manager-pengumuman')"><i class="ti ti-speakerphone"></i> Pengumuman Staff</button>
