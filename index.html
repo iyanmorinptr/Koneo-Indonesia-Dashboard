@@ -6,11 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v20260702-034">
+<meta name="app-version" content="v20260712-035">
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260702-034';
+  var VER = 'v20260712-035';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -5317,7 +5317,7 @@ function renderKasirKategoriList() {
   el.innerHTML = list.map(function(k) {
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;">' +
       '<span style="font-size:14px;font-weight:600;color:#1a1a18;"><i class="ti ti-tag" style="color:#093a72;margin-right:6px;"></i>' + k + '</span>' +
-      '<button onclick="deleteKasirKategori('' + k.replace(/'/g, "\'") + '')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;">🗑</button>' +
+      '<button onclick="deleteKasirKategori(\'' + k.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;">🗑</button>' +
     '</div>';
   }).join('');
 }
@@ -5346,13 +5346,13 @@ function buildKasirProdukTabInto(containerId) {
         '<td style="padding:10px 14px;font-size:13px;color:var(--text2);">' + (p.kategori||'-') + '</td>' +
         '<td style="padding:10px 14px;font-size:13px;text-align:right;font-weight:600;color:#093a72;">' + kasirFmtRp(p.harga) + '</td>' +
         '<td style="padding:10px 14px;text-align:center;">' +
-          '<button onclick="toggleKasirProdukStatus('' + p.id + '')" style="padding:3px 10px;border-radius:50px;border:none;cursor:pointer;font-size:11px;font-weight:700;' +
+          '<button onclick="toggleKasirProdukStatus(\'' + p.id + '\')" style="padding:3px 10px;border-radius:50px;border:none;cursor:pointer;font-size:11px;font-weight:700;' +
           (p.tersedia !== false ? 'background:#d1fae5;color:#065f46;' : 'background:#fee2e2;color:#991b1b;') + '">' +
           (p.tersedia !== false ? '✅ Tersedia' : '❌ Habis') + '</button>' +
         '</td>' +
         '<td style="padding:10px 14px;text-align:right;">' +
-          (canManage ? '<button onclick="openKasirProdukForm('' + p.id + '')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;">✏️</button>' +
-          '<button onclick="deleteKasirProduk('' + p.id + '')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;">🗑</button>' : '') +
+          (canManage ? '<button onclick="openKasirProdukForm(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;margin-right:4px;">✏️</button>' +
+          '<button onclick="deleteKasirProduk(\'' + p.id + '\')" style="padding:5px 10px;background:none;border:1.5px solid #fee2e2;border-radius:7px;font-size:12px;cursor:pointer;color:#dc2626;">🗑</button>' : '') +
         '</td>' +
       '</tr>';
     }).join('') +
