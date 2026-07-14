@@ -990,7 +990,9 @@ function formatGateModalAwal(el) {
 function formatTutupCash(el) {
   var digits = el.value.replace(/\D/g, '');
   var num = parseInt(digits) || 0;
-  el.value = num > 0 ? kasirFmtRp(num) : '';
+  var formatted = num > 0 ? kasirFmtRp(num) : '';
+  el.value = formatted;
+  try { el.setSelectionRange(formatted.length, formatted.length); } catch(e) {}
 }
 
 // ===== INIT =====
@@ -2838,8 +2840,8 @@ async function btTestPrint() {
       <!-- Input cash real -->
       <div class="modal-field" style="margin-bottom:4px;">
         <label style="font-weight:700;">Total Cash Real</label>
-        <input type="number" class="modal-input" id="tutupCashInput" placeholder="0"
-          autocomplete="off"
+        <input type="text" inputmode="numeric" pattern="[0-9]*" class="modal-input" id="tutupCashInput" placeholder="0"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           oninput="formatTutupCash(this);onCashRealInput()" style="font-size:18px;font-weight:700;text-align:right;">
       </div>
 
