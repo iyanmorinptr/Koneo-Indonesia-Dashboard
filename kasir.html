@@ -962,6 +962,18 @@ body {
 </div>
 
 <script>
+// ===== VERSION CHECK & CACHE BUST =====
+var _APP_VERSION = 'v20260714-096';
+(function(){
+  var stored = localStorage.getItem('_kasir_app_version');
+  if (stored !== _APP_VERSION) {
+    localStorage.setItem('_kasir_app_version', _APP_VERSION);
+    if (stored) {
+      window.location.href = window.location.pathname + '?v=' + _APP_VERSION + '&t=' + Date.now();
+    }
+  }
+})();
+
 // ===== STATE =====
 var kasirCart = [];
 var kasirKategoriAktif = 'Semua';
