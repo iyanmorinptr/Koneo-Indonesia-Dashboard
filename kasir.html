@@ -1461,22 +1461,14 @@ function printTutupKasirLaporan(data) {
     '<div class="footer">Dicetak pada ' + printedAt + '</div>' +
     '</body></html>';
 
-  // Coba cetak via BLE jika terhubung
-  if (_btConnected) {
-    if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
-    _btPrinting = true;
-    btPrintLaporanKasir(data)
-      .then(function(){ showKasirToast('\u2705 Laporan tercetak'); })
-      .catch(function(e){ showKasirToast('\u274c Print gagal: ' + e.message); })
-      .finally(function(){ _btPrinting = false; });
-    return;
-  }
-  // Fallback: popup browser
-  var popup = window.open('', '_blank', 'width=520,height=700');
-  if (!popup) { alert('Popup diblokir browser. Izinkan popup untuk mencetak laporan.'); return; }
-  popup.document.write(html);
-  popup.document.close();
-  popup.onload = function() { popup.print(); popup.onafterprint = function() { popup.close(); }; };
+  // Cetak via BLE
+  if (!_btConnected) { showKasirToast('Printer belum tersambung. Tekan Sambung terlebih dahulu.'); return; }
+  if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+  _btPrinting = true;
+  btPrintLaporanKasir(data)
+    .then(function(){ showKasirToast('\u2705 Laporan tercetak'); })
+    .catch(function(e){ showKasirToast('\u274c Print gagal: ' + e.message); })
+    .finally(function(){ _btPrinting = false; });
 }
 
 // ===== KASIR INIT =====
