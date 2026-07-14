@@ -6747,7 +6747,8 @@ function buildAbsensiTable() {
   const tgl = dateEl ? dateEl.value : getLocalDateStr(new Date());
   const session = getSession();
   const role = session ? session.role : '';
-  const canManage = role === 'owner' || role === 'manager';
+  const isOwner   = role === 'owner';
+  const isManager = role === 'manager';
   const config = getJadwalConfig();
   const allEmps = config.departments.flatMap(d => ({ dept: d.name, emps: d.employees })).flatMap(x => x.emps.map(e => ({ ...e, dept: config.departments.find(d => d.employees.some(em => em.id === e.id))?.name || '' })));
   const absensiData = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
@@ -6767,7 +6768,9 @@ function buildAbsensiTable() {
   allEmps.forEach(emp => {
     const rec = absensiData[emp.id] || {};
     const sc = STATUS_COLOR[rec.status || ''];
-    if (canManage) {
+    const statusBadge = `<span style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:${sc||'#f5f5f5;color:#999'};">${rec.status||'—'}</span>`;
+    if (isOwner) {
+      // Owner: edit semua kolom
       html += `<tr style="border-bottom:1px solid rgba(9,58,114,0.06);">
         <td style="padding:8px 10px;font-size:13px;font-weight:600;">${emp.name}</td>
         <td style="padding:8px 10px;font-size:12px;color:var(--text3);">${emp.dept}</td>
@@ -6781,11 +6784,27 @@ function buildAbsensiTable() {
         <td style="padding:6px 10px;text-align:center;"><input type="time" value="${rec.jamKeluar||''}" onchange="updateAbsensi('${tgl}','${emp.id}','jamKeluar',this.value)" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;"></td>
         <td style="padding:6px 10px;"><input type="text" value="${rec.ket||''}" onchange="updateAbsensi('${tgl}','${emp.id}','ket',this.value)" placeholder="—" style="width:100%;padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;"></td>
       </tr>`;
-    } else {
+    } else if (isManager) {
+      // Manager: status & keterangan bisa edit, jam masuk/keluar read-only
       html += `<tr style="border-bottom:1px solid rgba(9,58,114,0.06);">
         <td style="padding:8px 10px;font-size:13px;font-weight:600;">${emp.name}</td>
         <td style="padding:8px 10px;font-size:12px;color:var(--text3);">${emp.dept}</td>
-        <td style="padding:8px 10px;text-align:center;"><span style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:${sc||'#f5f5f5;color:#999'};">${rec.status||'—'}</span></td>
+        <td style="padding:6px 10px;text-align:center;">
+          <select onchange="updateAbsensi('${tgl}','${emp.id}','status',this.value)" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;background:#f9f9f9;">
+            <option value="">—</option>
+            ${STATUS_OPTS.map(s => `<option value="${s}" ${rec.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td style="padding:8px 10px;text-align:center;font-size:12px;font-weight:600;">${rec.jamMasuk||'—'}</td>
+        <td style="padding:8px 10px;text-align:center;font-size:12px;font-weight:600;">${rec.jamKeluar||'—'}</td>
+        <td style="padding:6px 10px;"><input type="text" value="${rec.ket||''}" onchange="updateAbsensi('${tgl}','${emp.id}','ket',this.value)" placeholder="—" style="width:100%;padding:5px 8px;border-radius:8px;border:1px solid rgba(9,58,114,0.2);font-size:12px;font-family:inherit;"></td>
+      </tr>`;
+    } else {
+      // Staff: semua read-only
+      html += `<tr style="border-bottom:1px solid rgba(9,58,114,0.06);">
+        <td style="padding:8px 10px;font-size:13px;font-weight:600;">${emp.name}</td>
+        <td style="padding:8px 10px;font-size:12px;color:var(--text3);">${emp.dept}</td>
+        <td style="padding:8px 10px;text-align:center;">${statusBadge}</td>
         <td style="padding:8px 10px;text-align:center;font-size:12px;">${rec.jamMasuk||'—'}</td>
         <td style="padding:8px 10px;text-align:center;font-size:12px;">${rec.jamKeluar||'—'}</td>
         <td style="padding:8px 10px;font-size:12px;">${rec.ket||'—'}</td>
