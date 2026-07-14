@@ -963,7 +963,7 @@ body {
 
 <script>
 // ===== VERSION CHECK & CACHE BUST =====
-var _APP_VERSION = 'v20260714-100';
+var _APP_VERSION = 'v20260714-101';
 (function(){
   var stored = localStorage.getItem('_kasir_app_version');
   if (stored !== _APP_VERSION) {
@@ -1022,14 +1022,31 @@ function showPosScreen() {
   if (lbl && _kasirOpenedBy) lbl.textContent = _kasirOpenedBy;
 }
 
+function localDateStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function saveCartLocal() {
+  try { localStorage.setItem('koneo_kasir_cart', JSON.stringify(kasirCart)); } catch(e) {}
+}
+
+function loadCartLocal() {
+  try {
+    var raw = localStorage.getItem('koneo_kasir_cart');
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
 function checkDevice() {
   // Check for existing valid session today
   try {
     var raw = localStorage.getItem('koneo_kasir_session');
     if (raw) {
       var sess = JSON.parse(raw);
-      var openedDate = (sess.openedAt || '').substring(0, 10);
-      var today = new Date().toISOString().substring(0, 10);
+      // Gunakan tanggal lokal (bukan UTC) agar session tidak expired karena timezone
+      var openedDate = sess.openedAtLocal || (sess.openedAt || '').substring(0, 10);
+      var today = localDateStr();
       if (openedDate === today && sess.nama) {
         // Restore session
         _kasirSession = { nama: sess.nama, role: sess.role || '' };
@@ -1038,6 +1055,13 @@ function checkDevice() {
         _kasirOpenedBy = sess.nama;
         showPosScreen();
         initKasir();
+        // Restore cart yang tersimpan
+        var savedCart = loadCartLocal();
+        if (savedCart.length > 0) {
+          kasirCart = savedCart;
+          renderKasirCart();
+          updateKasirTotal();
+        }
         return;
       }
     }
@@ -1139,7 +1163,8 @@ function doBukaKasir() {
     nama: _kasirOpenedBy,
     role: _kasirSession ? (_kasirSession.role || '') : '',
     modalAwal: _kasirModalAwal,
-    openedAt: _kasirOpenedAt
+    openedAt: _kasirOpenedAt,
+    openedAtLocal: localDateStr()
   };
   localStorage.setItem('koneo_kasir_session', JSON.stringify(sess));
 
@@ -1351,6 +1376,7 @@ function closeTutupKasir() {
 
   // Clear session
   localStorage.removeItem('koneo_kasir_session');
+  localStorage.removeItem('koneo_kasir_cart');
   _kasirSession = null;
   _kasirModalAwal = 0;
   _kasirOpenedAt = null;
@@ -1751,6 +1777,7 @@ function addToKasirCart(id) {
     try { renderKasirCart(); } catch(e2) { showKasirToast('Error render cart: ' + e2.message); }
     try { updateKasirTotal(); } catch(e3) {}
     try { updateCartFab(); } catch(e4) {}
+    saveCartLocal();
   } catch(e) {
     showKasirToast('Error: ' + e.message);
   }
@@ -1765,6 +1792,7 @@ function changeKasirQty(id, delta) {
   }
   renderKasirCart();
   updateKasirTotal();
+  saveCartLocal();
 }
 
 function clearKasirCart() {
@@ -1774,6 +1802,7 @@ function clearKasirCart() {
   renderKasirCart();
   updateKasirTotal();
   updateCartFab();
+  saveCartLocal();
 }
 
 function renderKasirCart() {
