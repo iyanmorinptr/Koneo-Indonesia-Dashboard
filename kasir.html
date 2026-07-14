@@ -1344,9 +1344,10 @@ function closeTutupKasir() {
   _kasirOpenedAt = null;
   _kasirOpenedBy = '';
 
-  // Close input modal, show preview
+  // Close modal, go to gate, then print
   closeTutupKasirModal();
-  openLaporanPreview(laporan);
+  showGateScreen();
+  printTutupKasirLaporan(laporan);
 }
 
 function openLaporanPreview(laporan) {
@@ -1495,8 +1496,19 @@ async function btPrintLaporanKasir(data) {
     .row('Cash Sistem', 'Rp ' + cashSistem.toLocaleString('id-ID'))
     .row('Cash Real', 'Rp ' + (data.totalCash||0).toLocaleString('id-ID'))
     .bold(true).row('Balance', balanceText).bold(false)
-    .divider()
-    .align('c').line('Dicetak: ' + new Date().toLocaleString('id-ID'))
+    .divider();
+  var trxList = data.trxList || [];
+  if (trxList.length > 0) {
+    p.bold(true).line('TRANSAKSI (' + trxList.length + ')').bold(false);
+    trxList.forEach(function(t) {
+      var jam = t.tanggal ? new Date(t.tanggal).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-';
+      var metode = t.metode==='tunai'?'Cash':t.metode==='debit'?'Debit':'QRIS';
+      p.row(jam + ' ' + (t.pelanggan||'Umum'), 'Rp ' + (t.total||0).toLocaleString('id-ID'))
+       .line('  ' + metode);
+    });
+    p.divider();
+  }
+  p.align('c').line('Dicetak: ' + new Date().toLocaleString('id-ID'))
     .feed(3).cut();
   await btSend(p.build());
 }
@@ -2959,7 +2971,7 @@ async function btTestPrint() {
     </div>
     <div class="modal-footer">
       <button class="modal-btn modal-btn-cancel" onclick="closeTutupKasirModal()">Batal</button>
-      <button id="btnTutupKasirConfirm" class="modal-btn" style="background:#ccc;color:#fff;border:none;cursor:not-allowed;" disabled onclick="closeTutupKasir()"><i class="ti ti-lock"></i> Tutup Kasir</button>
+      <button id="btnTutupKasirConfirm" class="modal-btn" style="background:#ccc;color:#fff;border:none;cursor:not-allowed;" disabled onclick="closeTutupKasir()"><i class="ti ti-lock"></i> Tutup Kasir &amp; Print</button>
     </div>
   </div>
 </div>
