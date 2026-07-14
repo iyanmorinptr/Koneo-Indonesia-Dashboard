@@ -963,7 +963,7 @@ body {
 
 <script>
 // ===== VERSION CHECK & CACHE BUST =====
-var _APP_VERSION = 'v20260714-098';
+var _APP_VERSION = 'v20260714-099';
 (function(){
   var stored = localStorage.getItem('_kasir_app_version');
   if (stored !== _APP_VERSION) {
@@ -1356,9 +1356,16 @@ function closeTutupKasir() {
   _kasirOpenedAt = null;
   _kasirOpenedBy = '';
 
-  // Close modal, show preview
+  // Close modal, langsung print
   closeTutupKasirModal();
-  openLaporanPreview(laporan);
+  showGateScreen();
+  showKasirToast('Mencetak laporan...');
+  _btPrinting = false;
+  _btPrinting = true;
+  btPrintLaporanKasir(laporan)
+    .then(function() { showKasirToast('✅ Laporan tercetak'); })
+    .catch(function(e) { showKasirToast('❌ Gagal cetak: ' + (e && e.message ? e.message : String(e))); })
+    .finally(function() { _btPrinting = false; });
 }
 
 function openLaporanPreview(laporan) {
