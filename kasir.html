@@ -955,7 +955,8 @@ body {
     <div class="modal-footer" style="flex-wrap:wrap;gap:8px;">
       <button class="modal-btn modal-btn-cancel" onclick="closeKasirStruk()" style="flex:1;min-width:80px;">Tutup</button>
       <button class="modal-btn modal-btn-green" onclick="printKasirStruk()" style="flex:2;min-width:120px;"><i class="ti ti-receipt"></i> Print Customer</button>
-      <button class="modal-btn" onclick="printCheckerOnly()" style="flex:2;min-width:120px;background:#f97316;color:#fff;border:none;"><i class="ti ti-chef-hat"></i> Print Checker</button>
+      <button class="modal-btn" onclick="printCheckerBar()" style="flex:1;min-width:90px;background:#f97316;color:#fff;border:none;"><i class="ti ti-glass"></i> Bar</button>
+      <button class="modal-btn" onclick="printCheckerKitchen()" style="flex:1;min-width:90px;background:#dc2626;color:#fff;border:none;"><i class="ti ti-tools-kitchen-2"></i> Kitchen</button>
     </div>
   </div>
 </div>
@@ -1831,6 +1832,50 @@ function buildCheckerHTML(trx, station) {
     '<hr style="border:none;border-top:2px dashed #ccc;margin:10px 0;">' +
     '<div style="text-align:center;font-size:11px;color:#999;margin-top:8px;">Koneo Indonesia</div>' +
   '</div>';
+}
+
+async function printCheckerBar() {
+  var trx = kasirLastTrx;
+  if (!trx) return;
+  if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+  var hasBar = (trx.items||[]).some(function(i){ var s=(i.stasiun||'').toLowerCase(); return s==='bar'||s==='keduanya'; });
+  if (!hasBar) { showKasirToast('Tidak ada item untuk Bar'); return; }
+  if (!_btConnected) {
+    var popup = window.open('','_blank','width=400,height=600');
+    popup.document.write(buildCheckerHTML(trx, 'bar'));
+    popup.document.close();
+    popup.onload = function(){ popup.print(); popup.onafterprint = function(){ popup.close(); }; };
+    return;
+  }
+  _btPrinting = true;
+  try {
+    showKasirToast('Mencetak checker bar...');
+    await btPrintChecker(trx, 'bar');
+    showKasirToast('✅ Checker Bar tercetak');
+  } catch(e) { showKasirToast('❌ Print gagal: ' + e.message); }
+  finally { _btPrinting = false; }
+}
+
+async function printCheckerKitchen() {
+  var trx = kasirLastTrx;
+  if (!trx) return;
+  if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+  var hasKitchen = (trx.items||[]).some(function(i){ var s=(i.stasiun||'').toLowerCase(); return s==='kitchen'||s==='keduanya'; });
+  if (!hasKitchen) { showKasirToast('Tidak ada item untuk Kitchen'); return; }
+  if (!_btConnected) {
+    var popup = window.open('','_blank','width=400,height=600');
+    popup.document.write(buildCheckerHTML(trx, 'kitchen'));
+    popup.document.close();
+    popup.onload = function(){ popup.print(); popup.onafterprint = function(){ popup.close(); }; };
+    return;
+  }
+  _btPrinting = true;
+  try {
+    showKasirToast('Mencetak checker kitchen...');
+    await btPrintChecker(trx, 'kitchen');
+    showKasirToast('✅ Checker Kitchen tercetak');
+  } catch(e) { showKasirToast('❌ Print gagal: ' + e.message); }
+  finally { _btPrinting = false; }
 }
 
 async function printCheckerOnly() {
