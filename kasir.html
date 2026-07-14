@@ -805,6 +805,9 @@ body {
     </div>
     <div class="pos-header-logo" style="position:absolute;left:50%;transform:translateX(-50%);">KONEO <span>Indonesia</span></div>
     <div class="pos-header-right" style="display:flex;align-items:center;gap:8px;">
+      <button id="btnPrinterQuickConnect" onclick="btQuickReconnect()" title="Sambung ulang printer" style="display:none;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);color:#fff;cursor:pointer;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;">
+        <i class="ti ti-bluetooth"></i> Sambung
+      </button>
       <button id="btnPrinterConnect" onclick="openPrinterModal()" title="Koneksi Printer" style="background:none;border:none;color:#fff;cursor:pointer;padding:6px 8px;border-radius:8px;font-size:20px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;position:relative;" onmouseenter="this.style.background='rgba(255,255,255,0.15)'" onmouseleave="this.style.background='none'">
         <i class="ti ti-printer"></i>
         <span id="printerStatusDot" style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:1.5px solid #093a72;"></span>
@@ -2092,8 +2095,25 @@ var BT_CHARS = [
 
 function updatePrinterDot() {
   var dot = document.getElementById('printerStatusDot');
-  if (!dot) return;
-  dot.style.background = _btConnected ? '#22c55e' : '#ef4444';
+  if (dot) dot.style.background = _btConnected ? '#22c55e' : '#ef4444';
+  // Tampilkan tombol "Sambung" hanya jika ada printer tersimpan dan belum terhubung
+  var quickBtn = document.getElementById('btnPrinterQuickConnect');
+  if (quickBtn) {
+    var hasSaved = !!localStorage.getItem('koneo_printer_name');
+    quickBtn.style.display = (!_btConnected && hasSaved) ? 'inline-flex' : 'none';
+  }
+}
+
+// Reconnect cepat tanpa scan — pakai device yang sudah pernah di-pair
+async function btQuickReconnect() {
+  var btn = document.getElementById('btnPrinterQuickConnect');
+  if (btn) { btn.textContent = 'Menyambung...'; btn.disabled = true; }
+  var ok = await btAutoReconnect();
+  if (!ok) {
+    // Fallback: buka modal untuk scan manual
+    if (btn) { btn.innerHTML = '<i class="ti ti-bluetooth"></i> Sambung'; btn.disabled = false; }
+    openPrinterModal();
+  }
 }
 
 function openPrinterModal() {
@@ -2207,26 +2227,30 @@ function btDisconnect() {
 
 // Auto-reconnect: pakai device yang sudah pernah di-pair sebelumnya
 async function btAutoReconnect() {
-  if (_btConnected || !navigator.bluetooth || !navigator.bluetooth.getDevices) return;
+  if (_btConnected) return true;
+  if (!navigator.bluetooth) return false;
   var savedName = localStorage.getItem('koneo_printer_name');
-  if (!savedName) return;
+  if (!savedName) return false;
   try {
-    var devices = await navigator.bluetooth.getDevices();
+    var devices = [];
+    if (navigator.bluetooth.getDevices) {
+      devices = await navigator.bluetooth.getDevices();
+    }
     var device = devices.find(function(d) { return d.name === savedName; });
-    if (!device) return;
+    if (!device) return false;
     var server = await device.gatt.connect();
     var char = null;
     for (var si = 0; si < BT_SERVICES.length; si++) {
       try {
         var svc = await server.getPrimaryService(BT_SERVICES[si]);
         for (var ci = 0; ci < BT_CHARS.length; ci++) {
-          try { char = await svc.getCharacteristic(BT_CHARS[ci]); if (char) break; } catch(e) {}
+          try { char = await svc.getCharacteristic(BT_CHARS[ci]); if (char) break; } catch(e2) {}
         }
         if (!char) { var all = await svc.getCharacteristics(); if (all.length) char = all[0]; }
         if (char) break;
-      } catch(e) {}
+      } catch(e3) {}
     }
-    if (!char) return;
+    if (!char) return false;
     _btDevice = device;
     _btChar = char;
     _btConnected = true;
@@ -2234,14 +2258,15 @@ async function btAutoReconnect() {
       _btConnected = false;
       _btChar = null;
       updatePrinterDot();
-      showKasirToast('Printer terputus — menyambung ulang...');
+      showKasirToast('Printer terputus');
       setTimeout(btAutoReconnect, 3000);
     });
     updatePrinterDot();
-    showKasirToast('✅ Printer terhubung otomatis: ' + savedName);
+    showKasirToast('✅ Printer: ' + savedName);
     renderPrinterModal();
+    return true;
   } catch(e) {
-    // Silent fail — tidak ganggu user
+    return false;
   }
 }
 
