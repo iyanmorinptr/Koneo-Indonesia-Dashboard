@@ -1432,20 +1432,28 @@ function closeLaporanPreview() {
 }
 
 function printLaporanPreview() {
-  var laporan = document.getElementById('laporanPreviewModal')._laporan;
-  if (!laporan) return;
+  var modal = document.getElementById('laporanPreviewModal');
+  var laporan = modal ? modal._laporan : null;
+  if (!laporan) { showKasirToast('Data laporan tidak ditemukan.'); return; }
+  if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+
+  function doPrint() {
+    _btPrinting = true;
+    btPrintLaporanKasir(laporan)
+      .then(function() { showKasirToast('✅ Laporan tercetak'); })
+      .catch(function(e) { showKasirToast('❌ Print gagal: ' + (e && e.message ? e.message : e)); })
+      .finally(function() { _btPrinting = false; });
+  }
+
   if (!_btConnected) {
     showKasirToast('Menyambung ke printer...');
     btAutoReconnect().then(function(ok) {
-      if (ok) {
-        printTutupKasirLaporan(laporan);
-      } else {
-        showKasirToast('Printer tidak tersambung. Sambung dulu via tombol Sambung.');
-      }
+      if (ok) { doPrint(); }
+      else { showKasirToast('❌ Printer tidak tersambung.'); }
     });
-    return;
+  } else {
+    doPrint();
   }
-  printTutupKasirLaporan(laporan);
 }
 
 function printLaporanSaja() {
