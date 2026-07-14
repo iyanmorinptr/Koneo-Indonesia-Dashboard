@@ -989,11 +989,11 @@ function formatGateModalAwal(el) {
 
 function formatTutupCash(el) {
   var digits = el.value.replace(/\D/g, '');
-  if (digits === '') { el.value = ''; return; }
-  var num = parseInt(digits) || 0;
-  var formatted = kasirFmtRp(num);
-  el.value = formatted;
-  try { el.setSelectionRange(formatted.length, formatted.length); } catch(e) {}
+  el.value = digits;
+  var preview = document.getElementById('tutupCashPreview');
+  if (preview) {
+    preview.textContent = digits !== '' ? kasirFmtRp(parseInt(digits)) : '';
+  }
 }
 
 // ===== INIT =====
@@ -1245,7 +1245,8 @@ function openTutupKasirModal() {
     modalAwal: _kasirModalAwal || 0,
     openedBy: _kasirOpenedBy || '',
     openedAt: _kasirOpenedAt || '',
-    totalTrx: nonRefunded.length
+    totalTrx: nonRefunded.length,
+    trxList: nonRefunded
   };
 
   document.getElementById('tutupKasirModal').classList.add('active');
@@ -1318,7 +1319,8 @@ function closeTutupKasir() {
     totalPemasukan: data.totalPemasukan,
     penjualanBersih: data.penjualanBersih,
     totalCash: cash,
-    selisih: selisih
+    selisih: selisih,
+    trxList: data.trxList || []
   };
 
   // Save to localStorage
@@ -1348,12 +1350,7 @@ function closeTutupKasir() {
 }
 
 function openLaporanPreview(laporan) {
-  var trxList = getTrxList();
-  var today = laporan.closedAt ? laporan.closedAt.substring(0, 10) : new Date().toISOString().substring(0, 10);
-  var todayTrx = trxList.filter(function(t) {
-    var ts = t.tanggal || t.timestamp || '';
-    return ts.startsWith(today) && !t.refunded;
-  });
+  var todayTrx = laporan.trxList || [];
 
   var totalPemasukan = laporan.totalPemasukan || ((laporan.tunai||0)+(laporan.debit||0)+(laporan.qris||0));
   var penjualanBersih = laporan.penjualanBersih || (totalPemasukan - (laporan.pajak||0));
@@ -2928,6 +2925,7 @@ async function btTestPrint() {
         <input type="text" inputmode="numeric" pattern="[0-9]*" class="modal-input" id="tutupCashInput" placeholder="0"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           oninput="formatTutupCash(this);onCashRealInput()" style="font-size:18px;font-weight:700;text-align:right;">
+        <div id="tutupCashPreview" style="text-align:right;font-size:13px;color:#6b7280;margin-top:4px;min-height:18px;"></div>
       </div>
 
       <!-- STEP 2: Summary + balance — tersembunyi sampai cash diisi -->
