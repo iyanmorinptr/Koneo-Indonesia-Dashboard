@@ -2086,7 +2086,8 @@ function renderRiwayatList() {
     var jam = ts ? new Date(ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-';
     var items = (t.items||[]).map(function(i){ return i.nama + ' x' + i.qty; }).join(', ');
     var isRefunded = !!t.refunded;
-    return '<div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;opacity:' + (isRefunded?'0.55':'1') + ';">' +
+    var tid = (t.id||'').replace(/'/g, '');
+    return '<div onclick="openTrxDetail(\'' + tid + '\')" style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;opacity:' + (isRefunded?'0.55':'1') + ';cursor:pointer;transition:background 0.15s;" onmouseenter="this.style.background=\'#f9fafb\'" onmouseleave="this.style.background=\'\'">' +
       '<div style="min-width:36px;text-align:center;">' +
         '<div style="font-size:11px;font-weight:700;color:#093a72;">' + jam + '</div>' +
         '<div style="font-size:10px;font-weight:600;color:#6b7280;">' + (t.metode==='tunai'?'Cash':t.metode==='debit'?'Debit':'QRIS') + '</div>' +
@@ -2100,10 +2101,92 @@ function renderRiwayatList() {
         '<div style="font-size:14px;font-weight:800;color:' + (isRefunded?'#dc2626':'#093a72') + ';">' + fmtRp(t.total) + '</div>' +
         (isRefunded
           ? '<div style="font-size:10px;font-weight:700;color:#dc2626;">REFUNDED</div>'
-          : '<button onclick="doRefund(\'' + (t.id||'') + '\')" style="margin-top:4px;padding:3px 12px;font-size:11px;font-weight:700;background:#fee2e2;color:#dc2626;border:none;border-radius:50px;cursor:pointer;">Refund</button>') +
+          : '<div style="font-size:10px;color:#9ca3af;margin-top:2px;">Tap detail</div>') +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+var _trxDetailCurrent = null;
+
+function openTrxDetail(trxId) {
+  var t = getTrxList().find(function(x){ return x.id === trxId; });
+  if (!t) return;
+  _trxDetailCurrent = t;
+  var ts = t.timestamp || t.tanggal || '';
+  var d = ts ? new Date(ts) : new Date();
+  var tgl = d.toLocaleDateString('id-ID', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  var jam = d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  var metodeLabel = t.metode === 'tunai' ? 'Cash' : t.metode === 'debit' ? 'Debit' : 'QRIS';
+  var isRefunded = !!t.refunded;
+  var itemsHTML = (t.items||[]).map(function(i) {
+    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f3f4f6;">' +
+      '<div><span style="font-weight:600;">' + (i.nama||'') + '</span>' +
+      (i.stasiun ? ' <span style="font-size:10px;color:#6b7280;background:#f3f4f6;padding:1px 6px;border-radius:10px;">' + i.stasiun + '</span>' : '') +
+      '<br><span style="font-size:11px;color:#9ca3af;">x' + i.qty + ' \xd7 ' + fmtRp(i.harga) + '</span></div>' +
+      '<span style="font-weight:700;color:#093a72;">' + fmtRp(i.harga * i.qty) + '</span></div>';
+  }).join('');
+  var body =
+    '<div style="background:#f9fafb;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#374151;">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span>No. Transaksi</span><span style="font-weight:700;">' + (t.id||'').slice(-8).toUpperCase() + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span>Tanggal</span><span>' + tgl + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span>Jam</span><span>' + jam + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span>Pelanggan</span><span>' + (t.pelanggan||'-') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span>Kasir</span><span>' + (t.kasir||'-') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;"><span>Metode</span><span style="font-weight:700;">' + metodeLabel + '</span></div>' +
+    '</div>' +
+    '<div style="margin-bottom:12px;">' + itemsHTML + '</div>' +
+    '<div style="border-top:2px solid #e5e7eb;padding-top:10px;">' +
+      (t.pajak ? '<div style="display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-bottom:4px;"><span>Pajak</span><span>' + fmtRp(t.pajak) + '</span></div>' : '') +
+      (t.diskon ? '<div style="display:flex;justify-content:space-between;font-size:12px;color:#dc2626;margin-bottom:4px;"><span>Diskon</span><span>-' + fmtRp(t.diskon) + '</span></div>' : '') +
+      '<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#093a72;"><span>TOTAL</span><span>' + fmtRp(t.total) + '</span></div>' +
+    '</div>' +
+    (isRefunded ? '<div style="margin-top:10px;padding:8px 12px;background:#fee2e2;border-radius:8px;font-size:12px;color:#dc2626;font-weight:700;">SUDAH DIREFUND' + (t.refundNote ? ': ' + t.refundNote : '') + '</div>'
+      : '<div style="margin-top:10px;"><button onclick="doRefund(\'' + (t.id||'') + '\');closeTrxDetail();" style="width:100%;padding:8px;font-size:12px;font-weight:700;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;cursor:pointer;">Refund Transaksi Ini</button></div>');
+  document.getElementById('trxDetailBody').innerHTML = body;
+  document.getElementById('trxDetailModal').classList.add('active');
+}
+
+function closeTrxDetail() {
+  document.getElementById('trxDetailModal').classList.remove('active');
+  _trxDetailCurrent = null;
+}
+
+async function printTrxDetail(type) {
+  var t = _trxDetailCurrent;
+  if (!t) return;
+  if (type === 'customer') {
+    if (_btConnected) {
+      if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+      _btPrinting = true;
+      showKasirToast('Mencetak struk customer...');
+      btPrintStruk(t).then(function(){ showKasirToast('✅ Struk tercetak'); }).catch(function(e){ showKasirToast('❌ Print gagal: ' + e.message); }).finally(function(){ _btPrinting = false; });
+    } else {
+      var html = buildStrukHTML(t);
+      var popup = window.open('','_blank','width=360,height=620');
+      if (!popup) { showKasirToast('Pop-up diblokir browser'); return; }
+      popup.document.write('<html><head><title>Struk Koneo</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:monospace;font-size:12px;padding:4mm;width:58mm;}@media print{@page{size:58mm auto;margin:0;}}</style></head><body>' + html + '<\/body><\/html>');
+      popup.document.close();
+      popup.onload = function(){ popup.print(); popup.onafterprint = function(){ popup.close(); }; };
+    }
+  } else {
+    var station = type;
+    var hasStation = (t.items||[]).some(function(i){ var s=(i.stasiun||'').toLowerCase(); return s===station||s==='keduanya'; });
+    if (!hasStation) { showKasirToast('Tidak ada item untuk ' + (station==='bar'?'Bar':'Kitchen')); return; }
+    if (_btConnected) {
+      if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+      _btPrinting = true;
+      showKasirToast('Mencetak checker ' + station + '...');
+      btPrintChecker(t, station).then(function(){ showKasirToast('✅ Checker ' + (station==='bar'?'Bar':'Kitchen') + ' tercetak'); }).catch(function(e){ showKasirToast('❌ Print gagal: ' + e.message); }).finally(function(){ _btPrinting = false; });
+    } else {
+      var checkerHtml = buildCheckerHTML(t, station);
+      var popup2 = window.open('','_blank','width=400,height=600');
+      if (!popup2) { showKasirToast('Pop-up diblokir browser'); return; }
+      popup2.document.write('<html><head><title>Checker ' + station + '</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:system-ui,sans-serif;font-size:12px;}@media print{@page{size:80mm auto;margin:4mm;}}</style></head><body>' + checkerHtml + '<\/body><\/html>');
+      popup2.document.close();
+      popup2.onload = function(){ popup2.print(); popup2.onafterprint = function(){ popup2.close(); }; };
+    }
+  }
 }
 
 function doRefund(trxId) {
@@ -2550,6 +2633,24 @@ async function btTestPrint() {
   }
 }
 </script>
+
+<!-- ===== DETAIL TRANSAKSI MODAL ===== -->
+<div id="trxDetailModal" class="modal-overlay" style="display:none;z-index:1200;">
+  <div class="modal-box" style="max-width:420px;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+    <div class="modal-header" style="padding:16px 20px;flex-shrink:0;">
+      <div class="modal-title">Detail Transaksi</div>
+      <button onclick="closeTrxDetail()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#6b7280;">&#x2715;</button>
+    </div>
+    <div id="trxDetailBody" style="flex:1;overflow-y:auto;padding:16px 20px;font-size:13px;"></div>
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px;padding:12px 16px;border-top:1px solid #e5e7eb;flex-shrink:0;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeTrxDetail()" style="flex:1;min-width:70px;">Tutup</button>
+      <button class="modal-btn modal-btn-green" onclick="printTrxDetail('customer')" style="flex:2;min-width:110px;"><i class="ti ti-receipt"></i> Print Customer</button>
+      <button class="modal-btn" onclick="printTrxDetail('bar')" style="flex:1;min-width:70px;background:#f97316;color:#fff;border:none;"><i class="ti ti-glass"></i> Bar</button>
+      <button class="modal-btn" onclick="printTrxDetail('kitchen')" style="flex:1;min-width:70px;background:#dc2626;color:#fff;border:none;"><i class="ti ti-tools-kitchen-2"></i> Kitchen</button>
+    </div>
+  </div>
+</div>
+<style>#trxDetailModal.active { display:flex !important; }</style>
 
 <!-- ===== RIWAYAT & REFUND MODAL ===== -->
 <div id="riwayatModal" class="modal-overlay" style="display:none;z-index:1100;">
