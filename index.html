@@ -2804,6 +2804,9 @@ function _syncRefreshUI() {
       else if (id === 'tab-manager-todo') buildManagerTodoTab();
       else if (id === 'tab-manager-pengumuman') buildPengumumanTab();
       else if (id === 'tab-kasir-riwayat') buildKasirRiwayatTab();
+      else if (id === 'tab-kasir-laporan') buildKasirLaporanTab();
+      else if (id === 'tab-kasir-laporan-produk') buildKasirLaporanProdukTab();
+      else if (id === 'tab-absensi') { try { buildAbsensiTab(); } catch(e) {} }
       else if (id === 'tab-beranda') renderBerandaWidgets();
     }
   } catch(e) {}
