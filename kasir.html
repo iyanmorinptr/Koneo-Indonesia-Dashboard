@@ -1333,8 +1333,20 @@ function initKasir() {
   renderKasirCart();
   updateKasirTotal();
   initCartListener();
+  // Tampilkan tombol Sambung segera jika ada printer tersimpan
+  updatePrinterDot();
   // Auto-reconnect printer jika sudah pernah dipasangkan
-  setTimeout(btAutoReconnect, 1500); // Pasang listener cart SEKALI saja
+  setTimeout(function() {
+    var btn = document.getElementById('btnPrinterQuickConnect');
+    if (btn && btn.style.display !== 'none') {
+      btn.innerHTML = '<i class="ti ti-bluetooth"></i> Menyambung...';
+      btn.disabled = true;
+    }
+    btAutoReconnect().then(function(ok) {
+      if (btn) { btn.innerHTML = '<i class="ti ti-bluetooth"></i> Sambung'; btn.disabled = false; }
+      if (!ok) updatePrinterDot();
+    });
+  }, 1500);
 
   // Event delegation untuk klik produk — button + click lebih reliable di tablet
   if (!_gridListenerAttached) {
@@ -2070,8 +2082,8 @@ function doRefund(trxId) {
 }
 
 // ===== LOGO DATA =====
-window._KONEO_LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACPCAYAAAB9NdDOAAABWGlDQ1BJQ0MgUHJvZmlsZQAAeJx9kLFLw1AQxr9WpaB1EB0cHDKJQ5SSCro4tBVEcQhVweqUvqapkMZHkiIFN/+Bgv+BCs5uFoc6OjgIopPo5uSk4KLleS+JpCJ6j+N+fO+74zggOW5wbvcDqDu+W1zKK5ulLSX1jAS9IAzm8Zyur0r+rj/j/T703k7LWb///43Biukxqp+UGcZdH0ioxPqezyXvE4+5tBRxS7IV8onkcsjngWe9WCC+JlZYzagQvxCr5R7d6uG63WDRDnL7tOlsrMk5lBNYxA48cNgw0IQCHdk//LOBv4BdcjfhUp+FGnzqyZEiJ5jEy3DAMAOVWEOGUpN3ju53F91PjbWDJ2ChI4S4iLWVDnA2Rydrx9rUPDAyBFy1ueEagdRHmaxWgddTYLgEjN5Qz7ZXzWrh9uk8MPAoxNskkDoEui0hPo6E6B5T8wNw6XwBA6diE8HYWhMAAAQUSURBVHja7d3bjqwgEEBRNf3/v8w8mXSM016aRqha++kkZ1oQtsVFhHmapjJN01RKmSegAfM8l/Xfi+LAkxAQBAQBAQKCgEBTXorgHu9TCSumsgjYVLijvyEkAZuId/RbIhKwmXRH1yMjAZuJJyoSsBvxiLjPQr728m3TfzoPBFTxU1YJXxnF6z1vmZrlhXzyKQKq0LTRcCGf/BNQ5aWVcCGfUTsBVVTaB2tROe6TgCol7f0uKsN9E5B8ae/fNyEgoOiXtxwWhU5CApIvbbnoA5KQgKKfQQj5REECQgT0VIuCBIQI6GkWBQkIEdBTLAqKgBABgXwCan7jl6MICAKCgAABQUAdZxAQBEQwem1RCAgCgoAAAZGPcHtEZ9hh3vZsAAGhCe6kqc12wEspZd67Z1tzPNTPy3rgX4Ry0ASDgEa/ee9XBAQBWzDS+SGZzhBOs0FlKWVeR49nf19LgivpzfNc1ry2KJfH63Kapu6mMM4UZK387qX1y7LYplczrZblViuf6Q6sfrpCsk4ZhesDWrIfozwc00C+R3lFKfyMTZujulSG+yUgCAgQEAQEIgh4d0SbZSBy9z57nCkQAUHAUZ7WvUg0ysqVXsszXARsJcM2nafSFQETPrX/SdCrHD23Jt1HwN7WxR1duzcJe+/KDPEueC3E7IsPrtz/KO/Gh1qMsC3UTxWyrizOIt+o9zr0apinC73lR+FRV/uYB6wkhJXOCSNgb1GXhAT82HcaSZAsC22XLPKNNIp+z2f0b4SXqOKNNll8lL+oIqZ8FddjZZ7Nk1dxg8vXm4h38mCL3gDyPS3it2lGkfCVXb6WI+ba0kR427OQz/0TEGmxNccOv2rWfnXdkaOgCAgC6vvlLQ8REATs7Wn/1fVHzTcBA0iuy7CP9YAfRqvfTkzv/Z6ImzKaOtyk/MlIslcO36RZ+3p30+y1DkXAABVqEAIQEAQECAgCBhoBj5jOSFM9IuBDI10jawI+LgMJCQgCjo1XawQcUqJMp6ITUCQjIEDAylFw/fvMOxt8i9Uw/8gxwofpIiBRySUC/j4SbrfA+LSFWst9owmYSMSzMpFOEwwCAgQEAeti9QgB4UHNPQoWBUVAgICIQZqJ6FrveK9e58zEdOZuxSuqaO8Ve/cAmE9i7O1QX3uX/W2eIoqa/lXclUOv9xYgHEmxvku+ItHRMWORRAzbB7yzxVopZb5auS2+VY7cRIcVcPvNxdE2ae///8sVLWu+/vsm5EyeCDhoNKx5nVqSZl89k6IP+M2RVkcnpN9Zlm8yPUkf8ChK1RDh6jXuphk1UoaPgO+DkU+R8NtteM8Odo6mVo6iarTouUQUbq+S/qu4oya2VlNdI0pGbLqH26QcMfrkqUbB0AQDBAQBAQKiH/4A5BV4M0bGX4gAAAAASUVORK5CYII=';
-window._MIPO_LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIIAAACiCAYAAACNrxXLAAACXUlEQVR42u3d0U6DMBSAYQ/Z+7/y8YpsIYMxaEs7vv9SjdL2k3a4xMjMP2kyBQJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgECQSBIBAEgkAQCKoFISIyIi79f8I9XMOtIbxO/lUL0cM1uCNsLEprBOrsjNBqcSAY4LBYe5EgGOhVQ63FgqBzCJkZmRk1F+3d91v+THX6HKEUBggGg/Bucc5igKBdj5LfLDNjuXgRkaUWrwcEr+Pbwv/6ua2P7R3f8utLz0XxraHUnaH2wGtsW3sfcq19bu1J6drHSp7FqpwRzi7aCAhKztXywL0G6tPXdnlYPPpK4m4Ijm5D3W8NZzCMjKDmc44W8zC1Vr+1P46EYL6+M9c97/PL/f7bsZdAOLWctD2HrLu/RDwy9hLzNV01wHnxR0awvCscXcR3h8BW205zCHvuDHe7E3wa7zfPFc72uGLwnhg+F3PvuNcWvtS8TT38JoyMYL72Wnv71pZRct4iMw9JLnExZx8/l7oOXfwuZosHgkAQCAJBIAgEgSAQBIJA0Mg9fmUg/u5wwR2hl4m+8o0cv9ahvz72fDdwV7gxBDksCgSBIBAEgkAQCAJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgEgSAQBIJAEAgSCAJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgEddY/XwYzTkM0ab4AAAAASUVORK5CYII=';
+window._KONEO_LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARgAAACMCAAAAACCZemxAAADMElEQVR42u3d246lIBCF4V7E93/lNRedTPogShUF2snP1WRvxfKjQGDbGfmDclYaBMAAAwwwwAADDDDAAAMMBRhggAEGGGCAAQYYYIChAAMMMMAAAwwwwAADDDAUYIABprIcfyxe/f5ozXun8p9GWYd0pEJz1V16iZ33ZowKW0aZmjR+qDdnzIJOocub0LIxJAyjAnaFzu8krcboVgV3XKRrZmDWSHMrWpHLE/Xz367oSkodooHE2fRkPI3OG8YYdT/3C2QUDC4383Uso5SIutZKigZ3VPUkrU8J3/mpp3od3GkjHDWTAU12lqScxwLORNdKepLWJtz/69qZlktF1ypSQiXRPbjEuh98lUqY58KvqljZjNH8Pem1KXV69RY/zck7ekYmW+uxoHK/IwnOQ/DgXbVw5XcjzJcnh72lcZMPVPvq4m3aRVcjs2cnwMUs44/7Vp0vU08wre1JDjxf72CkSbeo5FtGoyM7dK25y9jSQLFre2z5dQpjTbCML/2+Vvn9e3m+xZ2Vy66VPHuABkbEgmFG0vw9tUKXF60N5itpb3DZQu5FME4fEj3zBfPlAIzXpvX7ZNrOnu+AjHZ3tWxXkjYOAVrYBPWPa21M8blLuSDFQr8rLf3958dEb1NydN8uiL4G4nWNb+3vMDUz37vb1OR9vOodphYNrmKgcY1MwZaGMhnjzxKQ0SykizGcP/S+K/2yUbKdnu4pCrVaGyH8QaOXzD9USOXk4Du6NaD+1McLxo25aaPWLiIvskmLcyZa/7cpqq4XHer+fHY56voqPJ997OGRR5dYCsrq/GvdNccxPs11bwdOtX3fc+ffTM81mKYtl+ZLJ6muHIScPKYVjH7xPazVPzYUVNY+ClLG1cHtnfK4YK2U2730XKyeqyy3RGu94zp7Gp1v08OCN+SMM9+WbbEoduX7PxMZmzcM3qfCaIV7Typu+v5L/4krhU8p3ZRTcY/QwBuqXhRc9W7l05v7ZcGJ/8miYh4DDAUYYIABBhhggAEGGGCAAYYCDDDAAAMMMMAAAwwwwFCAAQYYYIABBhhggAEGGAowwAADDDDAAAMMMMAAQwEGmHD5Bzt+4RG4Ea5WAAAAAElFTkSuQmCC';
+window._MIPO_LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAB4CAAAAADp3SD7AAACT0lEQVR42u3a23aDIBQEUIbl///y9KVpjQLCEcjBjC9tsiKyHW6SgOG7jhgEFlhggQUWWGCBBRZYYIEFFlhggQUWWGCBBf7gsb29Qgihx0Z1r3KmJIw+3iWaNPpUF57VsX9AcN2HY/cq+/ZmRmk81publvBUb3YexkO9+YUHnuktrLTwSG9paYknelNgGgE4FbBKwjbxGt50k7aIF/Fm+nC7eBVvbtBqFS/jzY7SbRVfx5ufltgQ8ULewjzM1m68hLe08KgWw6EXuVpvpcB+TwLnenEobvca7/8l2xb+/7Ap4cqMR+UL44dRzjmGm+Lx7RlNH8LFydvFMHTVqj/af7mrAphs/qeax6oys7d5pLe2TZOHc37fIBtH6Qqxk/GZmQqm3o/hhnigl6bBC9e1icEunpYvO0Yf7Z1quBemu8JwN+HMo9Ngr2ktf29pWRZP3MBiGYqmqmx1l3yVCc58QALro2XPhM8ZT3sgxN1WYAQfxDO8bLjGae1xt0kfWvW8fNkhVhqnJZ4fQcYvsPp/VR0NbWySl8ZT0KUPJ2owaQFNe66plWY0X9vlBhZ3nQ7JlXW03m16zPbvHABIlxGNdeDczKyfZ7gJfpXgeEN2NyentgBw3u/j9ZDAmlHD503ZpvQsR4d+TSuwwAILLLDAAgsssMACCyywwAILLLDAAgv8VDC+LmGX4m1EoSz/RvvZfRhwDO6WhuPvn+Kpouwt9hUxRoUBp3kP68Okz/YNrl2+u1Ha3fClpaXAAgsssMACCyywwAILLLDAAgss8PLHDyZ6iv6TRj2cAAAAAElFTkSuQmCC';
 
 // ===== BLUETOOTH PRINTER =====
 var _btDevice = null;
@@ -2400,7 +2412,7 @@ async function btPrintStruk(trx) {
     var alignCenter = new Uint8Array([0x1B, 0x61, 0x01]);
     await btSend(alignCenter);
     if (window._KONEO_LOGO_B64) {
-      var logoBytes = await imgToEscPos(window._KONEO_LOGO_B64, 120);
+      var logoBytes = await imgToEscPos(window._KONEO_LOGO_B64, 200);
       if (logoBytes.length > 8) await btSend(logoBytes);
     }
     await btSend(new Uint8Array([0x0A])); // LF
@@ -2432,7 +2444,7 @@ async function btPrintStruk(trx) {
     if (window._MIPO_LOGO_B64) {
       var alignC2 = new Uint8Array([0x1B, 0x61, 0x01]);
       await btSend(alignC2);
-      var mipoBuf = await imgToEscPos(window._MIPO_LOGO_B64, 100);
+      var mipoBuf = await imgToEscPos(window._MIPO_LOGO_B64, 160);
       if (mipoBuf.length > 8) await btSend(mipoBuf);
     }
     await btSend(new Uint8Array([0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41, 0x00])); // feed+cut
