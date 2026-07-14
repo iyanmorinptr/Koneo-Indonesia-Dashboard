@@ -2044,7 +2044,7 @@ function renderRiwayatList() {
     return '<div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;opacity:' + (isRefunded?'0.55':'1') + ';">' +
       '<div style="min-width:36px;text-align:center;">' +
         '<div style="font-size:11px;font-weight:700;color:#093a72;">' + jam + '</div>' +
-        '<div style="font-size:11px;">' + (t.metode==='tunai'?'💵':'💳') + '</div>' +
+        '<div style="font-size:10px;font-weight:600;color:#6b7280;">' + (t.metode==='tunai'?'Cash':t.metode==='debit'?'Debit':'QRIS') + '</div>' +
       '</div>' +
       '<div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:600;color:#1a1a18;">' + (t.pelanggan||'-') + '</div>' +
