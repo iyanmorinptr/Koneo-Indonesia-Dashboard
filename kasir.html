@@ -963,7 +963,7 @@ body {
 
 <script>
 // ===== VERSION CHECK & CACHE BUST =====
-var _APP_VERSION = 'v20260714-096';
+var _APP_VERSION = 'v20260714-097';
 (function(){
   var stored = localStorage.getItem('_kasir_app_version');
   if (stored !== _APP_VERSION) {
@@ -1434,7 +1434,7 @@ function openLaporanPreview(laporan) {
       trxRows +
     '</div>';
 
-  document.getElementById('laporanPreviewModal')._laporan = laporan;
+  _lastLaporan = laporan;
   document.getElementById('laporanPreviewModal').classList.add('active');
 }
 
@@ -1444,28 +1444,14 @@ function closeLaporanPreview() {
 }
 
 function printLaporanPreview() {
-  var modal = document.getElementById('laporanPreviewModal');
-  var laporan = modal ? modal._laporan : null;
-  if (!laporan) { showKasirToast('Data laporan tidak ditemukan.'); return; }
-  if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
-
-  function doPrint() {
-    _btPrinting = true;
-    btPrintLaporanKasir(laporan)
-      .then(function() { showKasirToast('✅ Laporan tercetak'); })
-      .catch(function(e) { showKasirToast('❌ Print gagal: ' + (e && e.message ? e.message : e)); })
-      .finally(function() { _btPrinting = false; });
-  }
-
-  if (!_btConnected) {
-    showKasirToast('Menyambung ke printer...');
-    btAutoReconnect().then(function(ok) {
-      if (ok) { doPrint(); }
-      else { showKasirToast('❌ Printer tidak tersambung.'); }
-    });
-  } else {
-    doPrint();
-  }
+  if (!_lastLaporan) { showKasirToast('Data laporan tidak ditemukan.'); return; }
+  _btPrinting = false; // reset jika stuck
+  _btPrinting = true;
+  showKasirToast('Mencetak laporan...');
+  btPrintLaporanKasir(_lastLaporan)
+    .then(function() { showKasirToast('✅ Laporan tercetak'); })
+    .catch(function(e) { showKasirToast('❌ Gagal: ' + (e && e.message ? e.message : String(e))); })
+    .finally(function() { _btPrinting = false; });
 }
 
 function printLaporanSaja() {
@@ -2691,6 +2677,7 @@ async function btAutoReconnect() {
 
 // Kirim data ke printer via BLE dalam chunk
 var _btPrinting = false;
+var _lastLaporan = null;
 
 async function btSend(data) {
   if (!_btChar || !_btConnected) throw new Error('Printer tidak terhubung');
