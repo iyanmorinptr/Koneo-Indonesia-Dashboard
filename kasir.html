@@ -989,8 +989,9 @@ function formatGateModalAwal(el) {
 
 function formatTutupCash(el) {
   var digits = el.value.replace(/\D/g, '');
+  if (digits === '') { el.value = ''; return; }
   var num = parseInt(digits) || 0;
-  var formatted = num > 0 ? kasirFmtRp(num) : '';
+  var formatted = kasirFmtRp(num);
   el.value = formatted;
   try { el.setSelectionRange(formatted.length, formatted.length); } catch(e) {}
 }
@@ -1258,7 +1259,7 @@ function onCashRealInput() {
   var cashRaw = document.getElementById('tutupCashInput').value.replace(/\D/g, '');
   var detail = document.getElementById('tutupKasirDetail');
   var btn = document.getElementById('btnTutupKasirConfirm');
-  if (cashRaw && parseInt(cashRaw) >= 0) {
+  if (cashRaw !== '') {
     detail.style.display = 'block';
     btn.disabled = false; btn.style.background = '#E24B4A'; btn.style.cursor = 'pointer';
     hitungSelisih();
@@ -1314,6 +1315,8 @@ function closeTutupKasir() {
     pajak: data.pajak,
     diskon: data.diskon,
     totalTrx: data.totalTrx,
+    totalPemasukan: data.totalPemasukan,
+    penjualanBersih: data.penjualanBersih,
     totalCash: cash,
     selisih: selisih
   };
@@ -1339,12 +1342,102 @@ function closeTutupKasir() {
   _kasirOpenedAt = null;
   _kasirOpenedBy = '';
 
-  // Print
-  printTutupKasirLaporan(laporan);
-
-  // Close modal and go to gate
+  // Close input modal, show preview
   closeTutupKasirModal();
+  openLaporanPreview(laporan);
+}
+
+function openLaporanPreview(laporan) {
+  var trxList = getTrxList();
+  var today = laporan.closedAt ? laporan.closedAt.substring(0, 10) : new Date().toISOString().substring(0, 10);
+  var todayTrx = trxList.filter(function(t) {
+    var ts = t.tanggal || t.timestamp || '';
+    return ts.startsWith(today) && !t.refunded;
+  });
+
+  var totalPemasukan = laporan.totalPemasukan || ((laporan.tunai||0)+(laporan.debit||0)+(laporan.qris||0));
+  var penjualanBersih = laporan.penjualanBersih || (totalPemasukan - (laporan.pajak||0));
+  var cashSistem = (laporan.modalAwal||0) + (laporan.tunai||0);
+  var balanceText = laporan.selisih === 0 ? 'Balance (0)' : (laporan.selisih > 0 ? 'Lebih ' : 'Minus ') + kasirFmtRp(Math.abs(laporan.selisih||0));
+  var balanceColor = laporan.selisih === 0 ? '#15803d' : (laporan.selisih > 0 ? '#15803d' : '#dc2626');
+
+  var openedAtFmt = laporan.openedAt ? new Date(laporan.openedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-';
+  var closedAtFmt = laporan.closedAt ? new Date(laporan.closedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-';
+  var tglFmt = laporan.closedAt ? new Date(laporan.closedAt).toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}) : '-';
+
+  function rRow(label, val, color, bold) {
+    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">' +
+      '<span style="font-size:13px;color:#6b7280;">' + label + '</span>' +
+      '<span style="font-size:' + (bold?'14':'13') + 'px;font-weight:' + (bold?'700':'600') + ';color:' + (color||'#374151') + ';">' + val + '</span>' +
+    '</div>';
+  }
+
+  var trxRows = todayTrx.length === 0
+    ? '<div style="text-align:center;color:#9ca3af;padding:12px;font-size:13px;">Tidak ada transaksi</div>'
+    : todayTrx.map(function(t) {
+        var jam = t.tanggal ? new Date(t.tanggal).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-';
+        var metode = t.metode==='tunai'?'Cash':t.metode==='debit'?'Debit':'QRIS';
+        var metodeColor = t.metode==='tunai'?'#1D9E75':t.metode==='debit'?'#093a72':'#7c3aed';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6;">' +
+          '<div>' +
+            '<div style="font-size:13px;font-weight:600;color:#374151;">' + escHtml(t.pelanggan||'Umum') + '</div>' +
+            '<div style="font-size:11px;color:#9ca3af;">' + jam + ' &nbsp;·&nbsp; <span style="color:' + metodeColor + ';font-weight:600;">' + metode + '</span></div>' +
+          '</div>' +
+          '<div style="font-size:13px;font-weight:700;color:#374151;">' + kasirFmtRp(t.total||0) + '</div>' +
+        '</div>';
+      }).join('');
+
+  document.getElementById('laporanPreviewBody').innerHTML =
+    '<div style="font-size:13px;color:#6b7280;margin-bottom:4px;">' + tglFmt + '</div>' +
+    '<div style="font-size:12px;color:#6b7280;margin-bottom:12px;">Kasir: <b>' + escHtml(laporan.openedBy||'-') + '</b> &nbsp;|&nbsp; Buka: <b>' + openedAtFmt + '</b> &nbsp;|&nbsp; Tutup: <b>' + closedAtFmt + '</b></div>' +
+
+    '<div style="background:#f9fafb;border-radius:10px;padding:10px 14px;margin-bottom:8px;">' +
+      '<div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Modal</div>' +
+      rRow('Modal Awal', kasirFmtRp(laporan.modalAwal||0)) +
+    '</div>' +
+
+    '<div style="background:#f9fafb;border-radius:10px;padding:10px 14px;margin-bottom:8px;">' +
+      '<div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Pendapatan Kotor</div>' +
+      rRow('Pendapatan Tunai', kasirFmtRp(laporan.tunai||0), '#1D9E75') +
+      '<div style="display:flex;justify-content:space-between;padding:6px 0 0;"><span style="font-size:13px;font-weight:700;color:#093a72;">Pendapatan Non Tunai</span><span style="font-size:13px;font-weight:700;color:#093a72;">' + kasirFmtRp((laporan.debit||0)+(laporan.qris||0)) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:2px 0;padding-left:12px;"><span style="font-size:12px;color:#6b7280;">Debit</span><span style="font-size:12px;color:#6b7280;">' + kasirFmtRp(laporan.debit||0) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:2px 0 6px;padding-left:12px;"><span style="font-size:12px;color:#6b7280;">QRIS</span><span style="font-size:12px;color:#6b7280;">' + kasirFmtRp(laporan.qris||0) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1px solid #e5e7eb;"><span style="font-size:13px;font-weight:700;color:#374151;">Pendapatan Kotor</span><span style="font-size:14px;font-weight:800;color:#1D9E75;">' + kasirFmtRp(totalPemasukan) + '</span></div>' +
+    '</div>' +
+
+    '<div style="background:#f9fafb;border-radius:10px;padding:10px 14px;margin-bottom:8px;">' +
+      '<div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Pendapatan Bersih</div>' +
+      rRow('Total Pajak', kasirFmtRp(laporan.pajak||0), '#d97706') +
+      (laporan.diskon ? rRow('Total Diskon', kasirFmtRp(laporan.diskon||0), '#E24B4A') : '') +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1px solid #e5e7eb;"><span style="font-size:13px;font-weight:700;color:#374151;">Pendapatan Bersih</span><span style="font-size:14px;font-weight:800;color:#093a72;">' + kasirFmtRp(penjualanBersih) + '</span></div>' +
+      '<div style="font-size:12px;color:#9ca3af;padding-top:4px;">' + (laporan.totalTrx||0) + ' transaksi</div>' +
+    '</div>' +
+
+    '<div style="background:#f9fafb;border-radius:10px;padding:10px 14px;margin-bottom:8px;">' +
+      '<div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Cash</div>' +
+      rRow('Cash Sistem', kasirFmtRp(cashSistem)) +
+      rRow('Cash Real', kasirFmtRp(laporan.totalCash||0)) +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1px solid #e5e7eb;"><span style="font-size:13px;font-weight:700;color:#374151;">Balance</span><span style="font-size:14px;font-weight:800;color:' + balanceColor + ';">' + balanceText + '</span></div>' +
+    '</div>' +
+
+    '<div style="background:#f9fafb;border-radius:10px;padding:10px 14px;">' +
+      '<div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Transaksi Hari Ini (' + todayTrx.length + ')</div>' +
+      trxRows +
+    '</div>';
+
+  document.getElementById('laporanPreviewModal')._laporan = laporan;
+  document.getElementById('laporanPreviewModal').classList.add('active');
+}
+
+function closeLaporanPreview() {
+  document.getElementById('laporanPreviewModal').classList.remove('active');
   showGateScreen();
+}
+
+function printLaporanPreview() {
+  var laporan = document.getElementById('laporanPreviewModal')._laporan;
+  if (!laporan) return;
+  printTutupKasirLaporan(laporan);
 }
 
 function printLaporanSaja() {
@@ -2868,7 +2961,21 @@ async function btTestPrint() {
     </div>
     <div class="modal-footer">
       <button class="modal-btn modal-btn-cancel" onclick="closeTutupKasirModal()">Batal</button>
-      <button id="btnTutupKasirConfirm" class="modal-btn" style="background:#ccc;color:#fff;border:none;cursor:not-allowed;" disabled onclick="closeTutupKasir()"><i class="ti ti-lock"></i> Tutup Kasir &amp; Print</button>
+      <button id="btnTutupKasirConfirm" class="modal-btn" style="background:#ccc;color:#fff;border:none;cursor:not-allowed;" disabled onclick="closeTutupKasir()"><i class="ti ti-lock"></i> Tutup Kasir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LAPORAN PREVIEW MODAL ===== -->
+<div id="laporanPreviewModal" class="modal-overlay" style="display:none;z-index:1200;">
+  <div class="modal-box" style="max-width:500px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div class="modal-header">
+      <div class="modal-title">📋 Laporan Tutup Kasir</div>
+    </div>
+    <div class="modal-body" id="laporanPreviewBody" style="overflow-y:auto;flex:1;padding:16px;"></div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" onclick="closeLaporanPreview()">Tutup</button>
+      <button class="modal-btn" style="background:#E24B4A;color:#fff;border:none;" onclick="printLaporanPreview()"><i class="ti ti-printer"></i> Print Laporan</button>
     </div>
   </div>
 </div>
