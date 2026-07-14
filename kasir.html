@@ -1434,6 +1434,17 @@ function closeLaporanPreview() {
 function printLaporanPreview() {
   var laporan = document.getElementById('laporanPreviewModal')._laporan;
   if (!laporan) return;
+  if (!_btConnected) {
+    showKasirToast('Menyambung ke printer...');
+    btAutoReconnect().then(function(ok) {
+      if (ok) {
+        printTutupKasirLaporan(laporan);
+      } else {
+        showKasirToast('Printer tidak tersambung. Sambung dulu via tombol Sambung.');
+      }
+    });
+    return;
+  }
   printTutupKasirLaporan(laporan);
 }
 
