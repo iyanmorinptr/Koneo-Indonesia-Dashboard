@@ -1344,10 +1344,9 @@ function closeTutupKasir() {
   _kasirOpenedAt = null;
   _kasirOpenedBy = '';
 
-  // Close modal, go to gate, then print
+  // Close modal, show preview
   closeTutupKasirModal();
-  showGateScreen();
-  printTutupKasirLaporan(laporan);
+  openLaporanPreview(laporan);
 }
 
 function openLaporanPreview(laporan) {
@@ -2971,7 +2970,7 @@ async function btTestPrint() {
     </div>
     <div class="modal-footer">
       <button class="modal-btn modal-btn-cancel" onclick="closeTutupKasirModal()">Batal</button>
-      <button id="btnTutupKasirConfirm" class="modal-btn" style="background:#ccc;color:#fff;border:none;cursor:not-allowed;" disabled onclick="closeTutupKasir()"><i class="ti ti-lock"></i> Tutup Kasir &amp; Print</button>
+      <button id="btnTutupKasirConfirm" class="modal-btn" style="background:#ccc;color:#fff;border:none;cursor:not-allowed;" disabled onclick="closeTutupKasir()"><i class="ti ti-lock"></i> Tutup Kasir</button>
     </div>
   </div>
 </div>
