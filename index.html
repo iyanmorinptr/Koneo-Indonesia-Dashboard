@@ -4573,7 +4573,7 @@ function renderBerandaWidgets() {
   // ── TOMBOL ABSENSI ──────────────────────────────────────────────────────────
   (function() {
     var tgl = getLocalDateStr(new Date());
-    var empId = session ? session.email.split('@')[0].toLowerCase() : '';
+    var empId = getAbsensiEmpId();
     var data = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
     var rec = data[empId] || {};
     var statusText, btnHtml;
@@ -6807,7 +6807,7 @@ function updateAbsensi(tgl, empId, field, value) {
 function buildCheckinCard() {
   const session = getSession();
   const tgl = getLocalDateStr(new Date());
-  const empId = session ? session.email.split('@')[0].toLowerCase() : '';
+  const empId = getAbsensiEmpId();
   const data = JSON.parse(DB.getItem('koneo_absensi_' + tgl) || '{}');
   const rec = data[empId] || {};
   const statusEl = document.getElementById('absensi-checkin-status');
@@ -6835,11 +6835,32 @@ function isInRadius() {
   return haversineDistance(_absensiGpsCoords.lat, _absensiGpsCoords.lng, lokasi.lat, lokasi.lng) <= (lokasi.radius || 100);
 }
 
+
+function getAbsensiEmpId() {
+  const session = getSession();
+  if (!session) return '';
+  // Try to match by name to jadwal emp.id, fallback to email prefix
+  try {
+    const config = getJadwalConfig();
+    const allEmps = config.departments.flatMap(function(d) { return d.employees; });
+    const nama = (session.nama || '').toLowerCase().trim();
+    const emailPfx = session.email ? session.email.split('@')[0].toLowerCase() : '';
+    const match = allEmps.find(function(e) {
+      return e.name.toLowerCase().trim() === nama ||
+             e.id.toLowerCase() === emailPfx ||
+             e.id.toLowerCase() === nama;
+    });
+    return match ? match.id : emailPfx;
+  } catch(e) {
+    return session.email ? session.email.split('@')[0].toLowerCase() : '';
+  }
+}
+
 function doCheckin() {
   if (!isInRadius()) { showToast('Kamu belum berada di dalam radius kantor!'); return; }
   const session = getSession();
   const tgl = getLocalDateStr(new Date());
-  const empId = session ? session.email.split('@')[0].toLowerCase() : '';
+  const empId = getAbsensiEmpId();
   const now = new Date();
   const jam = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   updateAbsensi(tgl, empId, 'jamMasuk', jam);
@@ -6854,7 +6875,7 @@ function doCheckout() {
   if (!isInRadius()) { showToast('Kamu belum berada di dalam radius kantor!'); return; }
   const session = getSession();
   const tgl = getLocalDateStr(new Date());
-  const empId = session ? session.email.split('@')[0].toLowerCase() : '';
+  const empId = getAbsensiEmpId();
   const now = new Date();
   const jam = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   updateAbsensi(tgl, empId, 'jamKeluar', jam);
