@@ -4578,8 +4578,8 @@ function renderBerandaWidgets() {
     var rec = data[empId] || {};
     var statusText, btnHtml;
     if (rec.jamMasuk && rec.jamKeluar) {
-      statusText = '<span style="color:#1D9E75;font-weight:700;">✓ Sudah Check-in ' + rec.jamMasuk + ' & Check-out ' + rec.jamKeluar + '</span>';
-      btnHtml = '';
+      statusText = 'Check-in: <strong>' + rec.jamMasuk + '</strong> &nbsp;·&nbsp; Check-out: <strong>' + rec.jamKeluar + '</strong>';
+      btnHtml = '<button onclick="berandaDoCheckin()" style="padding:12px 28px;border-radius:12px;border:none;background:#093a72;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-fingerprint"></i> Check In Lagi</button>';
     } else if (rec.jamMasuk) {
       statusText = '<span style="color:#093a72;font-weight:700;">Check-in: ' + rec.jamMasuk + '</span> &nbsp;·&nbsp; Belum check-out';
       btnHtml = '<button onclick="berandaDoCheckout()" style="padding:12px 28px;border-radius:12px;border:none;background:#1D9E75;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;"><i class="ti ti-logout"></i> Check Out</button>';
@@ -6815,8 +6815,8 @@ function buildCheckinCard() {
   const btnOut = document.getElementById('btn-checkout');
   if (!statusEl) return;
   if (rec.jamMasuk && rec.jamKeluar) {
-    statusEl.textContent = `Sudah check-in ${rec.jamMasuk} & check-out ${rec.jamKeluar}`;
-    if (btnIn) btnIn.style.display = 'none';
+    statusEl.innerHTML = `Check-in: <strong>${rec.jamMasuk}</strong> &nbsp;·&nbsp; Check-out: <strong>${rec.jamKeluar}</strong>`;
+    if (btnIn) { btnIn.style.display = ''; btnIn.textContent = 'Check In Lagi'; }
     if (btnOut) btnOut.style.display = 'none';
   } else if (rec.jamMasuk) {
     statusEl.textContent = `Check-in: ${rec.jamMasuk} — Belum check-out`;
@@ -6843,6 +6843,7 @@ function doCheckin() {
   const now = new Date();
   const jam = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   updateAbsensi(tgl, empId, 'jamMasuk', jam);
+  updateAbsensi(tgl, empId, 'jamKeluar', '');
   updateAbsensi(tgl, empId, 'status', 'Hadir');
   showToast(`Check-in berhasil pukul ${jam}`);
   buildCheckinCard();
