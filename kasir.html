@@ -949,9 +949,10 @@ body {
     <div class="modal-body">
       <div class="struk-content" id="struktContent"></div>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn modal-btn-cancel" onclick="closeKasirStruk()">Tutup</button>
-      <button class="modal-btn modal-btn-green" onclick="printKasirStruk()">&#128424; Print</button>
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeKasirStruk()" style="flex:1;min-width:80px;">Tutup</button>
+      <button class="modal-btn modal-btn-green" onclick="printKasirStruk()" style="flex:2;min-width:120px;"><i class="ti ti-receipt"></i> Print Customer</button>
+      <button class="modal-btn" onclick="printCheckerOnly()" style="flex:2;min-width:120px;background:#f97316;color:#fff;border:none;"><i class="ti ti-chef-hat"></i> Print Checker</button>
     </div>
   </div>
 </div>
@@ -1710,7 +1711,6 @@ function confirmKasirPayment() {
   closeKasirPayment();
   clearKasirCart();
   showKasirStruk(trx);
-  autoPrintAfterPayment(trx);
 }
 
 // ===== STRUK =====
@@ -1816,7 +1816,33 @@ function buildCheckerHTML(trx, station) {
   '</div>';
 }
 
-// Auto-print setelah pembayaran: struk dulu, lalu checker bar & kitchen
+async function printCheckerOnly() {
+  var trx = kasirLastTrx;
+  if (!trx) return;
+  if (!_btConnected) { printKasirChecker(trx); return; }
+  if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+  _btPrinting = true;
+  try {
+    var hasBar = (trx.items||[]).some(function(i){ var s=(i.stasiun||'').toLowerCase(); return s==='bar'||s==='keduanya'; });
+    var hasKitchen = (trx.items||[]).some(function(i){ var s=(i.stasiun||'').toLowerCase(); return s==='kitchen'||s==='keduanya'; });
+    if (!hasBar && !hasKitchen) { showKasirToast('Tidak ada item bar/kitchen'); return; }
+    if (hasBar) {
+      showKasirToast('Mencetak checker bar...');
+      await btPrintChecker(trx, 'bar');
+      if (hasKitchen) await new Promise(function(r){ setTimeout(r, 1500); });
+    }
+    if (hasKitchen) {
+      showKasirToast('Mencetak checker kitchen...');
+      await btPrintChecker(trx, 'kitchen');
+    }
+    showKasirToast('✅ Checker tercetak');
+  } catch(e) {
+    showKasirToast('❌ Print gagal: ' + e.message);
+  } finally {
+    _btPrinting = false;
+  }
+}
+
 async function autoPrintAfterPayment(trx) {
   if (!_btConnected) {
     // Tidak ada printer BLE — checker via popup browser
