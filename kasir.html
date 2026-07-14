@@ -804,7 +804,11 @@ body {
       <a href="index.html" style="display:flex;align-items:center;gap:10px;padding:14px 18px;font-size:14px;font-weight:600;color:#093a72;text-decoration:none;"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
     </div>
     <div class="pos-header-logo" style="position:absolute;left:50%;transform:translateX(-50%);">KONEO <span>Indonesia</span></div>
-    <div class="pos-header-right">
+    <div class="pos-header-right" style="display:flex;align-items:center;gap:8px;">
+      <button id="btnPrinterConnect" onclick="openPrinterModal()" title="Koneksi Printer" style="background:none;border:none;color:#fff;cursor:pointer;padding:6px 8px;border-radius:8px;font-size:20px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;position:relative;" onmouseenter="this.style.background='rgba(255,255,255,0.15)'" onmouseleave="this.style.background='none'">
+        <i class="ti ti-printer"></i>
+        <span id="printerStatusDot" style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:1.5px solid #093a72;"></span>
+      </button>
       <span id="headerKasirLabel">Kasir</span>
     </div>
   </div>
@@ -921,6 +925,17 @@ body {
 
 <!-- ===== TOAST ===== -->
 <div id="kasir-toast"></div>
+
+<!-- ===== PRINTER MODAL ===== -->
+<div id="printerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)closePrinterModal()">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:24px 20px 32px;box-shadow:0 -4px 32px rgba(0,0,0,0.18);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-size:17px;font-weight:800;color:#093a72;"><i class="ti ti-printer"></i> Pengaturan Printer</div>
+      <button onclick="closePrinterModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#6b7280;line-height:1;">&times;</button>
+    </div>
+    <div id="printerModalContent"></div>
+  </div>
+</div>
 
 <!-- ===== FLOATING CART FAB (mobile) ===== -->
 
@@ -1802,6 +1817,11 @@ function buildCheckerHTML(trx, station) {
 }
 
 function printKasirChecker(trx) {
+  if (_btConnected) {
+    btPrintChecker(trx, 'bar');
+    setTimeout(function(){ btPrintChecker(trx, 'kitchen'); }, 800);
+    return;
+  }
   var stations = ['bar', 'kitchen'];
   stations.forEach(function(station) {
     var html = buildCheckerHTML(trx, station);
@@ -1817,9 +1837,11 @@ function printKasirChecker(trx) {
 }
 
 function printKasirStruk() {
+  if (_btConnected && kasirLastTrx) { btPrintStruk(kasirLastTrx); return; }
   var content = document.getElementById('struktContent').innerHTML;
   var popup = window.open('', '_blank', 'width=360,height=620');
-  popup.document.write('<html><head><title>Struk Koneo</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:system-ui,sans-serif;font-size:13px;padding:20px;max-width:300px;margin:0 auto;}table{width:100%;border-collapse:collapse;}@media print{@page{margin:8mm;}}</style></head><body>');
+  if (!popup) { showKasirToast('Pop-up diblokir browser'); return; }
+  popup.document.write('<html><head><title>Struk Koneo</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:monospace;font-size:12px;padding:4mm;width:58mm;}table{width:100%;border-collapse:collapse;}@media print{@page{size:58mm auto;margin:0;}}</style></head><body>');
   popup.document.write(content);
   popup.document.write('</body></html>');
   popup.document.close();
@@ -1977,6 +1999,291 @@ function doRefund(trxId) {
   saveTrxList(all);
   showKasirToast('✅ Refund berhasil');
   renderRiwayatList();
+}
+
+// ===== BLUETOOTH PRINTER =====
+var _btDevice = null;
+var _btChar = null;
+var _btConnected = false;
+
+// Service UUIDs yang umum dipakai printer thermal BLE (termasuk VSC RPP02N)
+var BT_SERVICES = [
+  '000018f0-0000-1000-8000-00805f9b34fb',
+  'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+  '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+  '0000ff00-0000-1000-8000-00805f9b34fb',
+];
+var BT_CHARS = [
+  '00002af1-0000-1000-8000-00805f9b34fb',
+  'bef8d6c9-9c21-4c9e-b632-bd58c1009f9f',
+  '49535343-8841-43f4-a8d4-ecbe34729bb3',
+  '0000ff02-0000-1000-8000-00805f9b34fb',
+  '0000ff01-0000-1000-8000-00805f9b34fb',
+];
+
+function updatePrinterDot() {
+  var dot = document.getElementById('printerStatusDot');
+  if (!dot) return;
+  dot.style.background = _btConnected ? '#22c55e' : '#ef4444';
+}
+
+function openPrinterModal() {
+  var m = document.getElementById('printerModal');
+  if (m) m.style.display = 'flex';
+  renderPrinterModal();
+}
+
+function closePrinterModal() {
+  var m = document.getElementById('printerModal');
+  if (m) m.style.display = 'none';
+}
+
+function renderPrinterModal() {
+  var el = document.getElementById('printerModalContent');
+  if (!el) return;
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  var hasBT = !!navigator.bluetooth;
+
+  if (isIOS) {
+    el.innerHTML = '<div style="background:#fef3c7;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#92400e;">'
+      + '<b>iOS tidak mendukung Web Bluetooth.</b><br>Untuk print di iOS, hubungkan printer Bluetooth melalui <b>Pengaturan iPhone → Bluetooth</b>, lalu gunakan tombol Print dan pilih printer dari dialog sistem.</div>'
+      + '<button onclick="closePrinterModal();printKasirStruk();" style="width:100%;padding:14px;background:#093a72;color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Print via Dialog Sistem</button>';
+    return;
+  }
+
+  if (!hasBT) {
+    el.innerHTML = '<div style="background:#fee2e2;border-radius:12px;padding:14px 16px;font-size:13px;color:#991b1b;">'
+      + 'Browser ini tidak mendukung Web Bluetooth.<br><b>Gunakan Chrome di Android.</b></div>';
+    return;
+  }
+
+  if (_btConnected) {
+    el.innerHTML = '<div style="display:flex;align-items:center;gap:10px;background:#f0fdf4;border-radius:12px;padding:14px 16px;margin-bottom:16px;">'
+      + '<span style="width:12px;height:12px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>'
+      + '<div><div style="font-weight:700;font-size:14px;color:#166534;">Terhubung</div>'
+      + '<div style="font-size:12px;color:#4b5563;">' + (_btDevice ? _btDevice.name || 'Printer' : 'Printer') + '</div></div></div>'
+      + '<button onclick="btTestPrint()" style="width:100%;padding:13px;background:#093a72;color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;"><i class="ti ti-printer"></i> Test Print</button>'
+      + '<button onclick="btDisconnect()" style="width:100%;padding:13px;background:#fff;color:#ef4444;border:1.5px solid #ef4444;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Putuskan Koneksi</button>';
+  } else {
+    el.innerHTML = '<div style="font-size:13px;color:#6b7280;margin-bottom:16px;line-height:1.6;">'
+      + '1. Nyalakan printer VSC RPP02N<br>'
+      + '2. Pastikan Bluetooth HP aktif<br>'
+      + '3. Tekan tombol di bawah untuk mencari printer</div>'
+      + '<button onclick="btConnect()" id="btnBtScan" style="width:100%;padding:14px;background:#093a72;color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-bluetooth"></i> Cari & Hubungkan Printer</button>'
+      + '<div id="btConnectStatus" style="margin-top:12px;font-size:13px;text-align:center;color:#6b7280;"></div>';
+  }
+}
+
+async function btConnect() {
+  var btn = document.getElementById('btnBtScan');
+  var status = document.getElementById('btConnectStatus');
+  if (btn) { btn.disabled = true; btn.textContent = 'Mencari printer...'; }
+  if (status) status.textContent = '';
+  try {
+    var device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: BT_SERVICES
+    });
+    if (status) status.textContent = 'Menghubungkan ke ' + (device.name || 'printer') + '...';
+    var server = await device.gatt.connect();
+    var char = null;
+    for (var si = 0; si < BT_SERVICES.length; si++) {
+      try {
+        var svc = await server.getPrimaryService(BT_SERVICES[si]);
+        for (var ci = 0; ci < BT_CHARS.length; ci++) {
+          try {
+            char = await svc.getCharacteristic(BT_CHARS[ci]);
+            if (char) break;
+          } catch(e) {}
+        }
+        if (!char) {
+          var allChars = await svc.getCharacteristics();
+          if (allChars.length) char = allChars[0];
+        }
+        if (char) break;
+      } catch(e) {}
+    }
+    if (!char) throw new Error('Karakteristik printer tidak ditemukan. Coba sambungkan ulang.');
+    _btDevice = device;
+    _btChar = char;
+    _btConnected = true;
+    device.addEventListener('gattserverdisconnected', function() {
+      _btConnected = false;
+      _btChar = null;
+      updatePrinterDot();
+      showKasirToast('Printer terputus');
+    });
+    updatePrinterDot();
+    showKasirToast('✅ Printer terhubung: ' + (device.name || 'printer'));
+    renderPrinterModal();
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-bluetooth"></i> Cari & Hubungkan Printer'; }
+    if (status) status.textContent = '❌ ' + (e.message || 'Gagal terhubung');
+  }
+}
+
+function btDisconnect() {
+  if (_btDevice && _btDevice.gatt.connected) _btDevice.gatt.disconnect();
+  _btConnected = false;
+  _btChar = null;
+  _btDevice = null;
+  updatePrinterDot();
+  renderPrinterModal();
+  showKasirToast('Printer diputus');
+}
+
+// Kirim data ke printer via BLE dalam chunk
+async function btSend(data) {
+  if (!_btChar || !_btConnected) throw new Error('Printer tidak terhubung');
+  var chunkSize = 512;
+  for (var i = 0; i < data.length; i += chunkSize) {
+    await _btChar.writeValueWithoutResponse(data.slice(i, i + chunkSize));
+    await new Promise(function(r){ setTimeout(r, 30); });
+  }
+}
+
+// ===== ESC/POS Builder untuk 58mm (32 char per baris) =====
+function escPos() {
+  var buf = [];
+  var LINE = 32;
+
+  function pushBytes() {
+    for (var i = 0; i < arguments.length; i++) buf.push(arguments[i]);
+  }
+
+  return {
+    init: function() { pushBytes(0x1B,0x40); return this; },
+    cut: function() { pushBytes(0x1D,0x56,0x41,0x00); return this; },
+    feed: function(n) { for(var i=0;i<(n||1);i++) pushBytes(0x0A); return this; },
+    align: function(a) { pushBytes(0x1B,0x61,a==='c'?1:a==='r'?2:0); return this; },
+    bold: function(on) { pushBytes(0x1B,0x45,on?1:0); return this; },
+    size: function(s) {
+      // s: 'normal'|'double'
+      pushBytes(0x1D,0x21,s==='double'?0x11:0x00);
+      return this;
+    },
+    text: function(str) {
+      for (var i=0;i<str.length;i++) {
+        var c = str.charCodeAt(i);
+        if (c < 128) buf.push(c);
+        else {
+          // UTF-8 encode
+          if (c < 2048) { buf.push(0xC0|(c>>6)); buf.push(0x80|(c&0x3F)); }
+          else { buf.push(0xE0|(c>>12)); buf.push(0x80|((c>>6)&0x3F)); buf.push(0x80|(c&0x3F)); }
+        }
+      }
+      return this;
+    },
+    line: function(str) { return this.text(str).feed(); },
+    divider: function() { return this.line('--------------------------------'); },
+    row: function(left, right) {
+      var r = right + '';
+      var l = left + '';
+      var spaces = LINE - l.length - r.length;
+      if (spaces < 1) spaces = 1;
+      return this.line(l + Array(spaces+1).join(' ') + r);
+    },
+    build: function() { return new Uint8Array(buf); }
+  };
+}
+
+function fmtRpPrint(n) {
+  return 'Rp' + Number(n||0).toLocaleString('id-ID');
+}
+
+function padCenter(str, width) {
+  str = str + '';
+  if (str.length >= width) return str.substring(0, width);
+  var pad = Math.floor((width - str.length) / 2);
+  return Array(pad+1).join(' ') + str;
+}
+
+async function btPrintStruk(trx) {
+  if (!_btConnected || !_btChar) { showKasirToast('Printer belum terhubung'); openPrinterModal(); return; }
+  try {
+    var d = new Date(trx.tanggal);
+    var tgl = d.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+    var jam = d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    var p = escPos()
+      .init()
+      .align('c').bold(true).size('double').line('KONEO').size('normal').bold(false)
+      .line('Indonesia')
+      .divider()
+      .align('l')
+      .line('No: ' + (trx.id||'').slice(-8).toUpperCase())
+      .row('Tgl:', tgl)
+      .row('Jam:', jam);
+    if (trx.pelanggan) p.row('Pelanggan:', trx.pelanggan);
+    p.row('Kasir:', trx.kasir||'-');
+    p.divider();
+    (trx.items||[]).forEach(function(item) {
+      p.line(item.nama)
+       .row('  '+item.qty+' x '+fmtRpPrint(item.harga), fmtRpPrint(item.qty*item.harga));
+    });
+    p.divider();
+    if (trx.diskon > 0) p.row('Diskon:', '-'+fmtRpPrint(trx.diskon));
+    if (trx.pajak > 0) p.row('Pajak:', fmtRpPrint(trx.pajak));
+    p.bold(true).row('TOTAL:', fmtRpPrint(trx.total)).bold(false);
+    p.row('Bayar ('+((trx.metodePembayaran||'tunai').toUpperCase())+')', fmtRpPrint(trx.bayar||trx.total));
+    if ((trx.bayar||0) > (trx.total||0)) p.row('Kembali:', fmtRpPrint((trx.bayar||0)-(trx.total||0)));
+    p.divider()
+     .align('c').line('Terima kasih!').line('Sampai jumpa lagi :)')
+     .feed(3).cut();
+    await btSend(p.build());
+    showKasirToast('✅ Struk terkirim ke printer');
+  } catch(e) {
+    showKasirToast('❌ Print gagal: ' + e.message);
+  }
+}
+
+async function btPrintChecker(trx, station) {
+  if (!_btConnected || !_btChar) return;
+  var items = (trx.items||[]).filter(function(i) {
+    var s = (i.stasiun||'-').toLowerCase();
+    return s === station || s === 'keduanya';
+  });
+  if (!items.length) return;
+  try {
+    var d = new Date(trx.tanggal);
+    var jam = d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    var label = station === 'bar' ? '*** BAR ORDER ***' : '*** KITCHEN ORDER ***';
+    var p = escPos()
+      .init()
+      .align('c').bold(true).size('double').line(label).size('normal').bold(false)
+      .divider()
+      .align('l')
+      .row('Order:', (trx.id||'').slice(-6).toUpperCase())
+      .row('Jam:', jam);
+    if (trx.pelanggan) p.row('Meja/Nama:', trx.pelanggan);
+    p.divider().bold(true);
+    items.forEach(function(item) {
+      p.line(item.qty + 'x  ' + item.nama);
+    });
+    p.bold(false).divider().feed(3).cut();
+    await btSend(p.build());
+  } catch(e) {
+    showKasirToast('❌ Checker gagal: ' + e.message);
+  }
+}
+
+async function btTestPrint() {
+  if (!_btConnected || !_btChar) { showKasirToast('Printer tidak terhubung'); return; }
+  try {
+    var p = escPos()
+      .init()
+      .align('c').bold(true).size('double').line('TEST PRINT').size('normal').bold(false)
+      .divider()
+      .line(padCenter('KONEO Indonesia', 32))
+      .line(padCenter('VSC RPP02N - OK', 32))
+      .divider()
+      .align('l').row('Status:', 'Terhubung')
+      .row('Kertas:', '58mm')
+      .feed(3).cut();
+    await btSend(p.build());
+    showKasirToast('✅ Test print berhasil');
+  } catch(e) {
+    showKasirToast('❌ Test gagal: ' + e.message);
+  }
 }
 </script>
 
