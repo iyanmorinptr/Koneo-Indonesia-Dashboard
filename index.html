@@ -3314,11 +3314,24 @@ function buildUserManagementCard() {
             <div style="font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email}</div>
           </div>
           ${roleBadge(u.role)}
+          <button onclick="resetUserPassword('${u.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:16px;transition:all 0.15s;" onmouseover="this.style.color='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Reset Password"><i class="ti ti-key"></i></button>
           <button onclick="hapusUser('${u.id}')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:6px 8px;border-radius:8px;font-size:16px;transition:all 0.15s;" onmouseover="this.style.color='var(--red)';this.style.background='var(--red-light)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'" title="Hapus"><i class="ti ti-trash"></i></button>
         </div>`).join('') : '<div style="text-align:center;padding:1.25rem;color:var(--text3);font-size:13px;background:var(--surface2);border-radius:12px;">Belum ada pengguna ditambahkan</div>'}
     </div>
     <button onclick="showAddUserModal()" class="btn-add"><i class="ti ti-user-plus"></i> Tambah Pengguna</button>
   `;
+}
+
+function resetUserPassword(id) {
+  const users = getUsers();
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  const newPw = prompt('Reset password untuk ' + u.nama + '.\nMasukkan password baru (min 6 karakter):');
+  if (!newPw) return;
+  if (newPw.length < 6) { showToast('Password minimal 6 karakter'); return; }
+  u.password = hashPass(newPw);
+  saveUsers(users.map(x => x.id === id ? u : x));
+  showToast('Password ' + u.nama + ' berhasil direset');
 }
 
 function hapusUser(id) {
