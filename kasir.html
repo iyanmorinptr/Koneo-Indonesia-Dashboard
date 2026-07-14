@@ -1317,6 +1317,69 @@ function closeTutupKasir() {
   showGateScreen();
 }
 
+function printLaporanSaja() {
+  var modal = document.getElementById('tutupKasirModal');
+  var data = modal._tutupData || {};
+  if (!data.openedBy) { showKasirToast('Belum ada data kasir'); return; }
+  var cashRaw = document.getElementById('tutupCashInput').value.replace(/\D/g, '');
+  var cash = parseInt(cashRaw) || 0;
+  var cashSistem = (data.modalAwal || 0) + (data.tunai || 0);
+  var selisih = cash - cashSistem;
+  var laporan = {
+    openedBy: data.openedBy, openedAt: data.openedAt, closedAt: new Date().toISOString(),
+    modalAwal: data.modalAwal, tunai: data.tunai, qris: data.qris, debit: data.debit,
+    pajak: data.pajak, diskon: data.diskon, totalTrx: data.totalTrx,
+    totalPemasukan: data.totalPemasukan, penjualanBersih: data.penjualanBersih,
+    totalCash: cash, selisih: selisih
+  };
+  printTutupKasirLaporan(laporan);
+}
+
+async function btPrintLaporanKasir(data) {
+  var openedAtFmt = data.openedAt ? new Date(data.openedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '-';
+  var closedAtFmt = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  var tgl = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var totalPemasukan = (data.totalPemasukan) || ((data.tunai||0)+(data.debit||0)+(data.qris||0));
+  var penjualanBersih = (data.penjualanBersih) || (totalPemasukan - (data.pajak||0));
+  var cashSistem = (data.modalAwal||0) + (data.tunai||0);
+  var balanceText = data.selisih === 0 ? 'Balance (0)' : (data.selisih > 0 ? 'Lebih ' : 'Minus ') + 'Rp ' + Math.abs(data.selisih||0).toLocaleString('id-ID');
+  var p = escPos()
+    .init()
+    .align('c').bold(true).size('normal').line('LAPORAN TUTUP KASIR').bold(false)
+    .line('FIRST BINGSOO BAR IN BALI')
+    .line('Jl. Nangka Utara, 189 Denpasar')
+    .divider()
+    .align('l')
+    .row('Tanggal', tgl)
+    .row('Kasir', data.openedBy || '-')
+    .row('Jam Buka', openedAtFmt)
+    .row('Jam Tutup', closedAtFmt)
+    .divider()
+    .bold(true).line('MODAL').bold(false)
+    .row('Modal Awal', 'Rp ' + (data.modalAwal||0).toLocaleString('id-ID'))
+    .divider()
+    .bold(true).line('PENDAPATAN KOTOR').bold(false)
+    .row('Cash (Tunai)', 'Rp ' + (data.tunai||0).toLocaleString('id-ID'))
+    .row('Debit', 'Rp ' + (data.debit||0).toLocaleString('id-ID'))
+    .row('QRIS', 'Rp ' + (data.qris||0).toLocaleString('id-ID'))
+    .row('Total', 'Rp ' + totalPemasukan.toLocaleString('id-ID'))
+    .divider()
+    .bold(true).line('PENDAPATAN BERSIH').bold(false)
+    .row('Total Pajak', 'Rp ' + (data.pajak||0).toLocaleString('id-ID'));
+  if (data.diskon) p.row('Diskon', 'Rp ' + (data.diskon||0).toLocaleString('id-ID'));
+  p.row('Pendapatan Bersih', 'Rp ' + penjualanBersih.toLocaleString('id-ID'))
+    .row('Jml Transaksi', (data.totalTrx||0) + ' transaksi')
+    .divider()
+    .bold(true).line('CASH').bold(false)
+    .row('Cash Sistem', 'Rp ' + cashSistem.toLocaleString('id-ID'))
+    .row('Cash Real', 'Rp ' + (data.totalCash||0).toLocaleString('id-ID'))
+    .bold(true).row('Balance', balanceText).bold(false)
+    .divider()
+    .align('c').line('Dicetak: ' + new Date().toLocaleString('id-ID'))
+    .feed(3).cut();
+  await btSend(p.build());
+}
+
 function printTutupKasirLaporan(data) {
   var openedAtFmt = data.openedAt ? new Date(data.openedAt).toLocaleString('id-ID', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-';
   var closedAtFmt = data.closedAt ? new Date(data.closedAt).toLocaleString('id-ID', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-';
@@ -1367,6 +1430,17 @@ function printTutupKasirLaporan(data) {
     '<div class="footer">Dicetak pada ' + printedAt + '</div>' +
     '</body></html>';
 
+  // Coba cetak via BLE jika terhubung
+  if (_btConnected) {
+    if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+    _btPrinting = true;
+    btPrintLaporanKasir(data)
+      .then(function(){ showKasirToast('\u2705 Laporan tercetak'); })
+      .catch(function(e){ showKasirToast('\u274c Print gagal: ' + e.message); })
+      .finally(function(){ _btPrinting = false; });
+    return;
+  }
+  // Fallback: popup browser
   var popup = window.open('', '_blank', 'width=520,height=700');
   if (!popup) { alert('Popup diblokir browser. Izinkan popup untuk mencetak laporan.'); return; }
   popup.document.write(html);
@@ -2768,9 +2842,10 @@ async function btTestPrint() {
         <div id="tutupSelisihLabel" style="font-size:11px;color:#6b7280;text-align:right;"></div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn modal-btn-cancel" onclick="closeTutupKasirModal()">Batal</button>
-      <button class="modal-btn" style="background:#E24B4A;color:#fff;" onclick="closeTutupKasir()">Tutup Kasir &amp; Cetak Laporan</button>
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeTutupKasirModal()" style="flex:1;min-width:70px;">Batal</button>
+      <button class="modal-btn modal-btn-green" onclick="printLaporanSaja()" style="flex:1;min-width:100px;"><i class="ti ti-printer"></i> Print Laporan</button>
+      <button class="modal-btn" style="flex:2;min-width:130px;background:#E24B4A;color:#fff;border:none;" onclick="closeTutupKasir()">Tutup Kasir &amp; Cetak</button>
     </div>
   </div>
 </div>
