@@ -1270,6 +1270,19 @@ function closeTutupKasir() {
   var data = modal._tutupData || {};
   var cashRaw = document.getElementById('tutupCashInput').value.replace(/\D/g, '');
   var cash = parseInt(cashRaw) || 0;
+
+  // Wajib isi cash real sebelum tutup kasir
+  if (!cashRaw || cashRaw === '0') {
+    var inp = document.getElementById('tutupCashInput');
+    inp.style.border = '2px solid #dc2626';
+    inp.style.background = '#fff0f0';
+    inp.placeholder = 'Wajib diisi sebelum tutup kasir!';
+    inp.focus();
+    showKasirToast('⚠️ Masukkan total cash real terlebih dahulu');
+    setTimeout(function(){ inp.style.border = ''; inp.style.background = ''; }, 3000);
+    return;
+  }
+
   var now = new Date();
   var selisih = cash - ((data.modalAwal || 0) + (data.tunai || 0));
 
