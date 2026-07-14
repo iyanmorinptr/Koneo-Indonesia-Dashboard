@@ -1710,7 +1710,7 @@ function confirmKasirPayment() {
   closeKasirPayment();
   clearKasirCart();
   showKasirStruk(trx);
-  printKasirChecker(trx);
+  autoPrintAfterPayment(trx);
 }
 
 // ===== STRUK =====
@@ -1816,10 +1816,42 @@ function buildCheckerHTML(trx, station) {
   '</div>';
 }
 
+// Auto-print setelah pembayaran: struk dulu, lalu checker bar & kitchen
+async function autoPrintAfterPayment(trx) {
+  if (!_btConnected) {
+    // Tidak ada printer BLE — checker via popup browser
+    printKasirChecker(trx);
+    return;
+  }
+  if (_btPrinting) return;
+  _btPrinting = true;
+  try {
+    showKasirToast('Mencetak struk...');
+    await btPrintStruk(trx);
+    // Jeda sebelum checker supaya printer selesai memotong kertas
+    await new Promise(function(r){ setTimeout(r, 1500); });
+    var hasBar = (trx.items||[]).some(function(i){ var s=(i.stasiun||'').toLowerCase(); return s==='bar'||s==='keduanya'; });
+    var hasKitchen = (trx.items||[]).some(function(i){ var s=(i.stasiun||'').toLowerCase(); return s==='kitchen'||s==='keduanya'; });
+    if (hasBar) {
+      showKasirToast('Mencetak checker bar...');
+      await btPrintChecker(trx, 'bar');
+      await new Promise(function(r){ setTimeout(r, 1500); });
+    }
+    if (hasKitchen) {
+      showKasirToast('Mencetak checker kitchen...');
+      await btPrintChecker(trx, 'kitchen');
+    }
+    showKasirToast('✅ Semua struk tercetak');
+  } catch(e) {
+    showKasirToast('❌ Print gagal: ' + e.message);
+  } finally {
+    _btPrinting = false;
+  }
+}
+
 function printKasirChecker(trx) {
   if (_btConnected) {
-    btPrintChecker(trx, 'bar');
-    setTimeout(function(){ btPrintChecker(trx, 'kitchen'); }, 800);
+    autoPrintAfterPayment(trx);
     return;
   }
   var stations = ['bar', 'kitchen'];
@@ -1837,7 +1869,12 @@ function printKasirChecker(trx) {
 }
 
 function printKasirStruk() {
-  if (_btConnected && kasirLastTrx) { btPrintStruk(kasirLastTrx); return; }
+  if (_btConnected && kasirLastTrx) {
+    if (_btPrinting) { showKasirToast('Printer sedang sibuk...'); return; }
+    _btPrinting = true;
+    btPrintStruk(kasirLastTrx).finally(function(){ _btPrinting = false; });
+    return;
+  }
   var content = document.getElementById('struktContent').innerHTML;
   var popup = window.open('', '_blank', 'width=360,height=620');
   if (!popup) { showKasirToast('Pop-up diblokir browser'); return; }
@@ -2133,12 +2170,21 @@ function btDisconnect() {
 }
 
 // Kirim data ke printer via BLE dalam chunk
+var _btPrinting = false;
+
 async function btSend(data) {
   if (!_btChar || !_btConnected) throw new Error('Printer tidak terhubung');
-  var chunkSize = 512;
+  // Gunakan chunk 20 bytes (BLE minimum MTU) dengan delay 80ms untuk VSC RPP02N
+  var chunkSize = 20;
   for (var i = 0; i < data.length; i += chunkSize) {
-    await _btChar.writeValueWithoutResponse(data.slice(i, i + chunkSize));
-    await new Promise(function(r){ setTimeout(r, 30); });
+    var chunk = data.slice(i, i + chunkSize);
+    try {
+      await _btChar.writeValueWithoutResponse(chunk);
+    } catch(e) {
+      // fallback ke writeValue jika writeValueWithoutResponse tidak didukung
+      await _btChar.writeValue(chunk);
+    }
+    await new Promise(function(r){ setTimeout(r, 80); });
   }
 }
 
