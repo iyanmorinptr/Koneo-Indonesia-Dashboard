@@ -1187,10 +1187,20 @@ function openTutupKasirModal() {
       row('Modal Awal Kasir', _kasirModalAwal || 0, '#374151')
     ) +
     section('Pendapatan Kotor',
-      row('Cash (Tunai)', tunai, '#1D9E75') +
-      row('Debit', debit, '#093a72') +
-      row('QRIS', qris, '#093a72') +
-      '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 2px;">' +
+      row('Pendapatan Tunai', tunai, '#1D9E75') +
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 0;">' +
+        '<span style="font-size:13px;font-weight:700;color:#093a72;">Pendapatan Non Tunai</span>' +
+        '<span style="font-size:13px;font-weight:700;color:#093a72;">' + kasirFmtRp(debit + qris) + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 0;padding-left:12px;">' +
+        '<span style="font-size:12px;color:#6b7280;">Debit</span>' +
+        '<span style="font-size:12px;color:#6b7280;">' + kasirFmtRp(debit) + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 6px;padding-left:12px;">' +
+        '<span style="font-size:12px;color:#6b7280;">QRIS</span>' +
+        '<span style="font-size:12px;color:#6b7280;">' + kasirFmtRp(qris) + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 2px;border-top:1px solid #e5e7eb;">' +
         '<span style="font-size:13px;font-weight:700;color:#374151;">Pendapatan Kotor</span>' +
         '<span style="font-size:15px;font-weight:800;color:#1D9E75;">' + kasirFmtRp(totalPemasukan) + '</span>' +
       '</div>'
@@ -1377,9 +1387,10 @@ async function btPrintLaporanKasir(data) {
     .row('Modal Awal', 'Rp ' + (data.modalAwal||0).toLocaleString('id-ID'))
     .divider()
     .bold(true).line('PENDAPATAN KOTOR').bold(false)
-    .row('Cash (Tunai)', 'Rp ' + (data.tunai||0).toLocaleString('id-ID'))
-    .row('Debit', 'Rp ' + (data.debit||0).toLocaleString('id-ID'))
-    .row('QRIS', 'Rp ' + (data.qris||0).toLocaleString('id-ID'))
+    .row('Pendapatan Tunai', 'Rp ' + (data.tunai||0).toLocaleString('id-ID'))
+    .bold(true).row('Pendapatan Non Tunai', 'Rp ' + ((data.debit||0)+(data.qris||0)).toLocaleString('id-ID')).bold(false)
+    .row('  Debit', 'Rp ' + (data.debit||0).toLocaleString('id-ID'))
+    .row('  QRIS', 'Rp ' + (data.qris||0).toLocaleString('id-ID'))
     .row('Total', 'Rp ' + totalPemasukan.toLocaleString('id-ID'))
     .divider()
     .bold(true).line('PENDAPATAN BERSIH').bold(false)
@@ -2824,15 +2835,12 @@ async function btTestPrint() {
     <div class="modal-body" style="overflow-y:auto;flex:1;">
       <div id="tutupKasirInfo" style="background:#f3f4f6;border-radius:10px;padding:12px 16px;font-size:13px;color:#374151;margin-bottom:12px;"></div>
 
-      <!-- STEP 1: Input cash real dulu -->
-      <div style="background:#fff8e1;border:2px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:4px;">
-        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px;">Langkah 1 — Hitung &amp; Input Cash</div>
-        <div style="font-size:12px;color:#78350f;margin-bottom:10px;">Hitung semua uang tunai di laci kasir, lalu masukkan totalnya.</div>
-        <div class="modal-field" style="margin:0;">
-          <label style="color:#78350f;font-weight:700;">Total Cash Real (Dihitung Manual)</label>
-          <input type="number" class="modal-input" id="tutupCashInput" placeholder="0"
-            oninput="formatTutupCash(this);onCashRealInput()" style="font-size:18px;font-weight:700;text-align:right;">
-        </div>
+      <!-- Input cash real -->
+      <div class="modal-field" style="margin-bottom:4px;">
+        <label style="font-weight:700;">Total Cash Real</label>
+        <input type="number" class="modal-input" id="tutupCashInput" placeholder="0"
+          autocomplete="off"
+          oninput="formatTutupCash(this);onCashRealInput()" style="font-size:18px;font-weight:700;text-align:right;">
       </div>
 
       <!-- STEP 2: Summary + balance — tersembunyi sampai cash diisi -->
