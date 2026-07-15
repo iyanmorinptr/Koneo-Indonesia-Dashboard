@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-048';
+  var VER = 'v20260715-049';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -44,6 +44,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -9093,7 +9095,7 @@ function buildCashReportTab() {
     ?   '<button onclick="crAcc()" style="flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-check"></i> ACC Laporan</button>'
     : '')
     + (isAcc
-    ?   '<button onclick="crShareWA()" style="flex:1;padding:12px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-whatsapp"></i> Kirim via WhatsApp</button>'
+    ?   '<button onclick="crSharePDF()" style="flex:1;padding:12px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-whatsapp"></i> Kirim PDF via WhatsApp</button>'
     : '')
     + (isOwner && !isDraft
     ?   '<button onclick="crReset()" style="padding:12px 16px;background:none;border:1.5px solid #E24B4A;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#E24B4A;">Reset</button>'
@@ -9171,7 +9173,7 @@ function crReset() {
   showToast('Cash report direset.');
 }
 
-function crShareWA() {
+function crSharePDF() {
   const cr = getCashReport();
   if (!cr) return;
   const rows = cr.rows || [];
@@ -9181,42 +9183,85 @@ function crShareWA() {
   const cashReal    = cr.cashReal || 0;
   const selisih     = cashReal - cashSistem;
   const selisihOk   = selisih === 0;
-  const selisihTxt  = selisihOk ? '✅ BALANCE' : (selisih > 0 ? '⬆️ LEBIH ' + _crFmt(selisih) : '⬇️ KURANG ' + _crFmt(Math.abs(selisih)));
+  const selisihTxt  = selisihOk ? 'BALANCE' : (selisih > 0 ? 'LEBIH ' + _crFmt(selisih) : 'KURANG ' + _crFmt(Math.abs(selisih)));
+  const selisihClr  = selisihOk ? [21,128,61] : (selisih > 0 ? [180,83,9] : [220,38,38]);
 
-  var lines = [];
-  lines.push('📊 *CASH REPORT — KONEO INDONESIA*');
-  lines.push('🗓️ ' + new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}));
-  lines.push('━━━━━━━━━━━━━━━━━━━━');
-  rows.forEach(function(r) {
-    var tgl = r.hari ? new Date(r.hari + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '-';
-    var debit  = r.debit  ? _crFmt(r.debit)  : '-';
-    var kredit = r.kredit ? _crFmt(r.kredit) : '-';
-    lines.push('📅 ' + tgl);
-    lines.push('   ' + (r.ket||'-'));
-    lines.push('   Debit: ' + debit + '  |  Kredit: ' + kredit);
+  if (typeof window.jspdf === 'undefined') { showToast('Library PDF belum siap, coba lagi sebentar.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  // Header
+  doc.setFillColor(9, 58, 114);
+  doc.rect(0, 0, 210, 28, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+  doc.text('CASH REPORT', 14, 12);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('Koneo Indonesia', 14, 19);
+  doc.text('Dicetak: ' + new Date().toLocaleString('id-ID'), 14, 25);
+
+  // Tabel transaksi
+  const tableData = rows.map(function(r) {
+    const tgl = r.hari ? new Date(r.hari + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '-';
+    return [tgl, r.ket || '-', r.debit ? _crFmt(r.debit) : '-', r.kredit ? _crFmt(r.kredit) : '-'];
   });
-  lines.push('━━━━━━━━━━━━━━━━━━━━');
-  lines.push('*Total Debit  :* ' + _crFmt(totalDebit));
-  lines.push('*Total Kredit :* ' + _crFmt(totalKredit));
-  lines.push('━━━━━━━━━━━━━━━━━━━━');
-  lines.push('*Cash Sistem  :* ' + _crFmt(cashSistem));
-  lines.push('*Cash Real    :* ' + _crFmt(cashReal));
-  lines.push('*Selisih      :* ' + selisihTxt);
-  lines.push('━━━━━━━━━━━━━━━━━━━━');
-  lines.push('✅ ACC oleh: *' + (cr.accBy||'-') + '*');
-  if (cr.accAt) lines.push('   ' + new Date(cr.accAt).toLocaleString('id-ID'));
-  lines.push('📤 Submit oleh: *' + (cr.submittedBy||'-') + '*');
 
-  var text = lines.join('\n');
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  doc.autoTable({
+    startY: 34,
+    head: [['Hari', 'Keterangan', 'Debit', 'Kredit']],
+    body: tableData,
+    foot: [['', 'TOTAL', _crFmt(totalDebit), _crFmt(totalKredit)]],
+    headStyles: { fillColor: [9, 58, 114], textColor: 255, fontStyle: 'bold', fontSize: 10 },
+    footStyles: { fillColor: [240, 244, 248], textColor: [9, 58, 114], fontStyle: 'bold', fontSize: 10 },
+    bodyStyles: { fontSize: 9, textColor: [30, 30, 30] },
+    columnStyles: { 0: {cellWidth: 30}, 2: {halign:'right', textColor:[29,158,117]}, 3: {halign:'right', textColor:[226,75,74]} },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 14, right: 14 },
+    showFoot: 'lastPage',
+  });
 
-  setTimeout(function() {
-    if (confirm('Laporan sudah dikirim via WhatsApp. Reset data cash report sekarang? (Siklus baru dimulai)')) {
-      saveCashReport({ rows: [], cashReal: 0, status: 'draft' });
-      buildCashReportTab();
-      showToast('Cash report direset. Siap untuk siklus baru.');
-    }
-  }, 1000);
+  // Summary box
+  const sy = doc.lastAutoTable.finalY + 8;
+  doc.setDrawColor(9, 58, 114); doc.setLineWidth(0.5);
+  doc.roundedRect(14, sy, 182, 36, 3, 3, 'S');
+  doc.setFontSize(10); doc.setTextColor(100, 100, 100); doc.setFont('helvetica', 'normal');
+  doc.text('Total Cash Sistem (Debit − Kredit)', 20, sy + 8);
+  doc.text('Total Cash Real', 20, sy + 17);
+  doc.setFont('helvetica', 'bold'); doc.setTextColor(9, 58, 114);
+  doc.text(_crFmt(cashSistem), 196, sy + 8, { align: 'right' });
+  doc.text(_crFmt(cashReal), 196, sy + 17, { align: 'right' });
+  doc.setFontSize(13); doc.setTextColor(selisihClr[0], selisihClr[1], selisihClr[2]);
+  doc.text('Selisih: ' + selisihTxt, 20, sy + 30);
+
+  // Stamp ACC
+  const stampY = sy + 44;
+  doc.setFontSize(9); doc.setTextColor(100, 100, 100); doc.setFont('helvetica', 'normal');
+  doc.text('Di-ACC oleh: ' + (cr.accBy||'-') + '   |   Submit oleh: ' + (cr.submittedBy||'-'), 14, stampY);
+  if (cr.accAt) doc.text('Waktu ACC: ' + new Date(cr.accAt).toLocaleString('id-ID'), 14, stampY + 6);
+
+  const fileName = 'cash-report-koneo-' + new Date().toISOString().slice(0,10) + '.pdf';
+  const pdfBlob = doc.output('blob');
+  const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+  // Coba Web Share API (mobile) → share sheet muncul, pilih WhatsApp
+  if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+    navigator.share({ files: [pdfFile], title: 'Cash Report Koneo Indonesia' })
+      .then(function() { _crAskReset(); })
+      .catch(function(e) { if (e.name !== 'AbortError') { doc.save(fileName); _crAskReset(); } });
+  } else {
+    // Fallback desktop: download PDF
+    doc.save(fileName);
+    showToast('PDF tersimpan. Attach manual ke WhatsApp jika di desktop.');
+    setTimeout(_crAskReset, 800);
+  }
+}
+
+function _crAskReset() {
+  if (confirm('Laporan sudah dikirim. Reset data cash report sekarang? (Siklus baru dimulai)')) {
+    saveCashReport({ rows: [], cashReal: 0, status: 'draft' });
+    buildCashReportTab();
+    showToast('Cash report direset. Siap untuk siklus baru.');
+  }
 }
 </script>
 
