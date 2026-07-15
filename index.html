@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-043';
+  var VER = 'v20260715-044';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -8968,7 +8968,11 @@ function formatTanggal(tgl) {
 // ── CASH REPORT ────────────────────────────────────────────────────────────────
 
 function getCashReport() {
-  try { return JSON.parse(DB.getItem('koneo_cash_report') || 'null'); } catch(e) { return null; }
+  try {
+    const parsed = JSON.parse(DB.getItem('koneo_cash_report') || 'null');
+    if (!parsed || Array.isArray(parsed)) return null;
+    return parsed;
+  } catch(e) { return null; }
 }
 
 function saveCashReport(obj) {
@@ -9067,7 +9071,7 @@ function buildCashReportTab() {
     +   '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0;">'
     +     '<span style="font-size:13px;color:var(--text3);">Total Cash Real</span>'
     +     (canEdit
-    ?       '<input type="text" inputmode="numeric" id="cr-cash-real-input" value="' + (cashReal ? cashReal.toLocaleString('id-ID') : '') + '" placeholder="0" oninput="var d=this.value.replace(/\\D/g,\'\');crSetCashReal(parseInt(d)||0);this.value=d?parseInt(d).toLocaleString(\'id-ID\')\':\'\';" style="width:140px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;outline:none;background:var(--bg);text-align:right;">'
+    ?       '<input type="text" inputmode="numeric" id="cr-cash-real-input" value="' + (cashReal ? cashReal.toLocaleString('id-ID') : '') + '" placeholder="0" oninput="var d=this.value.replace(/\\D/g,\'\');crSetCashReal(parseInt(d)||0);this.value=d?parseInt(d).toLocaleString(\'id-ID\'):\'\'" style="width:140px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;outline:none;background:var(--bg);text-align:right;">'
     :       '<span style="font-size:14px;font-weight:800;color:#093a72;">' + _crFmt(cashReal) + '</span>')
     +   '</div>'
     + '</div>'
