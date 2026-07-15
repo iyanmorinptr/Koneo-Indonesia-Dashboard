@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-046';
+  var VER = 'v20260715-047';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -9017,8 +9017,8 @@ function buildCashReportTab() {
     const tglFmt = r.hari ? new Date(r.hari + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short'}) : '-';
     if (canEdit) {
       return '<tr>'
-        + '<td style="padding:8px 6px;"><input type="date" value="' + (r.hari||'') + '" onchange="crUpdateRow(' + i + ',\'hari\',this.value)" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;"></td>'
-        + '<td style="padding:8px 6px;"><input type="text" value="' + (r.ket||'').replace(/"/g,'&quot;') + '" placeholder="Keterangan..." onchange="crUpdateRow(' + i + ',\'ket\',this.value)" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;"></td>'
+        + '<td style="padding:8px 6px;"><input type="date" value="' + (r.hari||'') + '" oninput="crUpdateRow(' + i + ',\'hari\',this.value)" onchange="crUpdateRow(' + i + ',\'hari\',this.value)" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;"></td>'
+        + '<td style="padding:8px 6px;"><input type="text" value="' + (r.ket||'').replace(/"/g,'&quot;') + '" placeholder="Keterangan..." oninput="crUpdateRow(' + i + ',\'ket\',this.value)" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;"></td>'
         + '<td style="padding:8px 6px;"><input type="text" inputmode="numeric" value="' + (r.debit ? r.debit.toLocaleString('id-ID') : '') + '" placeholder="0" oninput="var d=this.value.replace(/\\D/g,\'\');crUpdateRow(' + i + ',\'debit\',parseInt(d)||0);this.value=d?parseInt(d).toLocaleString(\'id-ID\'):\'\'" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;text-align:right;color:#1D9E75;font-weight:600;"></td>'
         + '<td style="padding:8px 6px;"><input type="text" inputmode="numeric" value="' + (r.kredit ? r.kredit.toLocaleString('id-ID') : '') + '" placeholder="0" oninput="var d=this.value.replace(/\\D/g,\'\');crUpdateRow(' + i + ',\'kredit\',parseInt(d)||0);this.value=d?parseInt(d).toLocaleString(\'id-ID\'):\'\'" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;text-align:right;color:#E24B4A;font-weight:600;"></td>'
         + '<td style="padding:8px 4px;text-align:center;"><button onclick="crDeleteRow(' + i + ')" style="padding:4px 8px;background:rgba(226,75,74,0.1);border:none;border-radius:6px;cursor:pointer;color:#E24B4A;font-size:13px;font-weight:700;">×</button></td>'
