@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-041';
+  var VER = 'v20260715-042';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -3680,7 +3680,8 @@ function switchTab(tab) {
   if (tab === 'manager-report') buildManagerReportTab();
   if (tab === 'manager-todo') buildManagerTodoTab();
   if (tab === 'manager-pengumuman') buildPengumumanTab();
-  var _noBar = ['stok','pengaturan','jadwal','absensi','cogs','beranda','laporan-pajak','invoice','member','kasir','kasir-produk','kasir-kelola','kasir-laporan','kasir-laporan-produk','kasir-riwayat','kasir-manual'];
+  if (tab === 'cash-report') buildCashReportTab();
+  var _noBar = ['stok','pengaturan','jadwal','absensi','cogs','beranda','laporan-pajak','invoice','member','kasir','kasir-produk','kasir-kelola','kasir-laporan','kasir-laporan-produk','kasir-riwayat','kasir-manual','cash-report','manager-report','manager-todo','manager-pengumuman'];
   if (bar) bar.style.display = _noBar.includes(tab) ? 'none' : '';
   // sync sidebar highlight for finance tabs
   if (tab !== 'stok') updateSidebarActive('sitem-' + tab);
@@ -9277,8 +9278,6 @@ function submitCashReport() {
     submittedAt: new Date().toISOString()
   };
 
-  syncCashReportToFinance(tgl, validRows, editId ? reports.find(r => r.id === editId) : null);
-
   if (editId) {
     const idx = reports.findIndex(r => r.id === editId);
     if (idx !== -1) reports[idx] = reportData;
@@ -9292,24 +9291,6 @@ function submitCashReport() {
   showToast('✅ Cash report berhasil disubmit!');
 }
 
-function syncCashReportToFinance(tgl, rows, prevReport) {
-  var dayKey = 'koneo_day_' + tgl;
-  var draftKey = 'koneo_draft_' + tgl;
-  var raw = DB.getItem(dayKey) || DB.getItem(draftKey);
-  var data;
-  try { data = raw ? JSON.parse(raw) : null; } catch(e) { data = null; }
-  if (!data) {
-    data = { simple: { tanggal: tgl, majoo_tunai:0, majoo_nontunai:0, pos_tunai:0, pos_nontunai:0, gojek:0, grab:0, pajak_majoo:0, pajak_pos:0 }, barRows:[], kitchenRows:[], operasionalRows:[], extraRows:[], pLainnyaRows:[], rowId:0 };
-  }
-  if (!data.extraRows) data.extraRows = [];
-  data.extraRows = data.extraRows.filter(r => !r.fromCashReport);
-  var maxId = data.rowId || 0;
-  rows.forEach(function(r) {
-    data.extraRows.push({ id: ++maxId, ket: 'Cash Report: ' + r.ket, jumlah: r.jumlah, fromCashReport: true });
-  });
-  data.rowId = maxId;
-  DB.setItem(draftKey, JSON.stringify(data));
-}
 
 function accCashReport(id) {
   const session = getSession();
