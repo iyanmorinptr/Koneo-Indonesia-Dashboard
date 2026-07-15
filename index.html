@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-045';
+  var VER = 'v20260715-046';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -8971,6 +8971,7 @@ function getCashReport() {
   try {
     const parsed = JSON.parse(DB.getItem('koneo_cash_report') || 'null');
     if (!parsed || Array.isArray(parsed)) return null;
+    if (parsed.rows) parsed.rows.sort((a, b) => (a.hari || '') < (b.hari || '') ? -1 : (a.hari || '') > (b.hari || '') ? 1 : 0);
     return parsed;
   } catch(e) { return null; }
 }
