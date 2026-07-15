@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-042';
+  var VER = 'v20260715-043';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -8967,412 +8967,264 @@ function formatTanggal(tgl) {
 
 // ── CASH REPORT ────────────────────────────────────────────────────────────────
 
-function getCashReports() {
-  try { return JSON.parse(DB.getItem('koneo_cash_report') || '[]'); } catch(e) { return []; }
+function getCashReport() {
+  try { return JSON.parse(DB.getItem('koneo_cash_report') || 'null'); } catch(e) { return null; }
 }
 
-function saveCashReports(arr) {
-  DB.setItem('koneo_cash_report', JSON.stringify(arr));
+function saveCashReport(obj) {
+  DB.setItem('koneo_cash_report', JSON.stringify(obj));
 }
 
 var _crRowId = 0;
-var _crRows = [];
+
+function _crFmt(n) { return 'Rp ' + Math.round(n||0).toLocaleString('id-ID'); }
 
 function buildCashReportTab() {
   const session = getSession();
   const isOwner = session && session.role === 'owner';
-  const isManager = session && (session.role === 'manager' || session.role === 'owner');
-  const reports = getCashReports();
+  const cr = getCashReport() || { rows: [], cashReal: 0, status: 'draft' };
+  const rows = cr.rows || [];
 
-  const submitted = reports.filter(r => r.status === 'submitted' || r.status === 'acc');
-  const drafts = reports.filter(r => r.status === 'draft');
+  const totalDebit  = rows.reduce((s, r) => s + (r.debit  || 0), 0);
+  const totalKredit = rows.reduce((s, r) => s + (r.kredit || 0), 0);
+  const cashSistem  = totalDebit - totalKredit;
+  const cashReal    = cr.cashReal || 0;
+  const selisih     = cashReal - cashSistem;
+  const selisihOk   = selisih === 0;
+  const selisihPos  = selisih > 0;
+  const selisihBg   = selisihOk ? '#f0fdf4' : (selisihPos ? '#fffbeb' : '#fff0f0');
+  const selisihBd   = selisihOk ? '#bbf7d0' : (selisihPos ? '#fde68a' : '#fecaca');
+  const selisihClr  = selisihOk ? '#15803d' : (selisihPos ? '#b45309' : '#dc2626');
+  const selisihTxt  = selisihOk ? 'Balance ✓' : (selisihPos ? 'Lebih ' + _crFmt(selisih) : 'Kurang ' + _crFmt(Math.abs(selisih)));
+
+  const isAcc = cr.status === 'acc';
+  const isSubmitted = cr.status === 'submitted';
+  const isDraft = !isAcc && !isSubmitted;
+  const canEdit = isDraft || (isOwner); // owner bisa reset
+  const statusBadge = isAcc
+    ? '<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#dcfce7;color:#15803d;">✓ Di-ACC Owner</span>'
+    : isSubmitted
+    ? '<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#dbeafe;color:#1d4ed8;">⏳ Menunggu ACC</span>'
+    : '<span style="padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#f3f4f6;color:#6b7280;">📝 Draft</span>';
+
+  const tableRows = rows.map((r, i) => {
+    const tglFmt = r.hari ? new Date(r.hari + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short'}) : '-';
+    if (canEdit) {
+      return '<tr>'
+        + '<td style="padding:8px 6px;"><input type="date" value="' + (r.hari||'') + '" onchange="crUpdateRow(' + i + ',\'hari\',this.value)" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;"></td>'
+        + '<td style="padding:8px 6px;"><input type="text" value="' + (r.ket||'').replace(/"/g,'&quot;') + '" placeholder="Keterangan..." onchange="crUpdateRow(' + i + ',\'ket\',this.value)" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;"></td>'
+        + '<td style="padding:8px 6px;"><input type="text" inputmode="numeric" value="' + (r.debit ? r.debit.toLocaleString('id-ID') : '') + '" placeholder="0" oninput="var d=this.value.replace(/\\D/g,\'\');crUpdateRow(' + i + ',\'debit\',parseInt(d)||0);this.value=d?parseInt(d).toLocaleString(\'id-ID\'):\'\'" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;text-align:right;color:#1D9E75;font-weight:600;"></td>'
+        + '<td style="padding:8px 6px;"><input type="text" inputmode="numeric" value="' + (r.kredit ? r.kredit.toLocaleString('id-ID') : '') + '" placeholder="0" oninput="var d=this.value.replace(/\\D/g,\'\');crUpdateRow(' + i + ',\'kredit\',parseInt(d)||0);this.value=d?parseInt(d).toLocaleString(\'id-ID\'):\'\'" style="padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);width:100%;text-align:right;color:#E24B4A;font-weight:600;"></td>'
+        + '<td style="padding:8px 4px;text-align:center;"><button onclick="crDeleteRow(' + i + ')" style="padding:4px 8px;background:rgba(226,75,74,0.1);border:none;border-radius:6px;cursor:pointer;color:#E24B4A;font-size:13px;font-weight:700;">×</button></td>'
+        + '</tr>';
+    } else {
+      return '<tr>'
+        + '<td style="padding:8px 10px;font-size:13px;">' + tglFmt + '</td>'
+        + '<td style="padding:8px 10px;font-size:13px;">' + (r.ket||'-') + '</td>'
+        + '<td style="padding:8px 10px;font-size:13px;text-align:right;color:#1D9E75;font-weight:600;">' + (r.debit ? _crFmt(r.debit) : '-') + '</td>'
+        + '<td style="padding:8px 10px;font-size:13px;text-align:right;color:#E24B4A;font-weight:600;">' + (r.kredit ? _crFmt(r.kredit) : '-') + '</td>'
+        + '</tr>';
+    }
+  }).join('');
 
   const el = document.getElementById('cash-report-content');
-  el.innerHTML = `
-    <div class="card" style="margin-bottom:1rem;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div>
-          <div style="font-size:16px;font-weight:800;color:#093a72;"><i class="ti ti-cash-banknote"></i> Cash Report Harian</div>
-          <div style="font-size:12px;color:var(--text3);">Input uang cash penjualan, pengeluaran, dan cash real setiap hari.</div>
-        </div>
-        <button onclick="openCashReportForm()" style="padding:9px 16px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;"><i class="ti ti-plus"></i> Input Baru</button>
-      </div>
+  el.innerHTML =
+    '<div class="card">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+    +   '<div><div style="font-size:16px;font-weight:800;color:#093a72;"><i class="ti ti-cash-banknote"></i> Cash Report</div>'
+    +   '<div style="font-size:12px;color:var(--text3);margin-top:2px;">Cross-check alur uang cash harian</div></div>'
+    +   statusBadge
+    + '</div>'
 
-      ${submitted.length === 0 && drafts.length === 0 ? '<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">Belum ada cash report. Klik "Input Baru" untuk mulai.</div>' : ''}
+    // Tabel utama
+    + '<div style="overflow-x:auto;margin-bottom:16px;border:1.5px solid var(--border);border-radius:12px;">'
+    + '<table style="width:100%;border-collapse:collapse;min-width:480px;">'
+    + '<thead><tr style="background:#093a72;color:#fff;">'
+    +   '<th style="padding:10px 8px;font-size:12px;font-weight:700;text-align:left;width:110px;">Hari</th>'
+    +   '<th style="padding:10px 8px;font-size:12px;font-weight:700;text-align:left;">Keterangan</th>'
+    +   '<th style="padding:10px 8px;font-size:12px;font-weight:700;text-align:right;width:110px;">Debit</th>'
+    +   '<th style="padding:10px 8px;font-size:12px;font-weight:700;text-align:right;width:110px;">Kredit</th>'
+    +   (canEdit ? '<th style="width:36px;"></th>' : '')
+    + '</tr></thead>'
+    + '<tbody id="cr-tbody">' + (tableRows || '<tr><td colspan="' + (canEdit?5:4) + '" style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Belum ada data. Klik "+ Tambah Baris" untuk mulai.</td></tr>') + '</tbody>'
+    + '<tfoot><tr style="background:rgba(9,58,114,0.05);font-weight:700;">'
+    +   '<td colspan="2" style="padding:10px 8px;font-size:13px;">TOTAL</td>'
+    +   '<td style="padding:10px 8px;font-size:13px;text-align:right;color:#1D9E75;">' + _crFmt(totalDebit) + '</td>'
+    +   '<td style="padding:10px 8px;font-size:13px;text-align:right;color:#E24B4A;">' + _crFmt(totalKredit) + '</td>'
+    +   (canEdit ? '<td></td>' : '')
+    + '</tr></tfoot>'
+    + '</table></div>'
 
-      ${drafts.map(r => renderCashReportCard(r, isOwner)).join('')}
-      ${submitted.map(r => renderCashReportCard(r, isOwner)).join('')}
-    </div>
+    // Tombol tambah baris
+    + (canEdit ? '<button onclick="crAddRow()" style="margin-bottom:20px;padding:8px 16px;background:rgba(9,58,114,0.07);border:1.5px solid rgba(9,58,114,0.2);border-radius:8px;font-size:13px;font-weight:600;color:#093a72;cursor:pointer;font-family:inherit;"><i class="ti ti-plus"></i> Tambah Baris</button>' : '')
 
-    <!-- Form modal -->
-    <div id="cr-form-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
-      <div style="background:var(--surface);border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;margin:auto;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-          <div style="font-size:16px;font-weight:800;color:#093a72;"><i class="ti ti-cash-banknote"></i> Input Cash Report</div>
-          <button onclick="closeCashReportForm()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);">×</button>
-        </div>
+    // Ringkasan bawah
+    + '<div style="background:rgba(9,58,114,0.04);border:1.5px solid rgba(9,58,114,0.12);border-radius:12px;padding:14px;margin-bottom:14px;">'
+    +   '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(9,58,114,0.1);">'
+    +     '<span style="font-size:13px;color:var(--text3);">Total Cash Sistem (Debit − Kredit)</span>'
+    +     '<span style="font-size:14px;font-weight:800;color:#093a72;">' + _crFmt(cashSistem) + '</span>'
+    +   '</div>'
+    +   '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0;">'
+    +     '<span style="font-size:13px;color:var(--text3);">Total Cash Real</span>'
+    +     (canEdit
+    ?       '<input type="text" inputmode="numeric" id="cr-cash-real-input" value="' + (cashReal ? cashReal.toLocaleString('id-ID') : '') + '" placeholder="0" oninput="var d=this.value.replace(/\\D/g,\'\');crSetCashReal(parseInt(d)||0);this.value=d?parseInt(d).toLocaleString(\'id-ID\')\':\'\';" style="width:140px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;outline:none;background:var(--bg);text-align:right;">'
+    :       '<span style="font-size:14px;font-weight:800;color:#093a72;">' + _crFmt(cashReal) + '</span>')
+    +   '</div>'
+    + '</div>'
 
-        <div style="margin-bottom:14px;">
-          <label style="font-size:12px;font-weight:700;color:#093a72;display:block;margin-bottom:5px;">TANGGAL</label>
-          <input type="date" id="cr-tgl" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:var(--bg);">
-        </div>
+    // Selisih
+    + '<div style="background:' + selisihBg + ';border:1.5px solid ' + selisihBd + ';border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'
+    +   '<span style="font-size:14px;font-weight:700;color:' + selisihClr + ';">Selisih</span>'
+    +   '<span style="font-size:20px;font-weight:800;color:' + selisihClr + ';">' + selisihTxt + '</span>'
+    + '</div>'
 
-        <div style="margin-bottom:14px;">
-          <label style="font-size:12px;font-weight:700;color:#093a72;display:block;margin-bottom:5px;">CASH PENJUALAN HARI INI (Rp)</label>
-          <input type="text" inputmode="numeric" id="cr-cash-penjualan" placeholder="0" oninput="crFormatRp(this);crCalc()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-weight:700;font-family:inherit;outline:none;background:var(--bg);text-align:right;">
-        </div>
-
-        <div style="margin-bottom:8px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <label style="font-size:12px;font-weight:700;color:#093a72;">PENGELUARAN CASH</label>
-            <button onclick="crAddRow()" style="padding:5px 10px;background:rgba(9,58,114,0.08);border:1.5px solid rgba(9,58,114,0.2);border-radius:8px;font-size:12px;font-weight:600;color:#093a72;cursor:pointer;font-family:inherit;"><i class="ti ti-plus"></i> Tambah</button>
-          </div>
-          <div id="cr-rows" style="display:flex;flex-direction:column;gap:8px;"></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1.5px solid var(--border);margin-top:8px;">
-            <span style="font-size:13px;font-weight:700;color:#374151;">Total Pengeluaran</span>
-            <span id="cr-total-pengeluaran" style="font-size:13px;font-weight:800;color:#E24B4A;">Rp 0</span>
-          </div>
-        </div>
-
-        <div style="background:rgba(9,58,114,0.05);border:1.5px solid rgba(9,58,114,0.12);border-radius:12px;padding:14px;margin-bottom:14px;">
-          <div style="display:flex;justify-content:space-between;padding:4px 0;">
-            <span style="font-size:13px;color:var(--text3);">Cash Penjualan</span>
-            <span id="cr-sum-penjualan" style="font-size:13px;font-weight:600;color:#1D9E75;">Rp 0</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:4px 0;">
-            <span style="font-size:13px;color:var(--text3);">Total Pengeluaran</span>
-            <span id="cr-sum-pengeluaran" style="font-size:13px;font-weight:600;color:#E24B4A;">Rp 0</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0 4px;border-top:1px solid rgba(9,58,114,0.15);margin-top:4px;">
-            <span style="font-size:14px;font-weight:700;color:#093a72;">Cash Sistem</span>
-            <span id="cr-cash-sistem" style="font-size:15px;font-weight:800;color:#093a72;">Rp 0</span>
-          </div>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <label style="font-size:12px;font-weight:700;color:#093a72;display:block;margin-bottom:5px;">CASH REAL (uang tunai yang ada)</label>
-          <input type="text" inputmode="numeric" id="cr-cash-real" placeholder="0" oninput="crFormatRp(this);crCalc()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-weight:700;font-family:inherit;outline:none;background:var(--bg);text-align:right;">
-        </div>
-
-        <div id="cr-balance-box" style="border-radius:12px;padding:14px;margin-bottom:20px;background:#f0fdf4;border:1.5px solid #bbf7d0;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:14px;font-weight:700;">Balance</span>
-            <div style="text-align:right;">
-              <div id="cr-balance-val" style="font-size:18px;font-weight:800;color:#15803d;">Rp 0</div>
-              <div id="cr-balance-label" style="font-size:11px;color:var(--text3);">Cash balance</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <button onclick="closeCashReportForm()" style="padding:13px;background:none;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);">Batal</button>
-          <button onclick="submitCashReport()" style="padding:13px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Submit Laporan</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderCashReportCard(r, isOwner) {
-  const fmt = n => 'Rp ' + Math.round(n||0).toLocaleString('id-ID');
-  const tglFmt = r.tgl ? new Date(r.tgl+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
-  const balance = r.selisih || 0;
-  const balanceOk = balance === 0;
-  const balancePos = balance > 0;
-  const balanceBg = balanceOk ? '#f0fdf4' : (balancePos ? '#fffbeb' : '#fff0f0');
-  const balanceBorder = balanceOk ? '#bbf7d0' : (balancePos ? '#fde68a' : '#fecaca');
-  const balanceColor = balanceOk ? '#15803d' : (balancePos ? '#b45309' : '#dc2626');
-  const balanceText = balanceOk ? 'Balance ✓' : (balancePos ? 'Lebih ' + fmt(balance) : 'Kurang ' + fmt(Math.abs(balance)));
-
-  const statusBg = r.status === 'acc' ? '#dcfce7' : r.status === 'submitted' ? '#dbeafe' : '#f3f4f6';
-  const statusColor = r.status === 'acc' ? '#15803d' : r.status === 'submitted' ? '#1d4ed8' : '#6b7280';
-  const statusLabel = r.status === 'acc' ? '✓ Di-ACC Owner' : r.status === 'submitted' ? '⏳ Menunggu ACC' : '📝 Draft';
-
-  return `
-    <div style="border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;background:var(--surface);">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
-        <div>
-          <div style="font-size:14px;font-weight:800;color:#093a72;">${tglFmt}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px;">by ${r.submittedBy||'-'} ${r.submittedAt ? '· '+new Date(r.submittedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : ''}</div>
-        </div>
-        <span style="padding:4px 10px;border-radius:50px;font-size:11px;font-weight:700;background:${statusBg};color:${statusColor};">${statusLabel}</span>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-        <div style="background:rgba(29,158,117,0.08);border-radius:10px;padding:10px;text-align:center;">
-          <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:2px;">CASH PENJUALAN</div>
-          <div style="font-size:13px;font-weight:800;color:#1D9E75;">${fmt(r.cashPenjualan)}</div>
-        </div>
-        <div style="background:rgba(226,75,74,0.08);border-radius:10px;padding:10px;text-align:center;">
-          <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:2px;">PENGELUARAN</div>
-          <div style="font-size:13px;font-weight:800;color:#E24B4A;">${fmt(r.totalPengeluaran)}</div>
-        </div>
-        <div style="background:rgba(9,58,114,0.08);border-radius:10px;padding:10px;text-align:center;">
-          <div style="font-size:10px;color:var(--text3);font-weight:600;margin-bottom:2px;">CASH SISTEM</div>
-          <div style="font-size:13px;font-weight:800;color:#093a72;">${fmt(r.cashSistem)}</div>
-        </div>
-      </div>
-
-      <div style="background:${balanceBg};border:1.5px solid ${balanceBorder};border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-size:11px;color:var(--text3);">Cash Real vs Sistem</div>
-          <div style="font-size:12px;color:var(--text3);">Real: ${fmt(r.cashReal)} · Sistem: ${fmt(r.cashSistem)}</div>
-        </div>
-        <div style="font-size:16px;font-weight:800;color:${balanceColor};">${balanceText}</div>
-      </div>
-
-      ${r.pengeluaranItems && r.pengeluaranItems.length > 0 ? `
-        <div style="margin-bottom:12px;">
-          <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Detail Pengeluaran Cash</div>
-          ${r.pengeluaranItems.map(item => `
-            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;">
-              <span style="color:var(--text2);">${item.ket}</span>
-              <span style="font-weight:600;color:#E24B4A;">${fmt(item.jumlah)}</span>
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${r.status === 'submitted' && isOwner ? `<button onclick="accCashReport('${r.id}')" style="flex:1;padding:10px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-check"></i> ACC</button>` : ''}
-        ${r.status === 'acc' ? `<button onclick="downloadCashReportPDF('${r.id}')" style="flex:1;padding:10px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-file-download"></i> Download PDF</button>` : ''}
-        ${r.status === 'draft' ? `<button onclick="editCashReport('${r.id}')" style="padding:10px 16px;background:none;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);">Edit</button>` : ''}
-      </div>
-    </div>`;
-}
-
-function openCashReportForm(editId) {
-  _crRows = [];
-  _crRowId = 0;
-  const modal = document.getElementById('cr-form-modal');
-  modal.style.display = 'flex';
-  const today = new Date();
-  const tglInput = document.getElementById('cr-tgl');
-  tglInput.value = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-  document.getElementById('cr-cash-penjualan').value = '';
-  document.getElementById('cr-cash-real').value = '';
-  crRenderRows();
-  crCalc();
-
-  if (editId) {
-    const reports = getCashReports();
-    const r = reports.find(x => x.id === editId);
-    if (r) {
-      tglInput.value = r.tgl;
-      document.getElementById('cr-cash-penjualan').value = r.cashPenjualan ? r.cashPenjualan.toLocaleString('id-ID') : '';
-      document.getElementById('cr-cash-real').value = r.cashReal ? r.cashReal.toLocaleString('id-ID') : '';
-      _crRowId = r.pengeluaranItems ? r.pengeluaranItems.length : 0;
-      _crRows = r.pengeluaranItems ? r.pengeluaranItems.map((item,i) => ({id: i+1, ket: item.ket, jumlah: item.jumlah})) : [];
-      crRenderRows();
-      crCalc();
-      modal._editId = editId;
-    }
-  } else {
-    modal._editId = null;
-  }
-}
-
-function editCashReport(id) {
-  openCashReportForm(id);
-}
-
-function closeCashReportForm() {
-  const modal = document.getElementById('cr-form-modal');
-  modal.style.display = 'none';
-  modal._editId = null;
-}
-
-function crFormatRp(el) {
-  var digits = el.value.replace(/\D/g, '');
-  if (digits !== '') {
-    el.value = parseInt(digits).toLocaleString('id-ID');
-  }
+    // Tombol aksi
+    + '<div style="display:flex;gap:10px;flex-wrap:wrap;">'
+    + (isDraft
+    ?   '<button onclick="crSubmit()" style="flex:1;padding:12px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-send"></i> Submit ke Owner</button>'
+    : '')
+    + (isSubmitted && isOwner
+    ?   '<button onclick="crAcc()" style="flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-check"></i> ACC Laporan</button>'
+    : '')
+    + (isAcc
+    ?   '<button onclick="crDownloadPDF()" style="flex:1;padding:12px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-file-download"></i> Download PDF</button>'
+    : '')
+    + (isOwner && !isDraft
+    ?   '<button onclick="crReset()" style="padding:12px 16px;background:none;border:1.5px solid #E24B4A;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#E24B4A;">Reset</button>'
+    : '')
+    + '</div>'
+    + '</div>';
 }
 
 function crAddRow() {
-  _crRows.push({ id: ++_crRowId, ket: '', jumlah: 0 });
-  crRenderRows();
-}
-
-function crRemoveRow(id) {
-  _crRows = _crRows.filter(r => r.id !== id);
-  crRenderRows();
-  crCalc();
-}
-
-function crRenderRows() {
-  const container = document.getElementById('cr-rows');
-  if (!container) return;
-  container.innerHTML = _crRows.map(r => `
-    <div style="display:flex;gap:6px;align-items:center;" id="cr-row-${r.id}">
-      <input type="text" placeholder="Keterangan pengeluaran..." value="${r.ket || ''}"
-        oninput="_crRows.find(x=>x.id===${r.id}).ket=this.value"
-        style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:var(--bg);">
-      <input type="text" inputmode="numeric" placeholder="0" value="${r.jumlah ? r.jumlah.toLocaleString('id-ID') : ''}"
-        oninput="var d=this.value.replace(/\\D/g,'');_crRows.find(x=>x.id===${r.id}).jumlah=parseInt(d)||0;this.value=d?parseInt(d).toLocaleString('id-ID'):'';crCalc()"
-        style="width:110px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:var(--bg);text-align:right;">
-      <button onclick="crRemoveRow(${r.id})" style="padding:6px 8px;background:rgba(226,75,74,0.1);border:none;border-radius:8px;cursor:pointer;color:#E24B4A;font-size:14px;">×</button>
-    </div>
-  `).join('');
-}
-
-function crCalc() {
-  const penjualanRaw = (document.getElementById('cr-cash-penjualan')?.value || '').replace(/\D/g,'');
-  const realRaw = (document.getElementById('cr-cash-real')?.value || '').replace(/\D/g,'');
-  const penjualan = parseInt(penjualanRaw) || 0;
-  const real = parseInt(realRaw) || 0;
-  const totalPengeluaran = _crRows.reduce((s,r) => s + (r.jumlah||0), 0);
-  const cashSistem = penjualan - totalPengeluaran;
-  const selisih = real - cashSistem;
-  const fmt = n => 'Rp ' + Math.round(n||0).toLocaleString('id-ID');
-
-  const elTP = document.getElementById('cr-total-pengeluaran');
-  const elSP = document.getElementById('cr-sum-penjualan');
-  const elSK = document.getElementById('cr-sum-pengeluaran');
-  const elCS = document.getElementById('cr-cash-sistem');
-  const elBV = document.getElementById('cr-balance-val');
-  const elBL = document.getElementById('cr-balance-label');
-  const elBB = document.getElementById('cr-balance-box');
-  if (elTP) elTP.textContent = fmt(totalPengeluaran);
-  if (elSP) elSP.textContent = fmt(penjualan);
-  if (elSK) elSK.textContent = fmt(totalPengeluaran);
-  if (elCS) elCS.textContent = fmt(cashSistem);
-  if (elBV) elBV.textContent = selisih === 0 ? 'Balance ✓' : (selisih > 0 ? 'Lebih ' + fmt(selisih) : 'Kurang ' + fmt(Math.abs(selisih)));
-  if (elBL) elBL.textContent = selisih === 0 ? 'Cash sesuai dengan sistem' : (selisih > 0 ? 'Cash real lebih dari sistem' : 'Cash real kurang dari sistem');
-  if (elBB) {
-    const ok = selisih === 0, pos = selisih > 0;
-    elBB.style.background = ok ? '#f0fdf4' : (pos ? '#fffbeb' : '#fff0f0');
-    elBB.style.borderColor = ok ? '#bbf7d0' : (pos ? '#fde68a' : '#fecaca');
-    if (elBV) elBV.style.color = ok ? '#15803d' : (pos ? '#b45309' : '#dc2626');
-  }
-}
-
-function submitCashReport() {
-  const session = getSession();
-  const tgl = document.getElementById('cr-tgl').value;
-  const penjualanRaw = (document.getElementById('cr-cash-penjualan').value || '').replace(/\D/g,'');
-  const realRaw = (document.getElementById('cr-cash-real').value || '').replace(/\D/g,'');
-  if (!tgl) { alert('Tanggal harus diisi!'); return; }
-  const cashPenjualan = parseInt(penjualanRaw) || 0;
-  const cashReal = parseInt(realRaw) || 0;
-  const validRows = _crRows.filter(r => r.ket && r.jumlah > 0);
-  const totalPengeluaran = validRows.reduce((s,r) => s + r.jumlah, 0);
-  const cashSistem = cashPenjualan - totalPengeluaran;
-  const selisih = cashReal - cashSistem;
-
-  const reports = getCashReports();
-  const modal = document.getElementById('cr-form-modal');
-  const editId = modal._editId;
-
-  const reportData = {
-    id: editId || 'cr_' + Date.now(),
-    tgl: tgl,
-    cashPenjualan: cashPenjualan,
-    pengeluaranItems: validRows.map((r,i) => ({id: i+1, ket: r.ket, jumlah: r.jumlah})),
-    totalPengeluaran: totalPengeluaran,
-    cashSistem: cashSistem,
-    cashReal: cashReal,
-    selisih: selisih,
-    status: 'submitted',
-    submittedBy: session ? session.nama : '-',
-    submittedAt: new Date().toISOString()
-  };
-
-  if (editId) {
-    const idx = reports.findIndex(r => r.id === editId);
-    if (idx !== -1) reports[idx] = reportData;
-    else reports.push(reportData);
-  } else {
-    reports.push(reportData);
-  }
-  saveCashReports(reports);
-  closeCashReportForm();
+  const cr = getCashReport() || { rows: [], cashReal: 0, status: 'draft' };
+  const today = new Date();
+  const tgl = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  cr.rows = cr.rows || [];
+  cr.rows.push({ hari: tgl, ket: '', debit: 0, kredit: 0 });
+  saveCashReport(cr);
   buildCashReportTab();
-  showToast('✅ Cash report berhasil disubmit!');
 }
 
+function crDeleteRow(idx) {
+  const cr = getCashReport() || { rows: [] };
+  cr.rows.splice(idx, 1);
+  saveCashReport(cr);
+  buildCashReportTab();
+}
 
-function accCashReport(id) {
+function crUpdateRow(idx, field, value) {
+  const cr = getCashReport() || { rows: [] };
+  if (cr.rows[idx]) cr.rows[idx][field] = value;
+  saveCashReport(cr);
+  // Rebuild hanya summary, tidak full rebuild agar input tidak kehilangan fokus
+  const rows = cr.rows || [];
+  const totalDebit  = rows.reduce((s, r) => s + (r.debit  || 0), 0);
+  const totalKredit = rows.reduce((s, r) => s + (r.kredit || 0), 0);
+  const cashSistem  = totalDebit - totalKredit;
+  const cashReal    = cr.cashReal || 0;
+  const selisih     = cashReal - cashSistem;
+}
+
+function crSetCashReal(val) {
+  const cr = getCashReport() || { rows: [], cashReal: 0, status: 'draft' };
+  cr.cashReal = val;
+  saveCashReport(cr);
+}
+
+function crSubmit() {
+  const session = getSession();
+  const cr = getCashReport();
+  if (!cr || !cr.rows || cr.rows.length === 0) { showToast('Tambahkan data dulu sebelum submit.'); return; }
+  if (!confirm('Submit laporan cash report ke owner?')) return;
+  cr.status = 'submitted';
+  cr.submittedBy = session ? session.nama : '-';
+  cr.submittedAt = new Date().toISOString();
+  saveCashReport(cr);
+  buildCashReportTab();
+  showToast('✅ Cash report disubmit!');
+}
+
+function crAcc() {
   const session = getSession();
   if (!session || session.role !== 'owner') { showToast('Hanya owner yang bisa ACC!'); return; }
   if (!confirm('ACC laporan cash report ini?')) return;
-  const reports = getCashReports();
-  const idx = reports.findIndex(r => r.id === id);
-  if (idx === -1) return;
-  reports[idx].status = 'acc';
-  reports[idx].accBy = session.nama;
-  reports[idx].accAt = new Date().toISOString();
-  saveCashReports(reports);
+  const cr = getCashReport();
+  cr.status = 'acc';
+  cr.accBy = session.nama;
+  cr.accAt = new Date().toISOString();
+  saveCashReport(cr);
   buildCashReportTab();
   showToast('✅ Cash report di-ACC!');
 }
 
-function downloadCashReportPDF(id) {
-  const reports = getCashReports();
-  const r = reports.find(x => x.id === id);
-  if (!r) return;
-  const fmt = n => 'Rp ' + Math.round(n||0).toLocaleString('id-ID');
-  const tglFmt = r.tgl ? new Date(r.tgl+'T00:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
-  const balance = r.selisih || 0;
-  const balanceText = balance === 0 ? 'BALANCE ✓' : (balance > 0 ? 'LEBIH ' + fmt(balance) : 'KURANG ' + fmt(Math.abs(balance)));
-  const balanceColor = balance === 0 ? '#15803d' : (balance > 0 ? '#b45309' : '#dc2626');
+function crReset() {
+  if (!confirm('Reset laporan? Semua data cash report akan dihapus.')) return;
+  saveCashReport({ rows: [], cashReal: 0, status: 'draft' });
+  buildCashReportTab();
+  showToast('Cash report direset.');
+}
 
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Cash Report ${r.tgl}</title>
-<style>
-  body{font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a18;}
-  h1{color:#093a72;font-size:20px;margin-bottom:4px;}
-  .sub{color:#6b7280;font-size:12px;margin-bottom:20px;}
-  table{width:100%;border-collapse:collapse;margin-bottom:16px;}
-  th{background:#093a72;color:#fff;padding:8px 12px;text-align:left;font-size:12px;}
-  td{padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;}
-  .summary-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e5e7eb;}
-  .summary-box{border:2px solid #093a72;border-radius:10px;padding:14px;margin-top:16px;}
-  .balance{font-size:22px;font-weight:800;color:${balanceColor};}
-  .stamp{background:#f0fdf4;border:2px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-top:12px;}
-  @media print{body{padding:0;}}
-</style></head><body>
-<h1>CASH REPORT — KONEO INDONESIA</h1>
-<div class="sub">${tglFmt}</div>
+function crDownloadPDF() {
+  const cr = getCashReport();
+  if (!cr) return;
+  const rows = cr.rows || [];
+  const totalDebit  = rows.reduce((s, r) => s + (r.debit  || 0), 0);
+  const totalKredit = rows.reduce((s, r) => s + (r.kredit || 0), 0);
+  const cashSistem  = totalDebit - totalKredit;
+  const cashReal    = cr.cashReal || 0;
+  const selisih     = cashReal - cashSistem;
+  const selisihOk   = selisih === 0;
+  const selisihTxt  = selisihOk ? 'BALANCE ✓' : (selisih > 0 ? 'LEBIH ' + _crFmt(selisih) : 'KURANG ' + _crFmt(Math.abs(selisih)));
+  const selisihClr  = selisihOk ? '#15803d' : (selisih > 0 ? '#b45309' : '#dc2626');
 
-<div class="summary-row"><span>Cash Penjualan Tunai</span><b style="color:#1D9E75">${fmt(r.cashPenjualan)}</b></div>
+  const tableRows = rows.map(function(r) {
+    const tglFmt = r.hari ? new Date(r.hari + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '-';
+    return '<tr><td>' + tglFmt + '</td><td>' + (r.ket||'-') + '</td>'
+      + '<td style="text-align:right;color:#1D9E75;">' + (r.debit ? _crFmt(r.debit) : '-') + '</td>'
+      + '<td style="text-align:right;color:#E24B4A;">' + (r.kredit ? _crFmt(r.kredit) : '-') + '</td></tr>';
+  }).join('');
 
-${r.pengeluaranItems && r.pengeluaranItems.length > 0 ? `
-<div style="margin:12px 0 8px;font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">DETAIL PENGELUARAN CASH</div>
-<table><tr><th>Keterangan</th><th style="text-align:right">Jumlah</th></tr>
-${r.pengeluaranItems.map(item => `<tr><td>${item.ket}</td><td style="text-align:right">${fmt(item.jumlah)}</td></tr>`).join('')}
-</table>` : ''}
-
-<div class="summary-box">
-  <div class="summary-row"><span>Cash Penjualan</span><b>${fmt(r.cashPenjualan)}</b></div>
-  <div class="summary-row"><span>Total Pengeluaran Cash</span><b style="color:#E24B4A">${fmt(r.totalPengeluaran)}</b></div>
-  <div class="summary-row" style="border-bottom:2px solid #093a72;margin-bottom:10px;padding-bottom:10px;"><span style="font-weight:700">Cash Sistem</span><b>${fmt(r.cashSistem)}</b></div>
-  <div class="summary-row"><span>Cash Real (Aktual)</span><b>${fmt(r.cashReal)}</b></div>
-  <div style="text-align:right;margin-top:8px;" class="balance">${balanceText}</div>
-</div>
-
-<div class="stamp" style="margin-top:16px;">
-  <div style="font-size:12px;color:#6b7280;">✅ Di-ACC oleh: <b>${r.accBy || '-'}</b></div>
-  <div style="font-size:12px;color:#6b7280;">Waktu ACC: ${r.accAt ? new Date(r.accAt).toLocaleString('id-ID') : '-'}</div>
-  <div style="font-size:12px;color:#6b7280;">Disubmit oleh: <b>${r.submittedBy || '-'}</b></div>
-</div>
-
-<div style="margin-top:20px;font-size:11px;color:#9ca3af;text-align:center;">Dicetak: ${new Date().toLocaleString('id-ID')} · Koneo Indonesia Dashboard</div>
-<script>window.onload=function(){window.print();};<\/script>
-</body></html>`;
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Report</title>'
+    + '<style>body{font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:24px;color:#1a1a18;}'
+    + 'h1{color:#093a72;font-size:18px;margin-bottom:4px;}'
+    + 'table{width:100%;border-collapse:collapse;margin-bottom:20px;}'
+    + 'th{background:#093a72;color:#fff;padding:9px 12px;text-align:left;font-size:12px;}'
+    + 'td{padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;}'
+    + 'tfoot td{font-weight:700;background:#f9fafb;}'
+    + '.summary{border:2px solid #093a72;border-radius:10px;padding:14px;}'
+    + '.srow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e5e7eb;}'
+    + '.selisih{font-size:20px;font-weight:800;color:' + selisihClr + ';text-align:right;margin-top:10px;}'
+    + '.stamp{margin-top:14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:12px;color:#6b7280;}'
+    + '@media print{body{padding:0;}}</style></head><body>'
+    + '<h1>CASH REPORT — KONEO INDONESIA</h1>'
+    + '<div style="font-size:12px;color:#6b7280;margin-bottom:16px;">Dicetak: ' + new Date().toLocaleString('id-ID') + '</div>'
+    + '<table><thead><tr><th>Hari</th><th>Keterangan</th><th style="text-align:right">Debit</th><th style="text-align:right">Kredit</th></tr></thead>'
+    + '<tbody>' + tableRows + '</tbody>'
+    + '<tfoot><tr><td colspan="2">TOTAL</td><td style="text-align:right;color:#1D9E75;">' + _crFmt(totalDebit) + '</td><td style="text-align:right;color:#E24B4A;">' + _crFmt(totalKredit) + '</td></tr></tfoot>'
+    + '</table>'
+    + '<div class="summary">'
+    +   '<div class="srow"><span>Total Cash Sistem (Debit − Kredit)</span><b>' + _crFmt(cashSistem) + '</b></div>'
+    +   '<div class="srow"><span>Total Cash Real</span><b>' + _crFmt(cashReal) + '</b></div>'
+    +   '<div class="selisih">' + selisihTxt + '</div>'
+    + '</div>'
+    + '<div class="stamp">✅ Di-ACC oleh: <b>' + (cr.accBy||'-') + '</b> &nbsp;·&nbsp; '
+    + 'Waktu ACC: ' + (cr.accAt ? new Date(cr.accAt).toLocaleString('id-ID') : '-') + '<br>'
+    + 'Disubmit oleh: <b>' + (cr.submittedBy||'-') + '</b></div>'
+    + '<scr'+'ipt>window.onload=function(){window.print()};<\/script>'
+    + '</body></html>';
 
   const w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
 
   setTimeout(function() {
-    if (confirm('Laporan berhasil didownload. Hapus data cash report ini dari dashboard? (Data pengeluaran di Finance tetap tersimpan)')) {
-      const updated = getCashReports().filter(x => x.id !== id);
-      saveCashReports(updated);
+    if (confirm('Laporan sudah didownload. Reset data cash report sekarang? (Siklus baru dimulai)')) {
+      saveCashReport({ rows: [], cashReal: 0, status: 'draft' });
       buildCashReportTab();
-      showToast('Data cash report dihapus dari dashboard.');
+      showToast('Cash report direset. Siap untuk siklus baru.');
     }
-  }, 1000);
+  }, 800);
 }
 </script>
 
