@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-047';
+  var VER = 'v20260715-048';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -9093,7 +9093,7 @@ function buildCashReportTab() {
     ?   '<button onclick="crAcc()" style="flex:1;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-check"></i> ACC Laporan</button>'
     : '')
     + (isAcc
-    ?   '<button onclick="crDownloadPDF()" style="flex:1;padding:12px;background:#093a72;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-file-download"></i> Download PDF</button>'
+    ?   '<button onclick="crShareWA()" style="flex:1;padding:12px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;"><i class="ti ti-brand-whatsapp"></i> Kirim via WhatsApp</button>'
     : '')
     + (isOwner && !isDraft
     ?   '<button onclick="crReset()" style="padding:12px 16px;background:none;border:1.5px solid #E24B4A;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#E24B4A;">Reset</button>'
@@ -9171,7 +9171,7 @@ function crReset() {
   showToast('Cash report direset.');
 }
 
-function crDownloadPDF() {
+function crShareWA() {
   const cr = getCashReport();
   if (!cr) return;
   const rows = cr.rows || [];
@@ -9181,56 +9181,42 @@ function crDownloadPDF() {
   const cashReal    = cr.cashReal || 0;
   const selisih     = cashReal - cashSistem;
   const selisihOk   = selisih === 0;
-  const selisihTxt  = selisihOk ? 'BALANCE ✓' : (selisih > 0 ? 'LEBIH ' + _crFmt(selisih) : 'KURANG ' + _crFmt(Math.abs(selisih)));
-  const selisihClr  = selisihOk ? '#15803d' : (selisih > 0 ? '#b45309' : '#dc2626');
+  const selisihTxt  = selisihOk ? '✅ BALANCE' : (selisih > 0 ? '⬆️ LEBIH ' + _crFmt(selisih) : '⬇️ KURANG ' + _crFmt(Math.abs(selisih)));
 
-  const tableRows = rows.map(function(r) {
-    const tglFmt = r.hari ? new Date(r.hari + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '-';
-    return '<tr><td>' + tglFmt + '</td><td>' + (r.ket||'-') + '</td>'
-      + '<td style="text-align:right;color:#1D9E75;">' + (r.debit ? _crFmt(r.debit) : '-') + '</td>'
-      + '<td style="text-align:right;color:#E24B4A;">' + (r.kredit ? _crFmt(r.kredit) : '-') + '</td></tr>';
-  }).join('');
+  var lines = [];
+  lines.push('📊 *CASH REPORT — KONEO INDONESIA*');
+  lines.push('🗓️ ' + new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}));
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  rows.forEach(function(r) {
+    var tgl = r.hari ? new Date(r.hari + 'T00:00:00').toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '-';
+    var debit  = r.debit  ? _crFmt(r.debit)  : '-';
+    var kredit = r.kredit ? _crFmt(r.kredit) : '-';
+    lines.push('📅 ' + tgl);
+    lines.push('   ' + (r.ket||'-'));
+    lines.push('   Debit: ' + debit + '  |  Kredit: ' + kredit);
+  });
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  lines.push('*Total Debit  :* ' + _crFmt(totalDebit));
+  lines.push('*Total Kredit :* ' + _crFmt(totalKredit));
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  lines.push('*Cash Sistem  :* ' + _crFmt(cashSistem));
+  lines.push('*Cash Real    :* ' + _crFmt(cashReal));
+  lines.push('*Selisih      :* ' + selisihTxt);
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  lines.push('✅ ACC oleh: *' + (cr.accBy||'-') + '*');
+  if (cr.accAt) lines.push('   ' + new Date(cr.accAt).toLocaleString('id-ID'));
+  lines.push('📤 Submit oleh: *' + (cr.submittedBy||'-') + '*');
 
-  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Report</title>'
-    + '<style>body{font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:24px;color:#1a1a18;}'
-    + 'h1{color:#093a72;font-size:18px;margin-bottom:4px;}'
-    + 'table{width:100%;border-collapse:collapse;margin-bottom:20px;}'
-    + 'th{background:#093a72;color:#fff;padding:9px 12px;text-align:left;font-size:12px;}'
-    + 'td{padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;}'
-    + 'tfoot td{font-weight:700;background:#f9fafb;}'
-    + '.summary{border:2px solid #093a72;border-radius:10px;padding:14px;}'
-    + '.srow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e5e7eb;}'
-    + '.selisih{font-size:20px;font-weight:800;color:' + selisihClr + ';text-align:right;margin-top:10px;}'
-    + '.stamp{margin-top:14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:12px;color:#6b7280;}'
-    + '@media print{body{padding:0;}}</style></head><body>'
-    + '<h1>CASH REPORT — KONEO INDONESIA</h1>'
-    + '<div style="font-size:12px;color:#6b7280;margin-bottom:16px;">Dicetak: ' + new Date().toLocaleString('id-ID') + '</div>'
-    + '<table><thead><tr><th>Hari</th><th>Keterangan</th><th style="text-align:right">Debit</th><th style="text-align:right">Kredit</th></tr></thead>'
-    + '<tbody>' + tableRows + '</tbody>'
-    + '<tfoot><tr><td colspan="2">TOTAL</td><td style="text-align:right;color:#1D9E75;">' + _crFmt(totalDebit) + '</td><td style="text-align:right;color:#E24B4A;">' + _crFmt(totalKredit) + '</td></tr></tfoot>'
-    + '</table>'
-    + '<div class="summary">'
-    +   '<div class="srow"><span>Total Cash Sistem (Debit − Kredit)</span><b>' + _crFmt(cashSistem) + '</b></div>'
-    +   '<div class="srow"><span>Total Cash Real</span><b>' + _crFmt(cashReal) + '</b></div>'
-    +   '<div class="selisih">' + selisihTxt + '</div>'
-    + '</div>'
-    + '<div class="stamp">✅ Di-ACC oleh: <b>' + (cr.accBy||'-') + '</b> &nbsp;·&nbsp; '
-    + 'Waktu ACC: ' + (cr.accAt ? new Date(cr.accAt).toLocaleString('id-ID') : '-') + '<br>'
-    + 'Disubmit oleh: <b>' + (cr.submittedBy||'-') + '</b></div>'
-    + '<scr'+'ipt>window.onload=function(){window.print()};<\/script>'
-    + '</body></html>';
-
-  const w = window.open('', '_blank');
-  w.document.write(html);
-  w.document.close();
+  var text = lines.join('\n');
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
 
   setTimeout(function() {
-    if (confirm('Laporan sudah didownload. Reset data cash report sekarang? (Siklus baru dimulai)')) {
+    if (confirm('Laporan sudah dikirim via WhatsApp. Reset data cash report sekarang? (Siklus baru dimulai)')) {
       saveCashReport({ rows: [], cashReal: 0, status: 'draft' });
       buildCashReportTab();
       showToast('Cash report direset. Siap untuk siklus baru.');
     }
-  }, 800);
+  }, 1000);
 }
 </script>
 
