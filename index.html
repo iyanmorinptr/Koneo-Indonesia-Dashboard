@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-049';
+  var VER = 'v20260715-050';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -2763,12 +2763,6 @@ async function initFirestore() {
       console.log('Migrasi selesai:', localKeys.length, 'keys diupload ke Firestore');
     }
 
-    // Force-sync kasir produk: selalu override Firestore dengan data localStorage owner
-    const kasirProdukLocal = localStorage.getItem('koneo_kasir_produk');
-    if (kasirProdukLocal) {
-      _cache['koneo_kasir_produk'] = kasirProdukLocal;
-      _db.collection('store').doc('koneo_kasir_produk').set({ v: kasirProdukLocal }).catch(console.error);
-    }
 
     // Migrate API key (stays local)
     const apiKey = localStorage.getItem('koneo_anthropic_key');
