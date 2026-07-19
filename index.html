@@ -10,7 +10,7 @@
 <script>
 // Force cache clear — fetch version.json fresh every load to detect CDN-cached old HTML
 (function(){
-  var VER = 'v20260715-050';
+  var VER = 'v20260715-051';
   var base = window.location.pathname.replace(/\/[^/]*$/, '/');
   // Fetch version.json with no-store to always get latest
   fetch(base + 'version.json?t=' + Date.now(), {cache: 'no-store'})
@@ -5319,7 +5319,7 @@ function saveKasirProduk() {
   var kategori = document.getElementById('kp-kategori').value.trim();
   var harga    = Number(document.getElementById('kp-harga').value.replace(/[^0-9]/g, '')) || 0;
   var editId   = document.getElementById('kasir-produk-edit-id').value;
-  if (!nama || !harga) { showToast('Nama dan harga wajib diisi!'); return; }
+  if (!nama || harga < 0) { showToast('Nama wajib diisi!'); return; }
   var produk = kasirDB_getProduk();
   var stasiun = document.getElementById('kp-stasiun').value || 'bar';
   if (editId) {
