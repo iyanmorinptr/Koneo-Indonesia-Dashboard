@@ -834,6 +834,11 @@ body {
         <button class="cart-clear-btn" onclick="clearKasirCart()">Hapus Semua</button>
       </div>
 
+      <div id="openBillSection" style="display:none;padding:8px 12px;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Open Bill</div>
+        <div id="openBillList"></div>
+      </div>
+
       <div class="cart-items" id="kasirCartItems">
         <div class="cart-empty">
           <i class="ti ti-shopping-cart-off"></i>
@@ -869,6 +874,9 @@ body {
           </div>
         </div>
         <div class="pay-buttons">
+          <button onclick="simpanOpenBill()" id="openBillBtn" disabled style="width:100%;margin-bottom:8px;padding:11px;background:none;border:1.5px solid #093a72;border-radius:10px;font-size:13px;font-weight:700;color:#093a72;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="ti ti-bookmark"></i> Simpan Open Bill
+          </button>
           <button class="pay-btn pay-btn-tunai" id="payTunaiBtn" onclick="openKasirPayment('tunai')" disabled>
             Tunai
           </button>
@@ -963,7 +971,7 @@ body {
 
 <script>
 // ===== VERSION CHECK & CACHE BUST =====
-var _APP_VERSION = 'v20260714-101';
+var _APP_VERSION = 'v20260714-102';
 (function(){
   var stored = localStorage.getItem('_kasir_app_version');
   if (stored !== _APP_VERSION) {
@@ -1020,6 +1028,7 @@ function showPosScreen() {
   // Update header label
   var lbl = document.getElementById('headerKasirLabel');
   if (lbl && _kasirOpenedBy) lbl.textContent = _kasirOpenedBy;
+  renderOpenBillList();
 }
 
 function localDateStr() {
@@ -1771,7 +1780,7 @@ function addToKasirCart(id) {
       item.qty++;
       showKasirToast(prod.nama + ' ×' + item.qty);
     } else {
-      kasirCart.push({ id: prod.id, nama: prod.nama, harga: prod.harga, qty: 1, stasiun: prod.stasiun || '-' });
+      kasirCart.push({ id: prod.id, nama: prod.nama, harga: prod.harga, qty: 1, stasiun: prod.stasiun || '-', notes: '' });
       showKasirToast('+ ' + prod.nama);
     }
     try { renderKasirCart(); } catch(e2) { showKasirToast('Error render cart: ' + e2.message); }
@@ -1813,9 +1822,13 @@ function renderKasirCart() {
   }
   el.innerHTML = kasirCart.map(function(item) {
     var sid = escHtml(String(item.id));
+    var notesVal = escHtml(item.notes || '');
     return '<div class="cart-item" data-item-id="' + sid + '">' +
       '<div class="cart-item-info">' +
         '<div class="cart-item-nama">' + escHtml(item.nama) + '</div>' +
+        '<input type="text" placeholder="Catatan untuk item ini..." value="' + notesVal + '"' +
+          ' oninput="setKasirItemNotes(\'' + sid + '\', this.value)"' +
+          ' style="width:100%;margin-top:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:inherit;color:var(--text3);background:var(--bg);outline:none;" />' +
         '<div class="cart-item-subtotal">' + kasirFmtRp(item.harga * item.qty) + '</div>' +
       '</div>' +
       '<div class="qty-controls">' +
@@ -1854,6 +1867,80 @@ function removeKasirItem(id) {
   renderKasirCart();
   updateKasirTotal();
   updateCartFab();
+}
+
+// ===== ITEM NOTES =====
+function setKasirItemNotes(id, notes) {
+  var item = kasirCart.find(function(i) { return i.id == id; });
+  if (item) { item.notes = notes; saveCartLocal(); }
+}
+
+// ===== OPEN BILL =====
+function getOpenBills() {
+  try { return JSON.parse(localStorage.getItem('koneo_open_bills') || '[]'); } catch(e) { return []; }
+}
+function saveOpenBills(arr) {
+  localStorage.setItem('koneo_open_bills', JSON.stringify(arr));
+}
+function simpanOpenBill() {
+  if (kasirCart.length === 0) { showKasirToast('Tambahkan item dulu!'); return; }
+  var nama = document.getElementById('kasirNamaPelanggan').value.trim() || ('Meja ' + (getOpenBills().length + 1));
+  var bill = {
+    id: 'OB-' + Date.now(),
+    nama: nama,
+    items: JSON.parse(JSON.stringify(kasirCart)),
+    diskon: parseInt(document.getElementById('kasirDiskon').value) || 0,
+    createdAt: new Date().toISOString(),
+    status: 'open'
+  };
+  var bills = getOpenBills();
+  bills.push(bill);
+  saveOpenBills(bills);
+  clearKasirCart();
+  renderOpenBillList();
+  showKasirToast('✅ Open bill "' + nama + '" disimpan!');
+}
+function loadOpenBill(id) {
+  var bills = getOpenBills();
+  var bill = bills.find(function(b) { return b.id === id; });
+  if (!bill) return;
+  if (kasirCart.length > 0 && !confirm('Cart saat ini akan diganti dengan open bill "' + bill.nama + '". Lanjut?')) return;
+  kasirCart = JSON.parse(JSON.stringify(bill.items));
+  document.getElementById('kasirNamaPelanggan').value = bill.nama;
+  document.getElementById('kasirDiskon').value = bill.diskon || '';
+  // Mark as loaded (remove from open bills)
+  bills = bills.filter(function(b) { return b.id !== id; });
+  saveOpenBills(bills);
+  renderKasirCart();
+  updateKasirTotal();
+  updateCartFab();
+  renderOpenBillList();
+  saveCartLocal();
+  showKasirToast('Open bill "' + bill.nama + '" dibuka!');
+}
+function deleteOpenBill(id) {
+  if (!confirm('Hapus open bill ini?')) return;
+  saveOpenBills(getOpenBills().filter(function(b) { return b.id !== id; }));
+  renderOpenBillList();
+}
+function renderOpenBillList() {
+  var bills = getOpenBills().filter(function(b) { return b.status === 'open'; });
+  var section = document.getElementById('openBillSection');
+  var list = document.getElementById('openBillList');
+  if (!section || !list) return;
+  if (bills.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = bills.map(function(b) {
+    var total = b.items.reduce(function(s, i) { return s + i.harga * i.qty; }, 0) - (b.diskon || 0);
+    var time = new Date(b.createdAt).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);">'
+      + '<div style="flex:1;cursor:pointer;" onclick="loadOpenBill(\'' + b.id + '\')">'
+      +   '<div style="font-size:12px;font-weight:700;color:var(--text);">' + escHtml(b.nama) + '</div>'
+      +   '<div style="font-size:11px;color:var(--text3);">' + b.items.length + ' item \xb7 ' + kasirFmtRp(total) + ' \xb7 ' + time + '</div>'
+      + '</div>'
+      + '<button onclick="deleteOpenBill(\'' + b.id + '\')" style="padding:4px 8px;background:none;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;font-size:11px;cursor:pointer;">Hapus</button>'
+      + '</div>';
+  }).join('');
 }
 
 // ===== TOTAL =====
@@ -1900,6 +1987,8 @@ function updateKasirTotal() {
 
   document.getElementById('payTunaiBtn').disabled = !hasItems;
   document.getElementById('payNontunaiBtn').disabled = !hasItems;
+  var openBillBtn = document.getElementById('openBillBtn');
+  if (openBillBtn) openBillBtn.disabled = !hasItems;
 }
 
 // ===== PAYMENT =====
@@ -1994,7 +2083,7 @@ function confirmKasirPayment() {
     id: trxId,
     tanggal: now.toISOString(),
     pelanggan: document.getElementById('kasirNamaPelanggan').value.trim() || '-',
-    items: kasirCart.map(function(i) { return { id: i.id, nama: i.nama, harga: i.harga, qty: i.qty, stasiun: i.stasiun || '-' }; }),
+    items: kasirCart.map(function(i) { return { id: i.id, nama: i.nama, harga: i.harga, qty: i.qty, stasiun: i.stasiun || '-', notes: i.notes || '' }; }),
     subtotal: getKasirSubtotal(),
     diskon: getKasirDiskon(),
     pajak: getKasirPajak(),
@@ -2033,7 +2122,8 @@ function buildStrukHTML(trx) {
   var metodeLabel = trx.metode === 'tunai' ? 'Tunai' : trx.metode === 'debit' ? 'Debit' : 'QRIS';
 
   var itemsHTML = trx.items.map(function(i) {
-    return '<tr><td>' + (i.nama||'') + ' <span style="color:#6b7280;">x' + i.qty + '</span></td><td style="text-align:right;">' + kasirFmtRp(i.harga * i.qty) + '</td></tr>';
+    var notesLine = (i.notes && i.notes.trim()) ? '<br><span style="font-size:11px;font-style:italic;color:#9ca3af;">' + escHtml(i.notes) + '</span>' : '';
+    return '<tr><td>' + escHtml(i.nama||'') + notesLine + ' <span style="color:#6b7280;">x' + i.qty + '</span></td><td style="text-align:right;">' + kasirFmtRp(i.harga * i.qty) + '</td></tr>';
   }).join('');
 
   var _koneoLogo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACPCAYAAAB9NdDOAAABWGlDQ1BJQ0MgUHJvZmlsZQAAeJx9kLFLw1AQxr9WpaB1EB0cHDKJQ5SSCro4tBVEcQhVweqUvqapkMZHkiIFN/+Bgv+BCs5uFoc6OjgIopPo5uSk4KLleS+JpCJ6j+N+fO+74zggOW5wbvcDqDu+W1zKK5ulLSX1jAS9IAzm8Zyur0r+rj/j/T703k7LWb///43Biukxqp+UGcZdH0ioxPqezyXvE4+5tBRxS7IV8onkcsjngWe9WCC+JlZYzagQvxCr5R7d6uG63WDRDnL7tOlsrMk5lBNYxA48cNgw0IQCHdk//LOBv4BdcjfhUp+FGnzqyZEiJ5jEy3DAMAOVWEOGUpN3ju53F91PjbWDJ2ChI4S4iLWVDnA2Rydrx9rUPDAyBFy1ueEagdRHmaxWgddTYLgEjN5Qz7ZXzWrh9uk8MPAoxNskkDoEui0hPo6E6B5T8wNw6XwBA6diE8HYWhMAAAQUSURBVHja7d3bjqwgEEBRNf3/v8w8mXSM016aRqha++kkZ1oQtsVFhHmapjJN01RKmSegAfM8l/Xfi+LAkxAQBAQBAQKCgEBTXorgHu9TCSumsgjYVLijvyEkAZuId/RbIhKwmXRH1yMjAZuJJyoSsBvxiLjPQr728m3TfzoPBFTxU1YJXxnF6z1vmZrlhXzyKQKq0LTRcCGf/BNQ5aWVcCGfUTsBVVTaB2tROe6TgCol7f0uKsN9E5B8ae/fNyEgoOiXtxwWhU5CApIvbbnoA5KQgKKfQQj5REECQgT0VIuCBIQI6GkWBQkIEdBTLAqKgBABgXwCan7jl6MICAKCgAABQUAdZxAQBEQwem1RCAgCgoAAAZGPcHtEZ9hh3vZsAAGhCe6kqc12wEspZd67Z1tzPNTPy3rgX4Ry0ASDgEa/ee9XBAQBWzDS+SGZzhBOs0FlKWVeR49nf19LgivpzfNc1ry2KJfH63Kapu6mMM4UZK387qX1y7LYplczrZblViuf6Q6sfrpCsk4ZhesDWrIfozwc00C+R3lFKfyMTZujulSG+yUgCAgQEAQEIgh4d0SbZSBy9z57nCkQAUHAUZ7WvUg0ysqVXsszXARsJcM2nafSFQETPrX/SdCrHD23Jt1HwN7WxR1duzcJe+/KDPEueC3E7IsPrtz/KO/Gh1qMsC3UTxWyrizOIt+o9zr0apinC73lR+FRV/uYB6wkhJXOCSNgb1GXhAT82HcaSZAsC22XLPKNNIp+z2f0b4SXqOKNNll8lL+oIqZ8FddjZZ7Nk1dxg8vXm4h38mCL3gDyPS3it2lGkfCVXb6WI+ba0kR427OQz/0TEGmxNccOv2rWfnXdkaOgCAgC6vvlLQ8REATs7Wn/1fVHzTcBA0iuy7CP9YAfRqvfTkzv/Z6ImzKaOtyk/MlIslcO36RZ+3p30+y1DkXAABVqEAIQEAQECAgCBhoBj5jOSFM9IuBDI10jawI+LgMJCQgCjo1XawQcUqJMp6ITUCQjIEDAylFw/fvMOxt8i9Uw/8gxwofpIiBRySUC/j4SbrfA+LSFWst9owmYSMSzMpFOEwwCAgQEAeti9QgB4UHNPQoWBUVAgICIQZqJ6FrveK9e58zEdOZuxSuqaO8Ve/cAmE9i7O1QX3uX/W2eIoqa/lXclUOv9xYgHEmxvku+ItHRMWORRAzbB7yzxVopZb5auS2+VY7cRIcVcPvNxdE2ae///8sVLWu+/vsm5EyeCDhoNKx5nVqSZl89k6IP+M2RVkcnpN9Zlm8yPUkf8ChK1RDh6jXuphk1UoaPgO+DkU+R8NtteM8Odo6mVo6iarTouUQUbq+S/qu4oya2VlNdI0pGbLqH26QcMfrkqUbB0AQDBAQBAQKiH/4A5BV4M0bGX4gAAAAASUVORK5CYII=';
@@ -2854,6 +2944,7 @@ async function btPrintStruk(trx) {
     (trx.items||[]).forEach(function(item) {
       p.line(item.nama)
        .row('  '+item.qty+' x '+fmtRpPrint(item.harga), fmtRpPrint(item.qty*item.harga));
+      if (item.notes && item.notes.trim()) p.line('  *' + item.notes.trim());
     });
     p.divider();
     if (trx.diskon > 0) p.row('Diskon:', '-'+fmtRpPrint(trx.diskon));
@@ -2900,6 +2991,7 @@ async function btPrintChecker(trx, station) {
     p.divider().bold(true);
     items.forEach(function(item) {
       p.line(item.qty + 'x  ' + item.nama);
+      if (item.notes && item.notes.trim()) p.line('   *' + item.notes.trim());
     });
     p.bold(false).divider().feed(3).cut();
     await btSend(p.build());
