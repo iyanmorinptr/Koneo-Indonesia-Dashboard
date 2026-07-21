@@ -971,7 +971,7 @@ body {
 
 <script>
 // ===== VERSION CHECK & CACHE BUST =====
-var _APP_VERSION = 'v20260714-103';
+var _APP_VERSION = 'v20260714-104';
 (function(){
   var stored = localStorage.getItem('_kasir_app_version');
   if (stored !== _APP_VERSION) {
@@ -2129,7 +2129,6 @@ function buildStrukHTML(trx) {
   var html =
     '<div style="text-align:center;margin-bottom:14px;">' +
       '<div style="font-size:20px;font-weight:900;letter-spacing:1px;color:#093a72;">KONEO INDONESIA</div>' +
-      '<div style="font-size:13px;font-weight:700;color:#555;margin-top:2px;">MIPO GROUP</div>' +
       '<div style="font-size:11px;color:#9ca3af;letter-spacing:0.5px;margin-top:3px;">FIRST BINGSOO BAR IN BALI</div>' +
     '</div>' +
     '<div style="border-top:1px dashed #d1d5db;margin:10px 0;"></div>' +
@@ -2923,7 +2922,6 @@ async function btPrintStruk(trx) {
 
     var p = escPos()
       .align('c').bold(true).size('large').line('KONEO INDONESIA').size('normal').bold(false)
-      .align('c').bold(true).line('MIPO GROUP').bold(false)
       .align('c').line('FIRST BINGSOO BAR IN BALI')
       .align('c').line('Jl. Nangka Utara, 189 Denpasar')
       .divider()
