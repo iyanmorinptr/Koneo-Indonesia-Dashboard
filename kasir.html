@@ -971,7 +971,7 @@ body {
 
 <script>
 // ===== VERSION CHECK & CACHE BUST =====
-var _APP_VERSION = 'v20260714-102';
+var _APP_VERSION = 'v20260714-103';
 (function(){
   var stored = localStorage.getItem('_kasir_app_version');
   if (stored !== _APP_VERSION) {
@@ -2126,11 +2126,11 @@ function buildStrukHTML(trx) {
     return '<tr><td>' + escHtml(i.nama||'') + notesLine + ' <span style="color:#6b7280;">x' + i.qty + '</span></td><td style="text-align:right;">' + kasirFmtRp(i.harga * i.qty) + '</td></tr>';
   }).join('');
 
-  var _koneoLogo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACPCAYAAAB9NdDOAAABWGlDQ1BJQ0MgUHJvZmlsZQAAeJx9kLFLw1AQxr9WpaB1EB0cHDKJQ5SSCro4tBVEcQhVweqUvqapkMZHkiIFN/+Bgv+BCs5uFoc6OjgIopPo5uSk4KLleS+JpCJ6j+N+fO+74zggOW5wbvcDqDu+W1zKK5ulLSX1jAS9IAzm8Zyur0r+rj/j/T703k7LWb///43Biukxqp+UGcZdH0ioxPqezyXvE4+5tBRxS7IV8onkcsjngWe9WCC+JlZYzagQvxCr5R7d6uG63WDRDnL7tOlsrMk5lBNYxA48cNgw0IQCHdk//LOBv4BdcjfhUp+FGnzqyZEiJ5jEy3DAMAOVWEOGUpN3ju53F91PjbWDJ2ChI4S4iLWVDnA2Rydrx9rUPDAyBFy1ueEagdRHmaxWgddTYLgEjN5Qz7ZXzWrh9uk8MPAoxNskkDoEui0hPo6E6B5T8wNw6XwBA6diE8HYWhMAAAQUSURBVHja7d3bjqwgEEBRNf3/v8w8mXSM016aRqha++kkZ1oQtsVFhHmapjJN01RKmSegAfM8l/Xfi+LAkxAQBAQBAQKCgEBTXorgHu9TCSumsgjYVLijvyEkAZuId/RbIhKwmXRH1yMjAZuJJyoSsBvxiLjPQr728m3TfzoPBFTxU1YJXxnF6z1vmZrlhXzyKQKq0LTRcCGf/BNQ5aWVcCGfUTsBVVTaB2tROe6TgCol7f0uKsN9E5B8ae/fNyEgoOiXtxwWhU5CApIvbbnoA5KQgKKfQQj5REECQgT0VIuCBIQI6GkWBQkIEdBTLAqKgBABgXwCan7jl6MICAKCgAABQUAdZxAQBEQwem1RCAgCgoAAAZGPcHtEZ9hh3vZsAAGhCe6kqc12wEspZd67Z1tzPNTPy3rgX4Ry0ASDgEa/ee9XBAQBWzDS+SGZzhBOs0FlKWVeR49nf19LgivpzfNc1ry2KJfH63Kapu6mMM4UZK387qX1y7LYplczrZblViuf6Q6sfrpCsk4ZhesDWrIfozwc00C+R3lFKfyMTZujulSG+yUgCAgQEAQEIgh4d0SbZSBy9z57nCkQAUHAUZ7WvUg0ysqVXsszXARsJcM2nafSFQETPrX/SdCrHD23Jt1HwN7WxR1duzcJe+/KDPEueC3E7IsPrtz/KO/Gh1qMsC3UTxWyrizOIt+o9zr0apinC73lR+FRV/uYB6wkhJXOCSNgb1GXhAT82HcaSZAsC22XLPKNNIp+z2f0b4SXqOKNNll8lL+oIqZ8FddjZZ7Nk1dxg8vXm4h38mCL3gDyPS3it2lGkfCVXb6WI+ba0kR427OQz/0TEGmxNccOv2rWfnXdkaOgCAgC6vvlLQ8REATs7Wn/1fVHzTcBA0iuy7CP9YAfRqvfTkzv/Z6ImzKaOtyk/MlIslcO36RZ+3p30+y1DkXAABVqEAIQEAQECAgCBhoBj5jOSFM9IuBDI10jawI+LgMJCQgCjo1XawQcUqJMp6ITUCQjIEDAylFw/fvMOxt8i9Uw/8gxwofpIiBRySUC/j4SbrfA+LSFWst9owmYSMSzMpFOEwwCAgQEAeti9QgB4UHNPQoWBUVAgICIQZqJ6FrveK9e58zEdOZuxSuqaO8Ve/cAmE9i7O1QX3uX/W2eIoqa/lXclUOv9xYgHEmxvku+ItHRMWORRAzbB7yzxVopZb5auS2+VY7cRIcVcPvNxdE2ae///8sVLWu+/vsm5EyeCDhoNKx5nVqSZl89k6IP+M2RVkcnpN9Zlm8yPUkf8ChK1RDh6jXuphk1UoaPgO+DkU+R8NtteM8Odo6mVo6iarTouUQUbq+S/qu4oya2VlNdI0pGbLqH26QcMfrkqUbB0AQDBAQBAQKiH/4A5BV4M0bGX4gAAAAASUVORK5CYII=';
   var html =
     '<div style="text-align:center;margin-bottom:14px;">' +
-      '<img src="' + _koneoLogo + '" style="width:90px;height:auto;display:block;margin:0 auto 6px;" alt="Koneo">' +
-      '<div style="font-size:11px;color:#9ca3af;letter-spacing:0.5px;">FIRST BINGSOO BAR IN BALI</div>' +
+      '<div style="font-size:20px;font-weight:900;letter-spacing:1px;color:#093a72;">KONEO INDONESIA</div>' +
+      '<div style="font-size:13px;font-weight:700;color:#555;margin-top:2px;">MIPO GROUP</div>' +
+      '<div style="font-size:11px;color:#9ca3af;letter-spacing:0.5px;margin-top:3px;">FIRST BINGSOO BAR IN BALI</div>' +
     '</div>' +
     '<div style="border-top:1px dashed #d1d5db;margin:10px 0;"></div>' +
     '<div style="font-size:12px;color:#6b7280;margin-bottom:8px;">' +
@@ -2157,10 +2157,10 @@ function buildStrukHTML(trx) {
     '<div style="text-align:center;font-size:12px;color:#6b7280;margin-top:4px;">' +
       '<div style="font-weight:700;color:#111;font-size:13px;">Terima kasih!</div>' +
       '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #e5e7eb;">' +
-        '<div style="font-size:10px;color:#9ca3af;letter-spacing:0.5px;margin-bottom:3px;">Powered by</div>' +
-        '<div style="font-size:14px;font-size:0;">MIPO GROUP</div>' +
-      '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIIAAACiCAYAAACNrxXLAAACXUlEQVR42u3d0U6DMBSAYQ/Z+7/y8YpsIYMxaEs7vv9SjdL2k3a4xMjMP2kyBQJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgECQSBIBAEgkAQCKoFISIyIi79f8I9XMOtIbxO/lUL0cM1uCNsLEprBOrsjNBqcSAY4LBYe5EgGOhVQ63FgqBzCJkZmRk1F+3d91v+THX6HKEUBggGg/Bucc5igKBdj5LfLDNjuXgRkaUWrwcEr+Pbwv/6ua2P7R3f8utLz0XxraHUnaH2wGtsW3sfcq19bu1J6drHSp7FqpwRzi7aCAhKztXywL0G6tPXdnlYPPpK4m4Ijm5D3W8NZzCMjKDmc44W8zC1Vr+1P46EYL6+M9c97/PL/f7bsZdAOLWctD2HrLu/RDwy9hLzNV01wHnxR0awvCscXcR3h8BW205zCHvuDHe7E3wa7zfPFc72uGLwnhg+F3PvuNcWvtS8TT38JoyMYL72Wnv71pZRct4iMw9JLnExZx8/l7oOXfwuZosHgkAQCAJBIAgEgSAQBIJA0Mg9fmUg/u5wwR2hl4m+8o0cv9ahvz72fDdwV7gxBDksCgSBIBAEgkAQCAJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgEgSAQBIJAEAgSCAJBIAgEgSAQBIJAEAgCQSAIBIEgEASCQBAIAkEgCASBIBAEgkAQCAJBIAgEddY/XwYzTkM0ab4AAAAASUVORK5CYII=" style="height:28px;width:auto;display:block;margin:4px auto 0;" alt="MIPO GROUP">' +
-    '</div>';
+        '<div style="font-size:11px;color:#6b7280;margin-bottom:2px;">WiFi : <b>Bingsoo123</b></div>' +
+        '<div style="font-size:10px;color:#9ca3af;letter-spacing:0.5px;margin-top:6px;">Powered by</div>' +
+        '<div style="font-size:13px;font-weight:800;color:#555;letter-spacing:0.5px;">MIPO GROUP</div>' +
+      '</div>';
 
   return html;
 }
@@ -2921,17 +2921,10 @@ async function btPrintStruk(trx) {
     var initCmd = new Uint8Array([0x1B, 0x40]);
     await btSend(initCmd);
 
-    // Cetak logo Koneo (80px lebar, rata tengah)
-    var alignCenter = new Uint8Array([0x1B, 0x61, 0x01]);
-    await btSend(alignCenter);
-    if (window._KONEO_LOGO_B64) {
-      var logoBytes = await imgToEscPos(window._KONEO_LOGO_B64, 200);
-      if (logoBytes.length > 8) await btSend(logoBytes);
-    }
-    await btSend(new Uint8Array([0x0A])); // LF
-
     var p = escPos()
-      .align('c').bold(true).size('normal').line('FIRST BINGSOO BAR IN BALI').bold(false)
+      .align('c').bold(true).size('large').line('KONEO INDONESIA').size('normal').bold(false)
+      .align('c').bold(true).line('MIPO GROUP').bold(false)
+      .align('c').line('FIRST BINGSOO BAR IN BALI')
       .align('c').line('Jl. Nangka Utara, 189 Denpasar')
       .divider()
       .align('l')
@@ -2952,16 +2945,10 @@ async function btPrintStruk(trx) {
     p.bold(true).row('TOTAL:', fmtRpPrint(trx.total)).bold(false);
     p.row('Bayar ('+((trx.metodePembayaran||'tunai').toUpperCase())+')', fmtRpPrint(trx.bayar||trx.total));
     if ((trx.bayar||0) > (trx.total||0)) p.row('Kembali:', fmtRpPrint((trx.bayar||0)-(trx.total||0)));
-    p.divider().align('c').line('Terima kasih!').line('Sampai jumpa lagi :)').feed(1);
+    p.divider().align('c').line('Terima kasih!').line('Sampai jumpa lagi :)')
+     .line('WiFi: Bingsoo123')
+     .line('').bold(true).line('MIPO GROUP').bold(false).feed(1);
     await btSend(p.build());
-
-    // Cetak logo MIPO di bawah
-    if (window._MIPO_LOGO_B64) {
-      var alignC2 = new Uint8Array([0x1B, 0x61, 0x01]);
-      await btSend(alignC2);
-      var mipoBuf = await imgToEscPos(window._MIPO_LOGO_B64, 160);
-      if (mipoBuf.length > 8) await btSend(mipoBuf);
-    }
     await btSend(new Uint8Array([0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41, 0x00])); // feed+cut
     showKasirToast('✅ Struk terkirim ke printer');
   } catch(e) {
